@@ -62,7 +62,7 @@ export default function Sidebar() {
     <motion.aside
       initial={{ x: -300 }}
       animate={{ x: 0 }}
-      className="w-64 bg-white border-r border-gray-200 flex flex-col"
+      className="w-64 h-full bg-white border-r border-gray-200 flex flex-col"
     >
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">

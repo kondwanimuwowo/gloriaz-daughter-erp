@@ -7,18 +7,19 @@ import {
   Settings,
   LogOut,
   Shield,
+  Menu,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
-export default function Navbar() {
+export default function Navbar({ onMenuClick }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const profileRef = useRef(null);
   const { profile, signOut } = useAuthStore();
   const navigate = useNavigate();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -45,23 +46,44 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4">
       <div className="flex items-center justify-between">
-        <div className="flex-1 max-w-lg">
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="search"
-              placeholder="Search orders, materials, customers..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-            />
+        {/* Left Side - Menu & Search */}
+        <div className="flex items-center gap-3 flex-1">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Menu size={20} className="text-gray-600" />
+          </button>
+
+          {/* Search - Desktop */}
+          <div className="hidden md:block flex-1 max-w-lg">
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={20}
+              />
+              <input
+                type="search"
+                placeholder="Search orders, materials, customers..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+              />
+            </div>
           </div>
+
+          {/* Search - Mobile Toggle */}
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <Search size={20} className="text-gray-600" />
+          </button>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Right Side - Notifications & Profile */}
+        <div className="flex items-center gap-2 md:gap-4">
           {/* Notifications */}
           <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <Bell size={20} className="text-gray-600" />
@@ -72,9 +94,9 @@ export default function Navbar() {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center gap-2 md:gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium text-sm md:text-base">
                 {profile?.full_name
                   ?.split(" ")
                   .map((n) => n[0])
@@ -90,7 +112,10 @@ export default function Navbar() {
                   {profile?.role || "employee"}
                 </p>
               </div>
-              <ChevronDown size={16} className="text-gray-400" />
+              <ChevronDown
+                size={16}
+                className="text-gray-400 hidden md:block"
+              />
             </button>
 
             {/* Dropdown Menu */}
@@ -114,11 +139,11 @@ export default function Navbar() {
                           .toUpperCase()
                           .slice(0, 2) || "U"}
                       </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">
                           {profile?.full_name || "User"}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 truncate">
                           {profile?.email}
                         </p>
                       </div>
@@ -186,6 +211,31 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Search Dropdown */}
+      <AnimatePresence>
+        {showSearch && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden mt-3"
+          >
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={20}
+              />
+              <input
+                type="search"
+                placeholder="Search..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                autoFocus
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

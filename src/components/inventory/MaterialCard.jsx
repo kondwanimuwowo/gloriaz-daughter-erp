@@ -104,22 +104,24 @@ export default function MaterialCard({
       )}
 
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 sm:flex gap-2">
         <Button
           variant="ghost"
           onClick={() => onUpdateStock(material, "add")}
-          className="flex-1 text-green-600 hover:bg-green-50"
+          className="flex-1 text-green-600 hover:bg-green-50 text-sm"
           icon={Plus}
         >
-          Add
+          <span className="hidden sm:inline">Add</span>
+          <span className="sm:hidden">+</span>
         </Button>
         <Button
           variant="ghost"
           onClick={() => onUpdateStock(material, "subtract")}
-          className="flex-1 text-orange-600 hover:bg-orange-50"
+          className="flex-1 text-orange-600 hover:bg-orange-50 text-sm"
           icon={Minus}
         >
-          Use
+          <span className="hidden sm:inline">Use</span>
+          <span className="sm:hidden">-</span>
         </Button>
         <Button
           variant="ghost"

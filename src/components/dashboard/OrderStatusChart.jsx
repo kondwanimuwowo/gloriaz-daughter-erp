@@ -6,17 +6,17 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
+import { motion } from "framer-motion";
 import Card from "../common/Card";
-import { ShoppingCart } from "lucide-react";
 
-const STATUS_COLORS = {
-  enquiry: "#9ca3af",
+const COLORS = {
+  enquiry: "#6b7280",
   contacted: "#3b82f6",
-  measurements: "#a855f7",
+  measurements: "#8b5cf6",
   production: "#eab308",
   fitting: "#f97316",
-  completed: "#22c55e",
-  delivered: "#10b981",
+  completed: "#10b981",
+  delivered: "#059669",
   cancelled: "#ef4444",
 };
 
@@ -31,58 +31,118 @@ const STATUS_LABELS = {
   cancelled: "Cancelled",
 };
 
-export default function OrderStatusChart({ ordersByStatus = {} }) {
-  const data = Object.entries(ordersByStatus)
-    .filter(([_, value]) => value > 0)
-    .map(([status, value]) => ({
-      name: STATUS_LABELS[status] || status,
-      value,
-      color: STATUS_COLORS[status] || "#9ca3af",
-    }));
+export default function OrderStatusChart({ data }) {
+  // Check if we have valid data
+  const hasData =
+    data &&
+    Array.isArray(data) &&
+    data.length > 0 &&
+    data.some((item) => item.count > 0);
 
-  if (data.length === 0) {
+  if (!hasData) {
     return (
       <Card>
-        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <ShoppingCart className="text-primary-600" size={24} />
-          Order Distribution
-        </h2>
-        <div className="text-center py-12 text-gray-500">
-          No orders to display
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Orders by Status
+        </h3>
+        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+          <svg
+            className="w-16 h-16 mb-4 text-gray-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          <p className="text-sm">No orders yet</p>
+          <p className="text-xs mt-1">
+            Create your first order to see the distribution
+          </p>
         </div>
       </Card>
     );
   }
 
+  const chartData = data.map((item) => ({
+    name:
+      STATUS_LABELS[item.status] ||
+      item.status.charAt(0).toUpperCase() + item.status.slice(1),
+    value: item.count,
+    status: item.status,
+  }));
+
+  const totalOrders = chartData.reduce((sum, item) => sum + item.value, 0);
+
   return (
     <Card>
-      <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <ShoppingCart className="text-primary-600" size={24} />
-        Order Distribution
-      </h2>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Orders by Status
+        <span className="ml-2 text-sm font-normal text-gray-500">
+          ({totalOrders} total)
+        </span>
+      </h3>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) =>
+                `${name}: ${(percent * 100).toFixed(0)}%`
+              }
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[entry.status] || "#999"}
+                />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#fff",
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              }}
+              formatter={(value, name) => [`${value} orders`, name]}
+            />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </motion.div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={({ name, percent }) =>
-              `${name}: ${(percent * 100).toFixed(0)}%`
-            }
-            outerRadius={100}
-            fill="#8884d8"
-            dataKey="value"
+      {/* Legend with counts */}
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        {chartData.map((item) => (
+          <div
+            key={item.status}
+            className="flex items-center gap-2 p-2 bg-gray-50 rounded"
           >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip formatter={(value) => [`${value} orders`, "Count"]} />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
+            <div
+              className="w-3 h-3 rounded-full flex-shrink-0"
+              style={{ backgroundColor: COLORS[item.status] }}
+            />
+            <span className="text-sm text-gray-700 truncate">
+              {item.name}: <strong>{item.value}</strong>
+            </span>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }

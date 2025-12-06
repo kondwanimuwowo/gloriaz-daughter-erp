@@ -5,6 +5,7 @@ import Card from "../common/Card";
 import Button from "../common/Button";
 import { employeeService } from "../../services/employeeService";
 import toast from "react-hot-toast";
+import ResponsiveTable from "../common/ResponsiveTable";
 
 export default function AttendanceTable({ employee }) {
   const [attendance, setAttendance] = useState([]);
@@ -172,7 +173,7 @@ export default function AttendanceTable({ employee }) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <ResponsiveTable>
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">
@@ -248,7 +249,7 @@ export default function AttendanceTable({ employee }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ResponsiveTable>
         </div>
       )}
     </Card>
