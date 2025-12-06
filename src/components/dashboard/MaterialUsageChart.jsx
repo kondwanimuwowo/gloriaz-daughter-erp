@@ -1,6 +1,6 @@
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -11,15 +11,15 @@ import {
 import { motion } from "framer-motion";
 import Card from "../common/Card";
 
-export default function RevenueChart({ data }) {
+export default function MaterialUsageChart({ data }) {
   if (!data || data.length === 0) {
     return (
       <Card>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Revenue Trend
+          Top Materials Used
         </h3>
         <div className="text-center py-8 text-gray-500">
-          No revenue data available
+          No material usage data available
         </div>
       </Card>
     );
@@ -28,7 +28,7 @@ export default function RevenueChart({ data }) {
   return (
     <Card>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Revenue Trend
+        Top Materials Used
       </h3>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -36,14 +36,17 @@ export default function RevenueChart({ data }) {
         transition={{ duration: 0.5 }}
       >
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" stroke="#666" style={{ fontSize: "12px" }} />
-            <YAxis
+            <XAxis
+              dataKey="name"
               stroke="#666"
-              style={{ fontSize: "12px" }}
-              tickFormatter={(value) => `K${value ?? 0}`}
+              style={{ fontSize: "11px" }}
+              angle={-45}
+              textAnchor="end"
+              height={80}
             />
+            <YAxis stroke="#666" style={{ fontSize: "12px" }} />
             <Tooltip
               contentStyle={{
                 backgroundColor: "#fff",
@@ -51,23 +54,34 @@ export default function RevenueChart({ data }) {
                 borderRadius: "8px",
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               }}
-              formatter={(value) => {
+              formatter={(value, name) => {
                 const n = Number(value);
-                const num = Number.isFinite(n) ? n : 0;
-                return [`K${num.toFixed(2)}`, "Revenue"];
+                const isNum = Number.isFinite(n);
+                const lname = String(name || "").toLowerCase();
+                if (isNum) {
+                  if (lname.includes("quantity"))
+                    return [n.toFixed(2), "Quantity Used"];
+                  if (lname.includes("cost"))
+                    return [`K${n.toFixed(2)}`, "Total Cost"];
+                  return [n, name];
+                }
+                return [value, name];
               }}
             />
             <Legend />
-            <Line
-              type="monotone"
-              dataKey="revenue"
-              stroke="#ec4899"
-              strokeWidth={3}
-              dot={{ fill: "#ec4899", r: 5 }}
-              activeDot={{ r: 7 }}
-              name="Revenue"
+            <Bar
+              dataKey="quantity"
+              fill="#ec4899"
+              name="Quantity Used"
+              radius={[8, 8, 0, 0]}
             />
-          </LineChart>
+            <Bar
+              dataKey="cost"
+              fill="#8b5cf6"
+              name="Total Cost"
+              radius={[8, 8, 0, 0]}
+            />
+          </BarChart>
         </ResponsiveContainer>
       </motion.div>
     </Card>

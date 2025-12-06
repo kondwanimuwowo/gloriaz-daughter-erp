@@ -87,13 +87,21 @@ export const inventoryService = {
 
   // Get low stock materials
   async getLowStockMaterials() {
-    const { data, error } = await supabase
+    // Supabase REST does not support column-to-column comparisons in filters.
+    // Fetch materials and compute low-stock client-side.
+    const { data: materials, error } = await supabase
       .from("materials")
       .select("*")
-      .filter("stock_quantity", "lte", "min_stock_level");
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data;
+
+    const lowStock = (materials || []).filter(
+      (m) =>
+        parseFloat(m.stock_quantity || 0) <= parseFloat(m.min_stock_level || 0)
+    );
+
+    return lowStock;
   },
 
   // Search materials

@@ -1,6 +1,49 @@
-import { Bell, Search } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import {
+  Bell,
+  Search,
+  ChevronDown,
+  User,
+  Settings,
+  LogOut,
+  Shield,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileRef = useRef(null);
+  const { profile, signOut } = useAuthStore();
+  const navigate = useNavigate();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
+
+  const getRoleBadgeColor = (role) => {
+    const colors = {
+      admin: "bg-red-100 text-red-700",
+      manager: "bg-blue-100 text-blue-700",
+      employee: "bg-green-100 text-green-700",
+    };
+    return colors[role] || "bg-gray-100 text-gray-700";
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -19,15 +62,127 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Notifications */}
           <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <Bell size={20} className="text-gray-600" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
-              GD
-            </div>
+          {/* User Profile Dropdown */}
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
+                {profile?.full_name
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2) || "U"}
+              </div>
+              <div className="text-left hidden md:block">
+                <p className="text-sm font-semibold text-gray-900">
+                  {profile?.full_name || "User"}
+                </p>
+                <p className="text-xs text-gray-500 capitalize">
+                  {profile?.role || "employee"}
+                </p>
+              </div>
+              <ChevronDown size={16} className="text-gray-400" />
+            </button>
+
+            {/* Dropdown Menu */}
+            <AnimatePresence>
+              {showProfileMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50"
+                >
+                  {/* Profile Info */}
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        {profile?.full_name
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2) || "U"}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">
+                          {profile?.full_name || "User"}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {profile?.email}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(profile?.role)}`}
+                    >
+                      {profile?.role === "admin" && <Shield size={12} />}
+                      {profile?.role?.charAt(0).toUpperCase() +
+                        profile?.role?.slice(1)}
+                    </span>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-2">
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        navigate("/profile");
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <User size={18} />
+                      <span>My Profile</span>
+                    </button>
+
+                    {profile?.role === "admin" && (
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          navigate("/users");
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <Shield size={18} />
+                        <span>User Management</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        navigate("/settings");
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Settings size={18} />
+                      <span>Settings</span>
+                    </button>
+                  </div>
+
+                  {/* Sign Out */}
+                  <div className="border-t border-gray-100 py-2">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut size={18} />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

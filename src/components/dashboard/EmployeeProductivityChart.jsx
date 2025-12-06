@@ -1,6 +1,6 @@
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -11,15 +11,15 @@ import {
 import { motion } from "framer-motion";
 import Card from "../common/Card";
 
-export default function RevenueChart({ data }) {
+export default function EmployeeProductivityChart({ data }) {
   if (!data || data.length === 0) {
     return (
       <Card>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Revenue Trend
+          Employee Productivity
         </h3>
         <div className="text-center py-8 text-gray-500">
-          No revenue data available
+          No productivity data available
         </div>
       </Card>
     );
@@ -28,7 +28,7 @@ export default function RevenueChart({ data }) {
   return (
     <Card>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Revenue Trend
+        Employee Productivity
       </h3>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -36,13 +36,15 @@ export default function RevenueChart({ data }) {
         transition={{ duration: 0.5 }}
       >
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <BarChart data={data} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" stroke="#666" style={{ fontSize: "12px" }} />
+            <XAxis type="number" stroke="#666" style={{ fontSize: "12px" }} />
             <YAxis
+              dataKey="name"
+              type="category"
               stroke="#666"
               style={{ fontSize: "12px" }}
-              tickFormatter={(value) => `K${value ?? 0}`}
+              width={100}
             />
             <Tooltip
               contentStyle={{
@@ -51,23 +53,26 @@ export default function RevenueChart({ data }) {
                 borderRadius: "8px",
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               }}
-              formatter={(value) => {
-                const n = Number(value);
-                const num = Number.isFinite(n) ? n : 0;
-                return [`K${num.toFixed(2)}`, "Revenue"];
+              formatter={(value, name) => {
+                if (name === "hours") return [value.toFixed(1), "Hours Worked"];
+                if (name === "orders") return [value, "Orders Completed"];
+                return value;
               }}
             />
             <Legend />
-            <Line
-              type="monotone"
-              dataKey="revenue"
-              stroke="#ec4899"
-              strokeWidth={3}
-              dot={{ fill: "#ec4899", r: 5 }}
-              activeDot={{ r: 7 }}
-              name="Revenue"
+            <Bar
+              dataKey="hours"
+              fill="#10b981"
+              name="Hours Worked"
+              radius={[0, 8, 8, 0]}
             />
-          </LineChart>
+            <Bar
+              dataKey="orders"
+              fill="#3b82f6"
+              name="Orders Completed"
+              radius={[0, 8, 8, 0]}
+            />
+          </BarChart>
         </ResponsiveContainer>
       </motion.div>
     </Card>
