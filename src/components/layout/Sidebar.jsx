@@ -70,9 +70,7 @@ export default function Sidebar() {
             <Scissors className="text-white" size={24} />
           </div>
           <div>
-            <h1 className="font-bold text-xl text-gray-900">
-              Gloriaz Daughter
-            </h1>
+            <h1 className="font-bold text-xl text-gray-900">G D</h1>
             <p className="text-xs text-gray-500">Fashion ERP</p>
           </div>
         </div>
