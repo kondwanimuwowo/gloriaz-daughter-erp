@@ -8,15 +8,32 @@ import {
   LogOut,
   Shield,
   Menu,
+  Package,
+  ShoppingCart,
+  Users,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
+
 
 export default function Navbar({ onMenuClick }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState({
+    orders: [],
+    customers: [],
+    employees: [],
+    materials: [],
+  });
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  
   const profileRef = useRef(null);
+  const searchRef = useRef(null);
   const { profile, signOut } = useAuthStore();
   const navigate = useNavigate();
 
@@ -25,11 +42,123 @@ export default function Navbar({ onMenuClick }) {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfileMenu(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Debounced search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        performSearch(searchQuery);
+      } else {
+        setSearchResults({ orders: [], customers: [], employees: [], materials: [] });
+        setShowResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        const searchInput = document.getElementById("navbar-search-input");
+        if (searchInput) searchInput.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const performSearch = async (query) => {
+    setSearching(true);
+    try {
+      const searchTerm = `%${query}%`;
+
+      // Search orders
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("id, order_number, status, customers(name)")
+        .or(`order_number.ilike.${searchTerm},description.ilike.${searchTerm}`)
+        .limit(5);
+
+      // Search customers
+      const { data: customers } = await supabase
+        .from("customers")
+        .select("id, name, phone, email")
+        .or(`name.ilike.${searchTerm},phone.ilike.${searchTerm},email.ilike.${searchTerm}`)
+        .limit(5);
+
+      // Search employees
+      const { data: employees } = await supabase
+        .from("employees")
+        .select("id, name, role, email")
+        .or(`name.ilike.${searchTerm},email.ilike.${searchTerm}`)
+        .limit(5);
+
+      // Search materials
+      const { data: materials } = await supabase
+        .from("materials")
+        .select("id, name, category, stock_quantity")
+        .or(`name.ilike.${searchTerm},category.ilike.${searchTerm}`)
+        .limit(5);
+
+      setSearchResults({
+        orders: orders || [],
+        customers: customers || [],
+        employees: employees || [],
+        materials: materials || [],
+      });
+      setShowResults(true);
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleNavigate = (type, item) => {
+    setSearchQuery("");
+    setShowResults(false);
+    setShowSearch(false);
+
+    switch (type) {
+      case "order":
+        navigate("/orders", { state: { openOrderId: item.id } });
+        break;
+      case "customer":
+        navigate("/customers", { state: { openCustomerId: item.id } });
+        break;
+      case "employee":
+        navigate("/employees", { state: { openEmployeeId: item.id } });
+        break;
+      case "material":
+        navigate("/inventory", { state: { openMaterialId: item.id } });
+        break;
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults({ orders: [], customers: [], employees: [], materials: [] });
+    setShowResults(false);
+  };
+
+  const getTotalResults = () => {
+    return (
+      searchResults.orders.length +
+      searchResults.customers.length +
+      searchResults.employees.length +
+      searchResults.materials.length
+    );
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -42,61 +171,174 @@ export default function Navbar({ onMenuClick }) {
       manager: "bg-blue-100 text-blue-700",
       employee: "bg-green-100 text-green-700",
     };
-    return colors[role] || "bg-gray-100 text-gray-700";
+    return colors[role] || "bg-accent text-accent-foreground";
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4">
+    <header className="bg-background border-b border-border px-4 md:px-6 py-3 md:py-4">
       <div className="flex items-center justify-between">
         {/* Left Side - Menu & Search */}
         <div className="flex items-center gap-3 flex-1">
           {/* Mobile Menu Button */}
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="lg:hidden p-2 hover:bg-accent rounded-lg transition-colors"
           >
-            <Menu size={20} className="text-gray-600" />
+            <Menu size={20} className="text-muted-foreground" />
           </button>
 
           {/* Search - Desktop */}
-          <div className="hidden md:block flex-1 max-w-lg">
+          <div className="hidden md:block flex-1 max-w-lg" ref={searchRef}>
             <div className="relative">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
                 size={20}
               />
               <input
-                type="search"
+                type="text"
+                id="navbar-search-input"
+                autoComplete="off"
                 placeholder="Search orders, materials, customers..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
+                className="w-full pl-10 pr-10 py-2 border border-border bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-foreground placeholder:text-muted-foreground transition-all"
               />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
+                >
+                  <X size={16} />
+                </button>
+              )}
+
+              {/* Search Results Dropdown */}
+              <AnimatePresence>
+                {showResults && getTotalResults() > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+                  >
+                    {/* Orders */}
+                    {searchResults.orders.length > 0 && (
+                      <div>
+                        <div className="px-4 py-2 bg-muted/50 border-b border-border">
+                          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                            <ShoppingCart size={14} /> ORDERS
+                          </p>
+                        </div>
+                        {searchResults.orders.map((order) => (
+                          <button
+                            key={order.id}
+                            onClick={() => handleNavigate("order", order)}
+                            className="w-full px-4 py-3 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-0"
+                          >
+                            <p className="font-medium text-foreground">{order.order_number}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {order.customers?.name || "No customer"} • {order.status}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Customers */}
+                    {searchResults.customers.length > 0 && (
+                      <div>
+                        <div className="px-4 py-2 bg-muted/50 border-b border-border">
+                          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                            <Users size={14} /> CUSTOMERS
+                          </p>
+                        </div>
+                        {searchResults.customers.map((customer) => (
+                          <button
+                            key={customer.id}
+                            onClick={() => handleNavigate("customer", customer)}
+                            className="w-full px-4 py-3 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-0"
+                          >
+                            <p className="font-medium text-foreground">{customer.name}</p>
+                            <p className="text-sm text-muted-foreground">{customer.phone}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Employees */}
+                    {searchResults.employees.length > 0 && (
+                      <div>
+                        <div className="px-4 py-2 bg-muted/50 border-b border-border">
+                          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                            <User size={14} /> EMPLOYEES
+                          </p>
+                        </div>
+                        {searchResults.employees.map((employee) => (
+                          <button
+                            key={employee.id}
+                            onClick={() => handleNavigate("employee", employee)}
+                            className="w-full px-4 py-3 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-0"
+                          >
+                            <p className="font-medium text-foreground">{employee.name}</p>
+                            <p className="text-sm text-muted-foreground capitalize">{employee.role}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Materials */}
+                    {searchResults.materials.length > 0 && (
+                      <div>
+                        <div className="px-4 py-2 bg-muted/50 border-b border-border">
+                          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                            <Package size={14} /> MATERIALS
+                          </p>
+                        </div>
+                        {searchResults.materials.map((material) => (
+                          <button
+                            key={material.id}
+                            onClick={() => handleNavigate("material", material)}
+                            className="w-full px-4 py-3 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-0"
+                          >
+                            <p className="font-medium text-foreground">{material.name}</p>
+                            <p className="text-sm text-muted-foreground capitalize">
+                              {material.category} • Stock: {material.stock_quantity}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
           {/* Search - Mobile Toggle */}
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="md:hidden p-2 hover:bg-accent rounded-lg transition-colors"
           >
-            <Search size={20} className="text-gray-600" />
+            <Search size={20} className="text-muted-foreground" />
           </button>
         </div>
 
         {/* Right Side - Notifications & Profile */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* Notifications */}
-          <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <Bell size={20} className="text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <button className="relative p-2 hover:bg-accent rounded-lg transition-colors">
+            <Bell size={20} className="text-muted-foreground" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
           </button>
 
           {/* User Profile Dropdown */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-2 md:gap-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center gap-2 md:gap-3 p-2 hover:bg-accent rounded-lg transition-colors"
             >
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium text-sm md:text-base">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm md:text-base">
                 {profile?.full_name
                   ?.split(" ")
                   .map((n) => n[0])
@@ -105,16 +347,16 @@ export default function Navbar({ onMenuClick }) {
                   .slice(0, 2) || "U"}
               </div>
               <div className="text-left hidden md:block">
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-foreground">
                   {profile?.full_name || "User"}
                 </p>
-                <p className="text-xs text-gray-500 capitalize">
+                <p className="text-xs text-muted-foreground capitalize">
                   {profile?.role || "employee"}
                 </p>
               </div>
               <ChevronDown
                 size={16}
-                className="text-gray-400 hidden md:block"
+                className="text-muted-foreground hidden md:block"
               />
             </button>
 
@@ -227,15 +469,51 @@ export default function Navbar({ onMenuClick }) {
                 size={20}
               />
               <input
-                type="search"
+                type="text"
                 placeholder="Search..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-10 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-background text-foreground"
                 autoFocus
               />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
+
+            {/* Mobile Search Results */}
+            {showResults && getTotalResults() > 0 && (
+              <div className="mt-2 bg-background border border-border rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                {/* Same results structure as desktop but in mobile view */}
+                {searchResults.orders.length > 0 && (
+                  <div>
+                    <div className="px-3 py-2 bg-muted/50 border-b border-border">
+                      <p className="text-xs font-semibold text-muted-foreground">ORDERS</p>
+                    </div>
+                    {searchResults.orders.map((order) => (
+                      <button
+                        key={order.id}
+                        onClick={() => handleNavigate("order", order)}
+                        className="w-full px-3 py-2 hover:bg-muted/50 transition-colors text-left border-b border-border/50"
+                      >
+                        <p className="font-medium text-sm">{order.order_number}</p>
+                        <p className="text-xs text-muted-foreground">{order.customers?.name}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* Add other categories similarly */}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
     </header>
   );
 }
+

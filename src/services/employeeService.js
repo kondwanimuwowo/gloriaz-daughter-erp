@@ -1,15 +1,40 @@
 import { supabase } from "../lib/supabase";
+import { getZambianDate, getCurrentZambianDateTime } from "../utils/dateUtils";
 
 export const employeeService = {
   // Get all employees
   async getAllEmployees() {
-    const { data, error } = await supabase
+    const { data: employees, error } = await supabase
       .from("employees")
       .select("*")
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data;
+
+    // Fetch active orders count for each employee
+    const employeesWithOrders = await Promise.all(
+      employees.map(async (employee) => {
+        const { count } = await supabase
+          .from("orders")
+          .select("*", { count: "exact", head: true })
+          .eq("assigned_tailor_id", employee.id)
+          .in("status", [
+            "enquiry",
+            "contacted",
+            "measurement",
+            "cutting",
+            "production",
+            "fitting",
+          ]);
+
+        return {
+          ...employee,
+          active_orders_count: count || 0,
+        };
+      })
+    );
+
+    return employeesWithOrders;
   },
 
   // Get active employees only
@@ -76,7 +101,7 @@ export const employeeService = {
 
   // Clock in
   async clockIn(employeeId, notes = "") {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getZambianDate();
 
     // Check if already clocked in today
     const { data: existing } = await supabase
@@ -84,7 +109,7 @@ export const employeeService = {
       .select("*")
       .eq("employee_id", employeeId)
       .eq("date", today)
-      .single();
+      .maybeSingle();
 
     if (existing && existing.clock_in && !existing.clock_out) {
       throw new Error("Already clocked in for today");
@@ -100,7 +125,7 @@ export const employeeService = {
         {
           employee_id: employeeId,
           date: today,
-          clock_in: new Date().toISOString(),
+          clock_in: getCurrentZambianDateTime(),
           notes: notes,
         },
       ])
@@ -113,7 +138,7 @@ export const employeeService = {
 
   // Clock out
   async clockOut(employeeId, notes = "") {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getZambianDate();
 
     // Get today's attendance record
     const { data: attendance } = await supabase
@@ -121,7 +146,7 @@ export const employeeService = {
       .select("*")
       .eq("employee_id", employeeId)
       .eq("date", today)
-      .single();
+      .maybeSingle();
 
     if (!attendance) {
       throw new Error("No clock-in record found for today");
@@ -133,13 +158,13 @@ export const employeeService = {
 
     // Calculate hours worked
     const clockIn = new Date(attendance.clock_in);
-    const clockOut = new Date();
+    const clockOut = getCurrentZambianDateTime();
     const hoursWorked = (clockOut - clockIn) / (1000 * 60 * 60);
 
     const { data, error } = await supabase
       .from("attendance")
       .update({
-        clock_out: clockOut.toISOString(),
+        clock_out: clockOut,
         hours_worked: hoursWorked.toFixed(2),
         notes: notes || attendance.notes,
       })
@@ -173,7 +198,7 @@ export const employeeService = {
 
   // Get today's attendance for all employees
   async getTodayAttendance() {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getZambianDate();
 
     const { data, error } = await supabase
       .from("attendance")
@@ -197,14 +222,14 @@ export const employeeService = {
 
   // Get attendance status for an employee today
   async getTodayStatus(employeeId) {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getZambianDate();
 
     const { data, error } = await supabase
       .from("attendance")
       .select("*")
       .eq("employee_id", employeeId)
       .eq("date", today)
-      .single();
+      .maybeSingle();
 
     if (error && error.code !== "PGRST116") throw error; // PGRST116 = no rows returned
     return data;

@@ -1,12 +1,37 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Plus, Search, User, TrendingUp, ShoppingCart } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Plus,
+  User,
+  TrendingUp,
+  ShoppingCart,
+  MoreHorizontal,
+  Ruler,
+} from "lucide-react";
+import { format } from "date-fns";
 import { useCustomerStore } from "../store/useCustomerStore";
 import { customerService } from "../services/customerService";
-import Card from "../components/common/Card";
-import Button from "../components/common/Button";
-import Modal from "../components/common/Modal";
-import CustomerCard from "../components/customers/CustomerCard";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/DataTable";
+import StatsCard from "../components/dashboard/StatsCard";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import AddCustomerForm from "../components/customers/AddCustomerForm";
 import CustomerDetailsView from "../components/customers/CustomerDetailsView";
 import toast from "react-hot-toast";
@@ -26,19 +51,26 @@ export default function Customers() {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [viewingCustomer, setViewingCustomer] = useState(null);
   const [customerStats, setCustomerStats] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCustomers();
   }, [fetchCustomers]);
 
-  // Filter customers
-  const filteredCustomers = customers.filter(
-    (customer) =>
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Handle deep linking for specific customer
+  useEffect(() => {
+    if (location.state?.openCustomerId && customers.length > 0) {
+      const customerToView = customers.find(c => c.id === location.state.openCustomerId);
+      if (customerToView) {
+        handleViewCustomer(customerToView);
+        // Clear state to avoid opening on refresh
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location.state, customers]);
 
   // Calculate overall stats
   const totalCustomers = customers.length;
@@ -49,20 +81,24 @@ export default function Customers() {
   const handleAddCustomer = async (data) => {
     await addCustomer(data);
     setShowAddModal(false);
+    toast.success("Customer added successfully");
   };
 
   const handleUpdateCustomer = async (data) => {
     await updateCustomer(editingCustomer.id, data);
     setEditingCustomer(null);
+    toast.success("Customer updated successfully");
   };
 
   const handleDeleteCustomer = async (id) => {
     if (window.confirm("Are you sure you want to delete this customer?")) {
       await deleteCustomer(id);
+      toast.success("Customer deleted");
     }
   };
 
   const handleViewCustomer = async (customer) => {
+    setLoadingDetails(true);
     try {
       // Fetch full customer data with orders
       const fullCustomer = await customerService.getCustomerWithOrders(
@@ -74,6 +110,8 @@ export default function Customers() {
       setCustomerStats(stats);
     } catch (error) {
       toast.error("Failed to load customer details");
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -88,183 +126,170 @@ export default function Customers() {
     const fullCustomer =
       await customerService.getCustomerWithOrders(customerId);
     setViewingCustomer(fullCustomer);
+    toast.success("Measurements updated");
   };
 
-  if (loading && customers.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading customers...</p>
-        </div>
-      </div>
-    );
-  }
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "name",
+        header: "Name",
+        cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
+      },
+      {
+        accessorKey: "phone",
+        header: "Phone",
+      },
+      {
+        accessorKey: "email",
+        header: "Email",
+      },
+      {
+        id: "measurements",
+        header: "Measurements",
+        cell: ({ row }) => {
+            const hasMeasurements = !!row.original.measurements;
+            return hasMeasurements ? (
+                <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50 border-green-200">
+                    <Ruler className="w-3 h-3 mr-1" /> Yes
+                </Badge>
+            ) : (
+                <span className="text-muted-foreground text-sm">-</span>
+            );
+        }
+      },
+      {
+        accessorKey: "created_at",
+        header: "Joined",
+        cell: ({ row }) => {
+          const date = row.getValue("created_at");
+          return date ? format(new Date(date), "MMM d, yyyy") : "N/A";
+        },
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => {
+            const customer = row.original;
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => handleViewCustomer(customer)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>Edit</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive">Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )
+        }
+      },
+    ],
+    []
+  );
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Customer Management
-          </h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
+          <p className="text-muted-foreground">
             Manage your customers and their information
           </p>
         </div>
-        <Button onClick={() => setShowAddModal(true)} icon={Plus}>
-          Add Customer
+        <Button onClick={() => setShowAddModal(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Add Customer
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Total Customers</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {totalCustomers}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-              <User className="text-primary-600" size={24} />
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">With Measurements</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {customersWithMeasurements}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="text-green-600" size={24} />
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">New This Month</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {
-                  customers.filter((c) => {
-                    const created = new Date(c.created_at);
-                    const now = new Date();
-                    return (
-                      created.getMonth() === now.getMonth() &&
-                      created.getFullYear() === now.getFullYear()
-                    );
-                  }).length
-                }
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <ShoppingCart className="text-blue-600" size={24} />
-            </div>
-          </div>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatsCard
+          title="Total Customers"
+          value={totalCustomers}
+          icon={User}
+          color="blue"
+        />
+        <StatsCard
+          title="With Measurements"
+          value={customersWithMeasurements}
+          icon={Ruler}
+          color="green"
+        />
+        <StatsCard
+          title="New This Month"
+          value={customers.filter((c) => {
+            const created = new Date(c.created_at);
+            const now = new Date();
+            return (
+              created.getMonth() === now.getMonth() &&
+              created.getFullYear() === now.getFullYear()
+            );
+          }).length}
+          icon={TrendingUp}
+          color="purple"
+        />
       </div>
 
-      {/* Search */}
-      <Card>
-        <div className="relative">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={20}
-          />
-          <input
-            type="search"
-            placeholder="Search customers by name, phone, or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-          />
-        </div>
+      <Card className="p-6">
+        <DataTable 
+            columns={columns} 
+            data={customers} 
+            filterColumn="name" 
+            searchPlaceholder="Filter customers..." 
+        />
       </Card>
 
-      {/* Customer List */}
-      {filteredCustomers.length === 0 ? (
-        <Card className="text-center py-12">
-          <User className="mx-auto text-gray-400 mb-4" size={48} />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No customers found
-          </h3>
-          <p className="text-gray-600 mb-6">
-            {searchTerm
-              ? "Try adjusting your search"
-              : "Get started by adding your first customer"}
-          </p>
-          {!searchTerm && (
-            <Button onClick={() => setShowAddModal(true)} icon={Plus}>
-              Add Your First Customer
-            </Button>
-          )}
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCustomers.map((customer) => (
-            <CustomerCard
-              key={customer.id}
-              customer={customer}
-              onView={handleViewCustomer}
-              onEdit={handleEditCustomer}
-              onDelete={handleDeleteCustomer}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Add Customer Modal */}
-      <Modal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Add New Customer"
-      >
-        <AddCustomerForm
-          onSubmit={handleAddCustomer}
-          onCancel={() => setShowAddModal(false)}
-        />
-      </Modal>
-
-      {/* Edit Customer Modal */}
-      <Modal
-        isOpen={!!editingCustomer}
-        onClose={() => setEditingCustomer(null)}
-        title="Edit Customer"
-      >
-        <AddCustomerForm
-          customer={editingCustomer}
-          onSubmit={handleUpdateCustomer}
-          onCancel={() => setEditingCustomer(null)}
-        />
-      </Modal>
-
-      {/* View Customer Modal */}
-      <Modal
-        isOpen={!!viewingCustomer}
-        onClose={() => {
-          setViewingCustomer(null);
-          setCustomerStats(null);
-        }}
-        title="Customer Details"
-        size="xl"
-      >
-        {viewingCustomer && (
-          <CustomerDetailsView
-            customer={viewingCustomer}
-            stats={customerStats}
-            onEdit={handleEditCustomer}
-            onUpdateMeasurements={handleUpdateMeasurements}
+      {/* Add Customer Dialog */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add New Customer</DialogTitle>
+          </DialogHeader>
+          <AddCustomerForm
+            onSubmit={handleAddCustomer}
+            onCancel={() => setShowAddModal(false)}
           />
-        )}
-      </Modal>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Customer Dialog */}
+      <Dialog open={!!editingCustomer} onOpenChange={(open) => !open && setEditingCustomer(null)}>
+        <DialogContent className="max-w-lg">
+            <DialogHeader>
+                <DialogTitle>Edit Customer</DialogTitle>
+            </DialogHeader>
+            <AddCustomerForm
+                customer={editingCustomer}
+                onSubmit={handleUpdateCustomer}
+                onCancel={() => setEditingCustomer(null)}
+            />
+        </DialogContent>
+      </Dialog>
+
+      {/* View Customer Dialog */}
+      <Dialog open={!!viewingCustomer} onOpenChange={(open) => !open && setViewingCustomer(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+                <DialogTitle>Customer Details</DialogTitle>
+            </DialogHeader>
+            {loadingDetails ? (
+                <div className="flex justify-center p-8">Loading...</div>
+            ) : viewingCustomer ? (
+                <CustomerDetailsView
+                    customer={viewingCustomer}
+                    stats={customerStats}
+                    onEdit={handleEditCustomer}
+                    onUpdateMeasurements={handleUpdateMeasurements}
+                />
+            ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

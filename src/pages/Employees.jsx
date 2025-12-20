@@ -1,15 +1,41 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Plus, Users, Clock, TrendingUp, Search } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Plus,
+  Users,
+  Clock,
+  TrendingUp,
+  MoreHorizontal,
+  LogIn,
+  LogOut
+} from "lucide-react";
 import { useEmployeeStore } from "../store/useEmployeeStore";
-import Card from "../components/common/Card";
-import Button from "../components/common/Button";
-import Modal from "../components/common/Modal";
-import EmployeeCard from "../components/employees/EmployeeCard";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DataTable } from "@/components/DataTable";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import AddEmployeeForm from "../components/employees/AddEmployeeForm";
-import ClockInOut from "../components/employees/ClockInOut";
-import TodayAttendance from "../components/employees/TodayAttendance";
-import AttendanceTable from "../components/employees/AttendanceTable";
+import EmployeeDetailsView from "../components/employees/EmployeeDetailsView";
+import StatsCard from "../components/dashboard/StatsCard";
+import TimeClockMetric from "../components/employees/TimeClockMetric";
+import toast from "react-hot-toast";
+import { formatZambianTime } from "../utils/dateUtils";
 
 export default function Employees() {
   const {
@@ -25,13 +51,29 @@ export default function Employees() {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [viewingAttendance, setViewingAttendance] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [viewingEmployee, setViewingEmployee] = useState(null);
+
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchEmployees();
     fetchTodayAttendance();
+    // Poll attendance every minute to keep statuses fresh
+    const interval = setInterval(fetchTodayAttendance, 60000);
+    return () => clearInterval(interval);
   }, [fetchEmployees, fetchTodayAttendance]);
+
+  // Handle deep linking for specific employee
+  useEffect(() => {
+    if (location.state?.openEmployeeId && employees.length > 0) {
+      const employeeToView = employees.find(e => e.id === location.state.openEmployeeId);
+      if (employeeToView) {
+        setViewingEmployee(employeeToView);
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location.state, employees]);
 
   // Calculate stats
   const activeEmployees = employees.filter((e) => e.active).length;
@@ -41,196 +83,210 @@ export default function Employees() {
     0
   );
 
-  // Filter employees
-  const filteredEmployees = employees.filter(
-    (employee) =>
-      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const handleAddEmployee = async (data) => {
     await addEmployee(data);
     setShowAddModal(false);
+    toast.success("Employee added successfully");
   };
 
   const handleUpdateEmployee = async (data) => {
     await updateEmployee(editingEmployee.id, data);
     setEditingEmployee(null);
+    toast.success("Employee updated successfully");
   };
 
   const handleDeleteEmployee = async (id) => {
     if (window.confirm("Are you sure you want to deactivate this employee?")) {
       await deleteEmployee(id);
+      toast.success("Employee deactivated");
     }
   };
 
-  const handleClockAction = () => {
+  const getRoleBadgeVariant = (role) => {
+      const variants = {
+          tailor: "default", 
+          cutter: "secondary",
+          designer: "secondary",
+          manager: "outline",
+          assistant: "secondary"
+      }
+      return variants[role.toLowerCase()] || "secondary";
+  }
+
+  const columns = useMemo(() => [
+    {
+        accessorKey: "name",
+        header: "Name",
+        cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
+    },
+    {
+        accessorKey: "role",
+        header: "Role",
+        cell: ({ row }) => {
+            const role = row.getValue("role");
+            return <Badge variant={getRoleBadgeVariant(role)} className="capitalize">{role}</Badge>
+        }
+    },
+    {
+        id: "attendance_status",
+        header: "Today's Status",
+        cell: ({ row }) => {
+            const today = todayAttendance.find(a => a.employee_id === row.original.id);
+            if (!today) return <Badge variant="outline" className="text-muted-foreground border-dashed">Absent</Badge>;
+            
+            if (today.clock_out) {
+                 return <Badge variant="secondary" className="bg-gray-100 text-gray-600">Clocked Out</Badge>;
+            }
+            return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Present</Badge>;
+        }
+    },
+    {
+        id: "clock_in",
+        header: "Clock In",
+        cell: ({ row }) => {
+            const today = todayAttendance.find(a => a.employee_id === row.original.id);
+            return today?.clock_in ? (
+                <div className="flex items-center gap-1 text-sm text-green-700">
+                    <LogIn size={14} />
+                    {formatZambianTime(today.clock_in)}
+                </div>
+            ) : <span className="text-muted-foreground text-xs text-center block">-</span>;
+        }
+    },
+    {
+        id: "clock_out",
+        header: "Clock Out",
+        cell: ({ row }) => {
+            const today = todayAttendance.find(a => a.employee_id === row.original.id);
+            return today?.clock_out ? (
+                <div className="flex items-center gap-1 text-sm text-red-600">
+                    <LogOut size={14} />
+                    {formatZambianTime(today.clock_out)}
+                </div>
+            ) : <span className="text-muted-foreground text-xs text-center block">-</span>;
+        }
+    },
+    {
+        id: "actions",
+        cell: ({ row }) => {
+             const employee = row.original;
+             return (
+                 <DropdownMenu>
+                     <DropdownMenuTrigger asChild>
+                         <Button variant="ghost" className="h-8 w-8 p-0">
+                             <MoreHorizontal className="h-4 w-4" />
+                         </Button>
+                     </DropdownMenuTrigger>
+                     <DropdownMenuContent align="end">
+                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                         <DropdownMenuItem onClick={() => setViewingEmployee(employee)}>
+                             <Clock className="mr-2 h-4 w-4" /> View & Clock In/Out
+                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => setEditingEmployee(employee)}>Edit Details</DropdownMenuItem>
+                         <DropdownMenuSeparator />
+                         {employee.active && (
+                             <DropdownMenuItem onClick={() => handleDeleteEmployee(employee.id)} className="text-destructive">
+                                 Deactivate
+                             </DropdownMenuItem>
+                         )}
+                     </DropdownMenuContent>
+                 </DropdownMenu>
+             )
+        }
+    }
+  ], [todayAttendance]);
+
+  // Handler for clock updates from modal
+  const handleClockUpdate = () => {
     fetchTodayAttendance();
   };
 
-  if (loading && employees.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading employees...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Employee Management
-          </h1>
-          <p className="text-gray-600">Manage employees and track attendance</p>
+          <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
+          <p className="text-muted-foreground">Manage employees and track attendance</p>
         </div>
-        <Button onClick={() => setShowAddModal(true)} icon={Plus}>
-          Add Employee
+        <Button onClick={() => setShowAddModal(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Add Employee
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Active Employees</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {activeEmployees}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Users className="text-blue-600" size={24} />
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Clocked In Today</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {clockedInToday}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Clock className="text-green-600" size={24} />
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 mb-1">Hours Today</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {totalHoursToday.toFixed(1)}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="text-purple-600" size={24} />
-            </div>
-          </div>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <TimeClockMetric />
+        <StatsCard
+          title="Active Employees"
+          value={activeEmployees}
+          icon={Users}
+          color="blue"
+        />
+        <StatsCard
+          title="Clocked In Today"
+          value={clockedInToday}
+          icon={Clock}
+          color="green"
+        />
+        <StatsCard
+          title="Hours Today"
+          value={totalHoursToday.toFixed(1)}
+          icon={TrendingUp}
+          color="yellow"
+        />
       </div>
 
-      {/* Clock In/Out and Today's Attendance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ClockInOut employees={employees} onClockAction={handleClockAction} />
-        <TodayAttendance attendance={todayAttendance} />
-      </div>
-
-      {/* Employee List Section */}
-      <Card>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">All Employees</h2>
-          <div className="relative flex-1 max-w-md ml-4">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              type="search"
-              placeholder="Search employees..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-            />
-          </div>
-        </div>
-
-        {filteredEmployees.length === 0 ? (
-          <div className="text-center py-12">
-            <Users className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No employees found
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {searchTerm
-                ? "Try adjusting your search"
-                : "Get started by adding your first employee"}
-            </p>
-            {!searchTerm && (
-              <Button onClick={() => setShowAddModal(true)} icon={Plus}>
-                Add Your First Employee
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEmployees.map((employee) => (
-              <EmployeeCard
-                key={employee.id}
-                employee={employee}
-                onEdit={setEditingEmployee}
-                onDeactivate={handleDeleteEmployee}
-                onViewDetails={setViewingAttendance}
-              />
-            ))}
-          </div>
-        )}
+      <Card className="overflow-hidden border-border/60">
+        <DataTable 
+            columns={columns} 
+            data={employees} 
+            filterColumn="name" 
+            searchPlaceholder="Filter employees..." 
+            onRowClick={setViewingEmployee}
+        />
       </Card>
 
-      {/* Add Employee Modal */}
-      <Modal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Add New Employee"
-      >
-        <AddEmployeeForm
-          onSubmit={handleAddEmployee}
-          onCancel={() => setShowAddModal(false)}
-        />
-      </Modal>
+      {/* Add Employee Dialog */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add New Employee</DialogTitle>
+          </DialogHeader>
+          <AddEmployeeForm
+            onSubmit={handleAddEmployee}
+            onCancel={() => setShowAddModal(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
-      {/* Edit Employee Modal */}
-      <Modal
-        isOpen={!!editingEmployee}
-        onClose={() => setEditingEmployee(null)}
-        title="Edit Employee"
-      >
-        <AddEmployeeForm
-          employee={editingEmployee}
-          onSubmit={handleUpdateEmployee}
-          onCancel={() => setEditingEmployee(null)}
-        />
-      </Modal>
+      {/* Edit Employee Dialog */}
+      <Dialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)}>
+        <DialogContent className="max-w-lg">
+            <DialogHeader>
+                <DialogTitle>Edit Employee</DialogTitle>
+            </DialogHeader>
+            <AddEmployeeForm
+                employee={editingEmployee}
+                onSubmit={handleUpdateEmployee}
+                onCancel={() => setEditingEmployee(null)}
+            />
+        </DialogContent>
+      </Dialog>
 
-      {/* View Attendance Modal */}
-      <Modal
-        isOpen={!!viewingAttendance}
-        onClose={() => setViewingAttendance(null)}
-        title="Attendance Records"
-        size="lg"
-      >
-        {viewingAttendance && <AttendanceTable employee={viewingAttendance} />}
-      </Modal>
+      {/* View Employee Details & Clock In/Out Dialog */}
+      <Dialog open={!!viewingEmployee} onOpenChange={(open) => !open && setViewingEmployee(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+                <DialogTitle>Employee Management</DialogTitle>
+            </DialogHeader>
+            {viewingEmployee && (
+                <EmployeeDetailsView 
+                    employee={viewingEmployee} 
+                    onClockUpdate={handleClockUpdate}
+                />
+            )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

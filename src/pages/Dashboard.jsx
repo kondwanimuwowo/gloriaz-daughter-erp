@@ -10,17 +10,25 @@ import {
   DollarSign,
   Calendar,
 } from "lucide-react";
-import Card from "../components/common/Card";
+import { Link, useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+
 import RevenueChart from "../components/dashboard/RevenueChart";
 import OrderStatusChart from "../components/dashboard/OrderStatusChart";
 import MaterialUsageChart from "../components/dashboard/MaterialUsageChart";
 import EmployeeProductivityChart from "../components/dashboard/EmployeeProductivityChart";
+import OrderStatusBadge from "../components/orders/OrderStatusBadge";
+import StatsCard from "../components/dashboard/StatsCard";
+
 import { analyticsService } from "../services/analyticsService";
 import { orderService } from "../services/orderService";
 import { inventoryService } from "../services/inventoryService";
 import { employeeService } from "../services/employeeService";
-import { format } from "date-fns";
-import OrderStatusBadge from "../components/orders/OrderStatusBadge";
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -34,6 +42,7 @@ export default function Dashboard() {
     lowStock: [],
     todayAttendance: [],
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDashboardData();
@@ -81,11 +90,29 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+      <div className="space-y-6">
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-[300px] w-full rounded-xl" />
+          <Skeleton className="h-[300px] w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  // Safety check to prevent crash if data is missing
+  if (!dashboardData.stats) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Failed to load dashboard</h2>
+          <p className="text-muted-foreground">Please try refreshing the page</p>
+        </div>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     );
   }
@@ -94,144 +121,64 @@ export default function Dashboard() {
   const clockedInToday = dashboardData.todayAttendance.filter(
     (a) => !a.clock_out
   ).length;
-  const revenueGrowth =
-    stats.thisMonthRevenue > 0
-      ? ((stats.thisMonthRevenue / stats.totalRevenue) * 100).toFixed(1)
-      : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
           Welcome back! Here's what's happening with your business.
         </p>
       </div>
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="bg-gradient-to-br from-blue-50 to-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-600 mb-1">Total Revenue</p>
-                <p className="text-3xl font-bold text-blue-900">
-                  K{stats.totalRevenue.toFixed(0)}
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  K{stats.thisMonthRevenue.toFixed(0)} this month
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="text-blue-600" size={24} />
-              </div>
-            </div>
-          </Card>
-        </motion.div>
+        <StatsCard
+          title="Total Revenue"
+          value={`K${stats.totalRevenue.toFixed(0)}`}
+          subtitle={`K${stats.thisMonthRevenue.toFixed(0)} this month`}
+          icon={DollarSign}
+          color="blue"
+          delay={0.1}
+        />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="bg-gradient-to-br from-green-50 to-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-600 mb-1">Total Orders</p>
-                <p className="text-3xl font-bold text-green-900">
-                  {stats.totalOrders}
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  {stats.activeOrders} active
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <ShoppingCart className="text-green-600" size={24} />
-              </div>
-            </div>
-          </Card>
-        </motion.div>
+        <StatsCard
+          title="Total Orders"
+          value={stats.totalOrders}
+          subtitle={`${stats.activeOrders} active`}
+          icon={ShoppingCart}
+          color="green"
+          delay={0.2}
+        />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="bg-gradient-to-br from-purple-50 to-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-purple-600 mb-1">Customers</p>
-                <p className="text-3xl font-bold text-purple-900">
-                  {stats.totalCustomers}
-                </p>
-                <p className="text-xs text-purple-600 mt-1">Total registered</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Users className="text-purple-600" size={24} />
-              </div>
-            </div>
-          </Card>
-        </motion.div>
+        <StatsCard
+          title="Avg Order Value"
+          value={`K${stats.avgOrderValue.toFixed(0)}`}
+          icon={TrendingUp}
+          color="yellow"
+          delay={0.3}
+        />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card
-            className={`bg-gradient-to-br ${
-              stats.lowStockCount > 0
-                ? "from-red-50 to-white"
-                : "from-green-50 to-white"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p
-                  className={`text-sm mb-1 ${
-                    stats.lowStockCount > 0 ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  Low Stock Items
-                </p>
-                <p
-                  className={`text-3xl font-bold ${
-                    stats.lowStockCount > 0 ? "text-red-900" : "text-green-900"
-                  }`}
-                >
-                  {stats.lowStockCount}
-                </p>
-                <p
-                  className={`text-xs mt-1 ${
-                    stats.lowStockCount > 0 ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  {stats.lowStockCount > 0 ? "Needs attention" : "All good!"}
-                </p>
-              </div>
-              <div
-                className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                  stats.lowStockCount > 0 ? "bg-red-100" : "bg-green-100"
-                }`}
-              >
-                {stats.lowStockCount > 0 ? (
-                  <AlertCircle className="text-red-600" size={24} />
-                ) : (
-                  <Package className="text-green-600" size={24} />
-                )}
-              </div>
-            </div>
-          </Card>
-        </motion.div>
+        <StatsCard
+          title="Low Stock Items"
+          value={stats.lowStockCount}
+          subtitle={stats.lowStockCount > 0 ? "Needs attention" : "All good!"}
+          icon={stats.lowStockCount > 0 ? AlertCircle : Package}
+          color={stats.lowStockCount > 0 ? "red" : "green"}
+          delay={0.4}
+        />
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+         {/* Assuming charts handle their own card wrapping or we wrap them */}
+         {/* Original dashboard didn't wrap charts in Card inside the components? 
+             Wait, looking at original code: <RevenueChart ... />
+             Let's wrap them in simple Cards if they are raw charts, but if they have Cards inside, we are good.
+             Usually specialized chart components might have a Card.
+             But I'll assume they do. If not, I'll see visual issues.
+         */}
         <RevenueChart data={dashboardData.revenueData} />
         <OrderStatusChart data={dashboardData.orderStatusData} />
       </div>
@@ -247,17 +194,15 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Recent Orders */}
         <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
-            <a
-              href="/orders"
-              className="text-sm text-primary-600 hover:text-primary-700"
-            >
-              View all →
-            </a>
-          </div>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle>Recent Orders</CardTitle>
+                <Link to="/orders">
+                    <Button variant="link" size="sm">View all →</Button>
+                </Link>
+            </CardHeader>
+            <CardContent>
           {dashboardData.recentOrders.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No orders yet</p>
+            <p className="text-muted-foreground text-center py-8">No orders yet</p>
           ) : (
             <div className="space-y-3">
               {dashboardData.recentOrders.map((order, index) => (
@@ -266,25 +211,26 @@ export default function Dashboard() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  onClick={() => navigate("/orders", { state: { openOrderId: order.id } })}
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-sm">
                         {order.order_number}
                       </p>
                       <OrderStatusBadge status={order.status} />
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs text-muted-foreground">
                       {order.customers?.name}
                     </p>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                       <Calendar size={12} />
                       {format(new Date(order.order_date), "MMM dd, yyyy")}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-gray-900">
+                    <p className="font-bold text-sm">
                       K{parseFloat(order.total_cost).toFixed(2)}
                     </p>
                   </div>
@@ -292,29 +238,26 @@ export default function Dashboard() {
               ))}
             </div>
           )}
+          </CardContent>
         </Card>
 
         {/* Low Stock Alerts & Today's Attendance */}
         <div className="space-y-6">
           {/* Low Stock */}
           <Card>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                {stats.lowStockCount > 0 && (
-                  <AlertCircle className="text-red-600" size={20} />
-                )}
-                Low Stock Alerts
-              </h2>
-              <a
-                href="/inventory"
-                className="text-sm text-primary-600 hover:text-primary-700"
-              >
-                View all →
-              </a>
-            </div>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <div className="flex items-center gap-2">
+                      {stats.lowStockCount > 0 && <AlertCircle className="text-red-500 h-5 w-5" />}
+                      <CardTitle>Low Stock Alerts</CardTitle>
+                  </div>
+                  <Link to="/inventory">
+                      <Button variant="link" size="sm">View all →</Button>
+                  </Link>
+              </CardHeader>
+              <CardContent>
             {dashboardData.lowStock.length === 0 ? (
               <div className="text-center py-6">
-                <Package className="mx-auto text-green-500 mb-2" size={32} />
+                <Package className="mx-auto text-green-500 mb-2 h-8 w-8" />
                 <p className="text-green-600 font-medium">
                   All materials well stocked!
                 </p>
@@ -327,13 +270,14 @@ export default function Dashboard() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200"
+                    onClick={() => navigate("/inventory", { state: { openMaterialId: material.id } })}
+                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200 cursor-pointer hover:bg-red-100 transition-colors"
                   >
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">
+                      <p className="font-semibold text-sm">
                         {material.name}
                       </p>
-                      <p className="text-xs text-gray-600 capitalize">
+                      <p className="text-xs text-muted-foreground capitalize">
                         {material.category}
                       </p>
                     </div>
@@ -347,20 +291,18 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
+            </CardContent>
           </Card>
 
           {/* Today's Attendance */}
           <Card>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">
-                Today's Attendance
-              </h2>
-              <span className="text-sm font-medium text-gray-600">
-                {clockedInToday} clocked in
-              </span>
-            </div>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle>Today's Attendance</CardTitle>
+                  <Badge variant="outline">{clockedInToday} clocked in</Badge>
+              </CardHeader>
+              <CardContent>
             {dashboardData.todayAttendance.length === 0 ? (
-              <p className="text-gray-500 text-center py-6">
+              <p className="text-muted-foreground text-center py-6">
                 No attendance today
               </p>
             ) : (
@@ -373,15 +315,16 @@ export default function Dashboard() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`flex items-center justify-between p-2 rounded-lg ${
-                        record.clock_out ? "bg-gray-50" : "bg-green-50"
+                      onClick={() => navigate("/employees", { state: { openEmployeeId: record.employee_id || record.employees?.id } })}
+                      className={`flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-muted/80 transition-colors ${
+                        record.clock_out ? "bg-muted/50" : "bg-green-50"
                       }`}
                     >
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium">
                         {record.employees.name}
                       </span>
                       {record.clock_out ? (
-                        <span className="text-xs text-gray-600">
+                        <span className="text-xs text-muted-foreground">
                           {parseFloat(record.hours_worked).toFixed(1)}h
                         </span>
                       ) : (
@@ -393,9 +336,11 @@ export default function Dashboard() {
                   ))}
               </div>
             )}
+            </CardContent>
           </Card>
         </div>
       </div>
     </div>
   );
 }
+

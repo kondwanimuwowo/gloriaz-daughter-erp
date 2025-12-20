@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { User, Mail, Phone, Calendar, Edit, UserX, Clock } from "lucide-react";
-import Button from "../common/Button";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
 export default function EmployeeCard({
@@ -25,14 +25,14 @@ export default function EmployeeCard({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -4 }}
-      className={`bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all duration-200 ${
+      className={`bg-card rounded-xl shadow-sm border border-border p-5 hover:shadow-md transition-all duration-200 ${
         !employee.active ? "opacity-60" : ""
       }`}
     >
       {/* Header with Avatar */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+          <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl">
             {employee.name
               .split(" ")
               .map((n) => n[0])
@@ -41,7 +41,7 @@ export default function EmployeeCard({
               .slice(0, 2)}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 text-lg">
+            <h3 className="font-semibold text-foreground text-lg">
               {employee.name}
             </h3>
             <span
@@ -60,19 +60,19 @@ export default function EmployeeCard({
       </div>
 
       {/* Contact Info */}
-      <div className="space-y-2 mb-4 pb-4 border-b border-gray-100">
+      <div className="space-y-2 mb-4 pb-4 border-b border-border">
         {employee.email && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Mail size={16} className="text-gray-400" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Mail size={16} className="text-muted-foreground/70" />
             <span className="truncate">{employee.email}</span>
           </div>
         )}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Phone size={16} className="text-gray-400" />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Phone size={16} className="text-muted-foreground/70" />
           <span>{employee.phone}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Calendar size={16} className="text-gray-400" />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar size={16} className="text-muted-foreground/70" />
           <span>
             Hired: {format(new Date(employee.hire_date), "MMM dd, yyyy")}
           </span>
@@ -82,8 +82,8 @@ export default function EmployeeCard({
       {/* Hourly Rate */}
       {employee.hourly_rate && (
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-1">Hourly Rate</p>
-          <p className="text-lg font-bold text-gray-900">
+          <p className="text-xs text-muted-foreground mb-1">Hourly Rate</p>
+          <p className="text-lg font-bold text-foreground">
             K{parseFloat(employee.hourly_rate).toFixed(2)}/hr
           </p>
         </div>
@@ -94,26 +94,31 @@ export default function EmployeeCard({
         <Button
           variant="ghost"
           onClick={() => onViewDetails(employee)}
-          className="flex-1 text-primary-600 hover:bg-primary-50"
-          icon={Clock}
+          className="flex-1 text-primary hover:bg-primary/10"
         >
+          <Clock className="mr-2 h-4 w-4" />
           Attendance
         </Button>
         <Button
           variant="ghost"
+          size="icon"
           onClick={() => onEdit(employee)}
           className="text-blue-600 hover:bg-blue-50"
-          icon={Edit}
-        />
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
         {employee.active && (
           <Button
             variant="ghost"
+            size="icon"
             onClick={() => onDeactivate(employee.id)}
             className="text-red-600 hover:bg-red-50"
-            icon={UserX}
-          />
+          >
+            <UserX className="h-4 w-4" />
+          </Button>
         )}
       </div>
     </motion.div>
   );
 }
+

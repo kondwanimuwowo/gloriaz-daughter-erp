@@ -13,3 +13,4 @@ export default function RoleGuard({ children, roles = [], fallback = null }) {
 
   return fallback;
 }
+

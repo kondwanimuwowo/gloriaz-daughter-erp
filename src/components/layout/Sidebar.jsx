@@ -7,9 +7,12 @@ import {
   UserCircle,
   Scissors,
   Shield,
+  DollarSign,
+  BarChart3,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
+import { cn } from "@/lib/utils";
 
 export default function Sidebar() {
   const { profile } = useAuthStore();
@@ -46,6 +49,18 @@ export default function Sidebar() {
       roles: ["admin", "manager", "employee"],
     },
     {
+      path: "/finance",
+      icon: DollarSign,
+      label: "Finance",
+      roles: ["admin", "manager"],
+    },
+    {
+      path: "/analytics",
+      icon: BarChart3,
+      label: "Analytics",
+      roles: ["admin", "manager"],
+    },
+    {
       path: "/users",
       icon: Shield,
       label: "User Management",
@@ -53,7 +68,6 @@ export default function Sidebar() {
     },
   ];
 
-  // Filter nav items based on user role
   const filteredNavItems = navItems.filter((item) =>
     item.roles.includes(profile?.role || "employee")
   );
@@ -62,35 +76,39 @@ export default function Sidebar() {
     <motion.aside
       initial={{ x: -300 }}
       animate={{ x: 0 }}
-      className="w-64 h-full bg-white border-r border-gray-200 flex flex-col"
+      className="w-64 h-full bg-card border-r border-border flex flex-col"
     >
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-            <Scissors className="text-white" size={24} />
+          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Scissors className="text-primary" size={24} />
           </div>
           <div>
-            <h1 className="font-bold text-xl text-gray-900">G D</h1>
-            <p className="text-xs text-gray-500">Fashion ERP</p>
+            <h1 className="font-bold text-xl text-primary tracking-tight">GLORIA'S</h1>
+            <p className="text-[10px] font-semibold text-primary/70 uppercase tracking-widest -mt-1">Daughter</p>
           </div>
         </div>
       </div>
 
       <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {filteredNavItems.map((item) => (
             <li key={item.path}>
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
+                  cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
                     isActive
-                      ? "bg-primary-50 text-primary-700 font-medium"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  )
                 }
               >
-                <item.icon size={20} />
+                <item.icon size={20} className={cn(
+                    "transition-colors",
+                    "text-primary" // Icons always in primary color as requested
+                )} />
                 <span>{item.label}</span>
               </NavLink>
             </li>
@@ -98,19 +116,20 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-gray-200">
-        <div className="bg-primary-50 rounded-lg p-3 mb-3">
-          <p className="text-xs font-semibold text-primary-900 mb-1">
-            Logged in as
+      <div className="p-4 border-t border-border">
+        <div className="bg-muted/30 rounded-lg p-3 mb-3 border border-border/50">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
+            Access Level
           </p>
-          <p className="text-sm font-medium text-primary-700 capitalize">
+          <p className="text-sm font-semibold text-foreground capitalize">
             {profile?.role || "User"}
           </p>
         </div>
-        <p className="text-xs text-gray-500 text-center">
-          v1.0.0 - Gloriaz Daughter
+        <p className="text-xs text-muted-foreground text-center font-medium">
+          GLORIA'S DAUGHTER ERP
         </p>
       </div>
     </motion.aside>
   );
 }
+

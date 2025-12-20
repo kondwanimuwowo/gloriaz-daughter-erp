@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import Input from "../common/Input";
-import Button from "../common/Button";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Ruler } from "lucide-react";
 
 const MEASUREMENT_FIELDS = [
@@ -73,36 +75,41 @@ export default function MeasurementsForm({ customer, onSubmit, onCancel }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         {MEASUREMENT_FIELDS.map((field) => (
-          <div key={field.name}>
+          <div key={field.name} className="space-y-2">
+            <Label htmlFor={field.name}>
+                {field.label} ({field.unit})
+            </Label>
             <Input
-              label={`${field.label} (${field.unit})`}
+              id={field.name}
               type="number"
               step="0.1"
               placeholder="0.0"
               {...register(field.name, {
                 min: { value: 0, message: "Must be positive" },
               })}
-              error={errors[field.name]?.message}
+              className={errors[field.name] ? "border-red-500" : ""}
             />
+            {errors[field.name] && (
+                <p className="text-xs text-red-500 mt-1">{errors[field.name]?.message}</p>
+            )}
           </div>
         ))}
       </div>
 
       {/* Additional Notes */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Additional Notes
-        </label>
-        <textarea
+      <div className="space-y-2">
+        <Label htmlFor="notes">Additional Notes</Label>
+        <Textarea
+          id="notes"
           rows={3}
-          className="input-field resize-none"
+          className="resize-none"
           placeholder="Any special notes about measurements, body shape, preferences, etc."
           {...register("notes")}
         />
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+      <div className="flex gap-3 justify-end pt-4 border-t border-border">
         <Button
           type="button"
           variant="secondary"
@@ -111,10 +118,12 @@ export default function MeasurementsForm({ customer, onSubmit, onCancel }) {
         >
           Cancel
         </Button>
-        <Button type="submit" loading={loading}>
+        <Button type="submit" disabled={loading}>
+            {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
           Save Measurements
         </Button>
       </div>
     </form>
   );
 }
+

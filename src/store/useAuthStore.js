@@ -9,6 +9,53 @@ export const useAuthStore = create((set, get) => ({
   session: null,
   loading: true,
   initialized: false,
+  authSubscription: null,
+  refreshInterval: null,
+
+  // Refresh session
+  refreshSession: async () => {
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) throw error;
+      if (data.session) {
+        set({ session: data.session });
+        console.log("Session refreshed successfully");
+      }
+    } catch (error) {
+      console.error("Session refresh error:", error);
+      // If refresh fails, sign out
+      await get().signOut();
+    }
+  },
+
+  // Validate current session
+  validateSession: async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      
+      if (!session) {
+        console.warn("No active session found");
+        await get().signOut();
+        return false;
+      }
+      
+      // Check if session is about to expire (within 5 minutes)
+      const expiresAt = session.expires_at * 1000; // Convert to milliseconds
+      const now = Date.now();
+      const timeUntilExpiry = expiresAt - now;
+      
+      if (timeUntilExpiry < 5 * 60 * 1000) {
+        console.log("Session expiring soon, refreshing...");
+        await get().refreshSession();
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Session validation error:", error);
+      return false;
+    }
+  },
 
   // Initialize auth state
   initialize: async () => {
@@ -24,6 +71,13 @@ export const useAuthStore = create((set, get) => ({
           loading: false,
           initialized: true,
         });
+        
+        // Start periodic session refresh every 5 minutes
+        const refreshInterval = setInterval(() => {
+          get().validateSession();
+        }, 5 * 60 * 1000);
+        
+        set({ refreshInterval });
       } else {
         set({
           user: null,
@@ -34,15 +88,24 @@ export const useAuthStore = create((set, get) => ({
         });
       }
 
-      // Listen for auth changes
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      // Listen for auth changes and store the subscription
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log("Auth state changed:", event);
+        
         if (event === "SIGNED_IN" && session?.user) {
           const profile = await authService.getUserProfile(session.user.id);
           set({ user: session.user, profile, session });
         } else if (event === "SIGNED_OUT") {
           set({ user: null, profile: null, session: null });
+        } else if (event === "TOKEN_REFRESHED" && session) {
+          console.log("Token refreshed automatically");
+          set({ session });
+        } else if (event === "USER_UPDATED" && session) {
+          set({ session });
         }
       });
+      
+      set({ authSubscription: subscription });
     } catch (error) {
       console.error("Auth initialization error:", error);
       set({ loading: false, initialized: true });
@@ -64,6 +127,14 @@ export const useAuthStore = create((set, get) => ({
 
       set({ user, profile, session });
       toast.success("Welcome back!");
+      
+      // Start session validation interval
+      const refreshInterval = setInterval(() => {
+        get().validateSession();
+      }, 5 * 60 * 1000);
+      
+      set({ refreshInterval });
+      
       return { user, profile };
     } catch (error) {
       toast.error(error.message || "Failed to sign in");
@@ -75,10 +146,10 @@ export const useAuthStore = create((set, get) => ({
   signUp: async (email, password, fullName, role = "employee") => {
     try {
       const data = await authService.signUp(email, password, fullName, role);
-      toast.success("Account created! Please check your email to verify.");
+      toast.success(`User created successfully!`);
       return data;
     } catch (error) {
-      toast.error(error.message || "Failed to sign up");
+      toast.error(error.message || "Failed to create user");
       throw error;
     }
   },
@@ -86,8 +157,23 @@ export const useAuthStore = create((set, get) => ({
   // Sign out
   signOut: async () => {
     try {
+      // Clear intervals
+      const { refreshInterval, authSubscription } = get();
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+      if (authSubscription) {
+        authSubscription.unsubscribe();
+      }
+      
       await authService.signOut();
-      set({ user: null, profile: null, session: null });
+      set({ 
+        user: null, 
+        profile: null, 
+        session: null,
+        refreshInterval: null,
+        authSubscription: null
+      });
       toast.success("Signed out successfully");
     } catch (error) {
       toast.error("Failed to sign out");

@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { Calendar, Download, Filter } from "lucide-react";
-import Card from "../common/Card";
-import Button from "../common/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { DataTable } from "@/components/DataTable";
 import { employeeService } from "../../services/employeeService";
+import { formatZambianTime, formatZambianDate } from "../../utils/dateUtils";
 import toast from "react-hot-toast";
-import ResponsiveTable from "../common/ResponsiveTable";
 
 export default function AttendanceTable({ employee }) {
   const [attendance, setAttendance] = useState([]);
@@ -34,11 +38,11 @@ export default function AttendanceTable({ employee }) {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     if (employee) {
       fetchAttendance();
     }
-  }, [employee, dateRange]);
+  }, [employee, dateRange.start, dateRange.end]);
 
   const totalHours = attendance.reduce(
     (sum, record) => sum + parseFloat(record.hours_worked || 0),
@@ -52,9 +56,9 @@ export default function AttendanceTable({ employee }) {
   const exportToCSV = () => {
     const headers = ["Date", "Clock In", "Clock Out", "Hours Worked", "Notes"];
     const rows = attendance.map((record) => [
-      format(new Date(record.date), "yyyy-MM-dd"),
-      record.clock_in ? format(new Date(record.clock_in), "HH:mm:ss") : "N/A",
-      record.clock_out ? format(new Date(record.clock_out), "HH:mm:ss") : "N/A",
+      record.date,
+      record.clock_in ? formatZambianTime(record.clock_in) : "N/A",
+      record.clock_out ? formatZambianTime(record.clock_out) : "N/A",
       record.hours_worked || "0",
       record.notes || "",
     ]);
@@ -73,185 +77,176 @@ export default function AttendanceTable({ employee }) {
     window.URL.revokeObjectURL(url);
   };
 
+  // Define TanStack Table columns
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "date",
+        header: "Date",
+        cell: ({ row }) => (
+          <div>
+            <span className="font-medium text-foreground">
+              {format(new Date(row.getValue("date")), "MMM dd, yyyy")}
+            </span>
+            <br />
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(row.getValue("date")), "EEEE")}
+            </span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "clock_in",
+        header: "Clock In",
+        cell: ({ row }) => formatZambianTime(row.getValue("clock_in")) || "-",
+      },
+      {
+        accessorKey: "clock_out",
+        header: "Clock Out",
+        cell: ({ row }) => formatZambianTime(row.getValue("clock_out")) || "-",
+      },
+      {
+        accessorKey: "hours_worked",
+        header: "Hours",
+        cell: ({ row }) => (
+          <span className="font-semibold text-primary">
+            {row.getValue("hours_worked")
+              ? `${parseFloat(row.getValue("hours_worked")).toFixed(2)}h`
+              : "-"}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const record = row.original;
+          if (record.clock_out) {
+            return (
+              <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">
+                Completed
+              </Badge>
+            );
+          } else if (record.clock_in) {
+            return (
+              <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200">
+                In Progress
+              </Badge>
+            );
+          } else {
+            return (
+              <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                Absent
+              </Badge>
+            );
+          }
+        },
+      },
+      {
+        accessorKey: "notes",
+        header: "Notes",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-sm">
+            {row.getValue("notes") || "-"}
+          </span>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
     <Card>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{employee.name}</h2>
-          <p className="text-gray-600 capitalize">{employee.role}</p>
+          <CardTitle>{employee.name}</CardTitle>
+          <p className="text-muted-foreground capitalize">{employee.role}</p>
         </div>
         <Button
-          variant="secondary"
-          icon={Download}
+          variant="outline"
+          size="sm"
           onClick={exportToCSV}
           disabled={attendance.length === 0}
         >
+          <Download className="mr-2 h-4 w-4" />
           Export CSV
         </Button>
-      </div>
+      </CardHeader>
 
-      {/* Date Range Filter */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Start Date
-          </label>
-          <input
-            type="date"
-            value={dateRange.start}
-            onChange={(e) =>
-              setDateRange((prev) => ({ ...prev, start: e.target.value }))
-            }
-            className="input-field"
-          />
+      <CardContent>
+        {/* Date Range Filter */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
+          <div>
+            <Label className="mb-2 block">Start Date</Label>
+            <Input
+              type="date"
+              value={dateRange.start}
+              onChange={(e) =>
+                setDateRange((prev) => ({ ...prev, start: e.target.value }))
+              }
+            />
+          </div>
+          <div>
+            <Label className="mb-2 block">End Date</Label>
+            <Input
+              type="date"
+              value={dateRange.end}
+              onChange={(e) =>
+                setDateRange((prev) => ({ ...prev, end: e.target.value }))
+              }
+            />
+          </div>
+          <div className="flex items-end">
+            <Button
+              onClick={fetchAttendance}
+              className="w-full"
+              disabled={loading}
+            >
+              {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+              {!loading && <Filter className="mr-2 h-4 w-4" />}
+              Apply Filter
+            </Button>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            End Date
-          </label>
-          <input
-            type="date"
-            value={dateRange.end}
-            onChange={(e) =>
-              setDateRange((prev) => ({ ...prev, end: e.target.value }))
-            }
-            className="input-field"
-          />
-        </div>
-        <div className="flex items-end">
-          <Button
-            onClick={fetchAttendance}
-            icon={Filter}
-            loading={loading}
-            className="w-full"
-          >
-            Apply Filter
-          </Button>
-        </div>
-      </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-sm text-blue-600 mb-1">Total Days</p>
-          <p className="text-2xl font-bold text-blue-900">
-            {attendance.length}
-          </p>
-        </div>
-        <div className="bg-green-50 rounded-lg p-4">
-          <p className="text-sm text-green-600 mb-1">Total Hours</p>
-          <p className="text-2xl font-bold text-green-900">
-            {totalHours.toFixed(2)}
-          </p>
-        </div>
-        {employee.hourly_rate && (
-          <div className="bg-purple-50 rounded-lg p-4">
-            <p className="text-sm text-purple-600 mb-1">Total Earnings</p>
-            <p className="text-2xl font-bold text-purple-900">
-              K{totalEarnings.toFixed(2)}
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-blue-50 rounded-lg p-4">
+            <p className="text-sm text-blue-600 mb-1">Total Days</p>
+            <p className="text-2xl font-bold text-blue-900">
+              {attendance.length}
             </p>
           </div>
-        )}
-      </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <p className="text-sm text-green-600 mb-1">Total Hours</p>
+            <p className="text-2xl font-bold text-green-900">
+              {totalHours.toFixed(2)}
+            </p>
+          </div>
+          {employee.hourly_rate && (
+            <div className="bg-purple-50 rounded-lg p-4">
+              <p className="text-sm text-purple-600 mb-1">Total Earnings</p>
+              <p className="text-2xl font-bold text-purple-900">
+                K{totalEarnings.toFixed(2)}
+              </p>
+            </div>
+          )}
+        </div>
 
-      {/* Attendance Table */}
-      {loading ? (
-        <div className="text-center py-8">
-          <div className="w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading attendance records...</p>
+        {/* Attendance Table using DataTable */}
+        <div className="border rounded-lg overflow-hidden">
+          <DataTable
+            columns={columns}
+            data={attendance}
+            loading={loading}
+            emptyMessage="No Records Found"
+            emptyDescription="No attendance records for the selected date range."
+            filterColumn="date"
+            searchPlaceholder="Search by date..."
+          />
         </div>
-      ) : attendance.length === 0 ? (
-        <div className="text-center py-8">
-          <Calendar className="mx-auto text-gray-400 mb-3" size={48} />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No Records Found
-          </h3>
-          <p className="text-gray-600">
-            No attendance records for the selected date range.
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <ResponsiveTable>
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                  Date
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                  Clock In
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                  Clock Out
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                  Hours
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                  Status
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                  Notes
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendance.map((record) => (
-                <tr
-                  key={record.id}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="py-3 px-4">
-                    <span className="font-medium text-gray-900">
-                      {format(new Date(record.date), "MMM dd, yyyy")}
-                    </span>
-                    <br />
-                    <span className="text-xs text-gray-500">
-                      {format(new Date(record.date), "EEEE")}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-900">
-                    {record.clock_in
-                      ? format(new Date(record.clock_in), "hh:mm a")
-                      : "-"}
-                  </td>
-                  <td className="py-3 px-4 text-gray-900">
-                    {record.clock_out
-                      ? format(new Date(record.clock_out), "hh:mm a")
-                      : "-"}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="font-semibold text-primary-600">
-                      {record.hours_worked
-                        ? `${parseFloat(record.hours_worked).toFixed(2)}h`
-                        : "-"}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    {record.clock_out ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                        Completed
-                      </span>
-                    ) : record.clock_in ? (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
-                        In Progress
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                        Absent
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 text-sm">
-                    {record.notes || "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </ResponsiveTable>
-        </div>
-      )}
+      </CardContent>
     </Card>
   );
 }
+

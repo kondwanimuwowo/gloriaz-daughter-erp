@@ -2,10 +2,13 @@ import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Mail, Lock, Scissors, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Scissors, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import Input from "../components/common/Input";
-import Button from "../components/common/Button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -35,123 +38,143 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background p-4">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="w-full max-w-md relative"
       >
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4">
-            <Scissors className="text-white" size={32} />
+        <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full transform -translate-y-10" />
+        
+        <div className="relative bg-card/80 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl overflow-hidden p-8 md:p-10">
+          <div className="flex flex-col items-center mb-10">
+            <div className="h-14 w-14 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 mb-6">
+              <Scissors className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Welcome Back
+            </h1>
+            <p className="text-muted-foreground mt-2 text-center text-sm">
+              Enter your credentials to access your workspace
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Gloriaz Daughter
-          </h1>
-          <p className="text-gray-600">Sign in to your account</p>
-        </div>
 
-        {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Email */}
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="you@example.com"
-              icon={Mail}
-              error={errors.email?.message}
-              {...register("email", {
-                required: "Email is required",
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
-                },
-              })}
-            />
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Lock size={20} />
+            <div className="space-y-5">
+              <div className="space-y-3">
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@company.com"
+                    className="pl-10 h-11 bg-background/50 border-input/60 focus:bg-background transition-all"
+                    {...register("email", {
+                      required: "Email is required",
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: "Invalid email address",
+                      },
+                    })}
+                  />
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className={`input-field pl-10 pr-10 ${
-                    errors.password ? "border-red-500" : ""
-                  }`}
-                  placeholder="••••••••"
-                  {...register("password", {
-                    required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters",
-                    },
-                  })}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
+                {errors.email && (
+                  <p className="text-xs text-destructive font-medium ml-1 mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.password.message}
-                </p>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className="pl-10 pr-10 h-11 bg-background/50 border-input/60 focus:bg-background transition-all"
+                    {...register("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
+                  />
+                  <button
+                    type="button"
+                    variant="ghost"
+                    className="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-xs text-destructive font-medium ml-1 mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox id="remember" className="border-border/60" />
+              <Label htmlFor="remember" className="text-sm font-normal text-muted-foreground cursor-pointer select-none">
+                Remember me for 30 days
+              </Label>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-11 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                "Sign In"
               )}
-            </div>
-
-            {/* Remember & Forgot */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-sm text-primary-600 hover:text-primary-700"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
-            {/* Submit Button */}
-            <Button type="submit" loading={loading} className="w-full">
-              Sign In
             </Button>
           </form>
 
-          {/* Sign Up Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link
-                to="/signup"
-                href="mailto:kondwanimuwowo@gmail.com"
-                className="text-primary-600 hover:text-primary-700 font-medium"
-              >
-                Contact your administrator
-              </Link>
+          <div className="mt-8 space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  Secure System
+                </span>
+              </div>
+            </div>
+            
+            <p className="text-center text-xs text-muted-foreground/60">
+              © 2024 Gloriaz Daughter. Protected by advanced encryption.
             </p>
           </div>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-8">
-          © 2024 Gloriaz Daughter. All rights reserved.
-        </p>
       </motion.div>
     </div>
   );
 }
+

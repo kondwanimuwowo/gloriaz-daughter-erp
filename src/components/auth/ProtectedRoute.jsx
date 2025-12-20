@@ -103,3 +103,4 @@ export default function ProtectedRoute({ children, requiredRoles = [] }) {
 
   return children;
 }
+

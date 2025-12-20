@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { inventoryService } from "./inventoryService";
+import { getZambianDate } from "../utils/dateUtils";
 
 export const orderService = {
   // Get all orders
@@ -29,70 +30,84 @@ export const orderService = {
   },
 
   // Get order by ID with all relations
+  // Get order by ID with all relations (OPTIMIZED)
   async getOrderById(id) {
-    const { data, error } = await supabase
-      .from("orders")
-      .select(
+    try {
+      // Fetch order with relations in parallel (faster)
+      const [orderResult, itemsResult, materialsResult, timelineResult] =
+        await Promise.all([
+          // Main order data
+          supabase
+            .from("orders")
+            .select(
+              `
+          *,
+          customers (
+            id,
+            name,
+            phone,
+            email
+          ),
+          employees:assigned_tailor_id (
+            id,
+            name,
+            role
+          )
         `
-        *,
-        customers (
-          id,
-          name,
-          phone,
-          email,
-          measurements
-        ),
-        employees:assigned_tailor_id (
-          id,
-          name,
-          role
-        )
-      `
-      )
-      .eq("id", id)
-      .single();
+            )
+            .eq("id", id)
+            .single(),
 
-    if (error) throw error;
+          // Order items
+          supabase.from("order_items").select("*").eq("order_id", id),
 
-    // Get order items
-    const { data: items } = await supabase
-      .from("order_items")
-      .select("*")
-      .eq("order_id", id);
-
-    // Get order materials
-    const { data: materials } = await supabase
-      .from("order_materials")
-      .select(
+          // Order materials with material details
+          supabase
+            .from("order_materials")
+            .select(
+              `
+          *,
+          materials (
+            id,
+            name,
+            unit,
+            cost_per_unit,
+            category
+          )
         `
-        *,
-        materials (
-          id,
-          name,
-          unit,
-          cost_per_unit
-        )
-      `
-      )
-      .eq("order_id", id);
+            )
+            .eq("order_id", id),
 
-    // Get order timeline
-    const { data: timeline } = await supabase
-      .from("order_timeline")
-      .select("*")
-      .eq("order_id", id)
-      .order("created_at", { ascending: true });
+          // Order timeline
+          supabase
+            .from("order_timeline")
+            .select("*")
+            .eq("order_id", id)
+            .order("created_at", { ascending: true }),
+        ]);
 
-    return {
-      ...data,
-      items: items || [],
-      materials: materials || [],
-      timeline: timeline || [],
-    };
+      if (orderResult.error) throw orderResult.error;
+
+      return {
+        ...orderResult.data,
+        items: itemsResult.data || [],
+        materials: materialsResult.data || [],
+        timeline: timelineResult.data || [],
+      };
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      throw error;
+    }
   },
 
-  // Create new order
+  // Create new order with costs (UPDATED)
   async createOrder(orderData) {
+    // Calculate material cost from materials array
+    const materialCost = (orderData.materials || []).reduce(
+      (sum, m) => sum + parseFloat(m.cost || 0),
+      0
+    );
+
     const { data: order, error } = await supabase
       .from("orders")
       .insert([
@@ -102,6 +117,10 @@ export const orderService = {
           order_date: new Date().toISOString(),
           due_date: orderData.due_date,
           total_cost: orderData.total_cost,
+          material_cost: materialCost,
+          labour_cost: orderData.labour_cost || 0,
+          overhead_cost: orderData.overhead_cost || 0,
+          profit_margin: orderData.profit_margin || 0,
           deposit: orderData.deposit || 0,
           balance: orderData.total_cost - (orderData.deposit || 0),
           description: orderData.description,
@@ -199,8 +218,26 @@ export const orderService = {
     return data;
   },
 
-  // Update order
+  // Update order with recalculation (UPDATED)
   async updateOrder(id, updates) {
+    // If materials are included in updates, recalculate material_cost
+    if (updates.materials) {
+      const materialCost = (updates.materials || []).reduce(
+        (sum, m) => sum + parseFloat(m.cost || 0),
+        0
+      );
+      updates.material_cost = materialCost;
+
+      // Recalculate total cost if needed
+      if (!updates.total_cost) {
+        const { data: existingOrder } = await this.getOrderById(id);
+        updates.total_cost =
+          materialCost +
+          (updates.labour_cost || existingOrder.labour_cost || 0) +
+          (updates.overhead_cost || existingOrder.overhead_cost || 0);
+      }
+    }
+
     const { data, error } = await supabase
       .from("orders")
       .update(updates)
@@ -311,5 +348,216 @@ export const orderService = {
     });
 
     return stats;
+  },
+
+  // NEW: Get analytics view data (optimized)
+  async getOrderAnalytics(filters = {}) {
+    let query = supabase.from("orders").select(`
+      *,
+      customers (id, name, phone),
+      employees:assigned_tailor_id (id, name, role)
+    `);
+
+    if (filters.startDate) {
+      query = query.gte("order_date", filters.startDate);
+    }
+    if (filters.endDate) {
+      query = query.lte("order_date", filters.endDate);
+    }
+    if (filters.status) {
+      query = query.eq("status", filters.status);
+    }
+    if (filters.customerId) {
+      query = query.eq("customer_id", filters.customerId);
+    }
+    if (filters.tailorId) {
+      query = query.eq("assigned_tailor_id", filters.tailorId);
+    }
+
+    const { data, error } = await query.order("order_date", {
+      ascending: false,
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // NEW: Get monthly stats (if you have a materialized view in Supabase)
+  async getMonthlyStats() {
+    try {
+      // First try to use materialized view if it exists
+      const { data, error } = await supabase
+        .from("monthly_order_stats")
+        .select("*")
+        .order("month", { ascending: false })
+        .limit(24); // Last 24 months
+
+      if (!error) return data;
+
+      // Fallback: Calculate manually if materialized view doesn't exist
+      console.warn(
+        "Materialized view 'monthly_order_stats' not found, calculating manually..."
+      );
+      return this.calculateMonthlyStats();
+    } catch (error) {
+      // Fallback to manual calculation
+      console.warn("Using fallback monthly stats calculation:", error.message);
+      return this.calculateMonthlyStats();
+    }
+  },
+
+  // NEW: Fallback monthly stats calculation
+  async calculateMonthlyStats() {
+    const { data: orders, error } = await supabase
+      .from("orders")
+      .select(
+        "total_cost, material_cost, labour_cost, overhead_cost, created_at, status"
+      )
+      .order("created_at", { ascending: false })
+      .limit(1000); // Limit for performance
+
+    if (error) throw error;
+
+    const monthlyStats = {};
+
+    orders.forEach((order) => {
+      const date = new Date(order.created_at);
+      const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+
+      if (!monthlyStats[monthYear]) {
+        monthlyStats[monthYear] = {
+          month: monthYear,
+          total_orders: 0,
+          total_revenue: 0,
+          material_cost: 0,
+          labour_cost: 0,
+          overhead_cost: 0,
+          completed_orders: 0,
+          active_orders: 0,
+        };
+      }
+
+      const stats = monthlyStats[monthYear];
+      stats.total_orders += 1;
+      stats.total_revenue += parseFloat(order.total_cost || 0);
+      stats.material_cost += parseFloat(order.material_cost || 0);
+      stats.labour_cost += parseFloat(order.labour_cost || 0);
+      stats.overhead_cost += parseFloat(order.overhead_cost || 0);
+
+      if (order.status === "delivered" || order.status === "completed") {
+        stats.completed_orders += 1;
+      } else if (!["cancelled"].includes(order.status)) {
+        stats.active_orders += 1;
+      }
+    });
+
+    // Convert to array and sort by month
+    return Object.values(monthlyStats)
+      .sort((a, b) => b.month.localeCompare(a.month))
+      .slice(0, 24);
+  },
+
+  // NEW: Get cost breakdown for an order
+  async getOrderCostBreakdown(orderId) {
+    const order = await this.getOrderById(orderId);
+
+    if (!order) return null;
+
+    return {
+      material_cost: order.material_cost || 0,
+      labour_cost: order.labour_cost || 0,
+      overhead_cost: order.overhead_cost || 0,
+      total_cost: order.total_cost || 0,
+      profit:
+        (order.total_cost || 0) -
+        ((order.material_cost || 0) +
+          (order.labour_cost || 0) +
+          (order.overhead_cost || 0)),
+      profit_margin:
+        order.total_cost > 0
+          ? (
+              (((order.total_cost || 0) -
+                ((order.material_cost || 0) +
+                  (order.labour_cost || 0) +
+                  (order.overhead_cost || 0))) /
+                (order.total_cost || 0)) *
+              100
+            ).toFixed(2)
+          : 0,
+    };
+  },
+
+  // NEW: Bulk update order statuses
+  async bulkUpdateStatus(orderIds, status, notes = "") {
+    const { data, error } = await supabase
+      .from("orders")
+      .update({ status })
+      .in("id", orderIds)
+      .select();
+
+    if (error) throw error;
+
+    // Add timeline entries for each order
+    const timelineEntries = orderIds.map((orderId) => ({
+      order_id: orderId,
+      status,
+      notes,
+    }));
+
+    await supabase.from("order_timeline").insert(timelineEntries);
+
+    // If moving to production, deduct materials for all orders
+    if (status === "production") {
+      for (const orderId of orderIds) {
+        await this.deductMaterials(orderId);
+      }
+    }
+
+    return data;
+  },
+
+  // NEW: Get orders due soon (within X days)
+  async getOrdersDueSoon(days = 7) {
+    const today = new Date();
+    const futureDate = new Date();
+    futureDate.setDate(today.getDate() + days);
+
+    const todayString = getZambianDate(today);
+    const futureString = getZambianDate(futureDate);
+
+    const { data, error } = await supabase
+      .from("orders")
+      .select(
+        `
+        *,
+        customers (id, name, phone)
+      `
+      )
+      .not("due_date", "is", null)
+      .lte("due_date", futureString)
+      .gte("due_date", todayString)
+      .in("status", ["production", "fitting"])
+      .order("due_date", { ascending: true });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // NEW: Get orders with pending balance
+  async getOrdersWithBalance() {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(
+        `
+        *,
+        customers (id, name, phone)
+      `
+      )
+      .gt("balance", 0)
+      .not("status", "in", "('cancelled')")
+      .order("due_date", { ascending: true });
+
+    if (error) throw error;
+    return data;
   },
 };

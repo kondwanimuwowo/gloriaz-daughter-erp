@@ -1,10 +1,10 @@
 import { supabase } from "../lib/supabase";
+import { getZambianDate } from "../utils/dateUtils";
 
 export const dashboardService = {
   async getDashboardStats() {
     try {
-      const today = new Date();
-      const todayString = today.toISOString().split("T")[0];
+      const todayString = getZambianDate();
 
       const [
         { data: orders },

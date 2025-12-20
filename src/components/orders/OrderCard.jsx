@@ -9,7 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
-import Button from "../common/Button";
+import { Button } from "@/components/ui/button";
 import OrderStatusBadge from "./OrderStatusBadge";
 
 export default function OrderCard({ order, onView, onEdit, onDelete }) {
@@ -30,15 +30,15 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -4 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all duration-200"
+      className="bg-card rounded-xl shadow-sm border border-border p-5 hover:shadow-md transition-all duration-200"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-bold text-lg text-gray-900">
+          <h3 className="font-bold text-lg text-foreground">
             {order.order_number}
           </h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {format(new Date(order.order_date), "MMM dd, yyyy")}
           </p>
         </div>
@@ -47,30 +47,30 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
 
       {/* Progress Bar */}
       <div className="mb-4">
-        <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
           <span>Progress</span>
           <span className="font-semibold">{currentProgress}%</span>
         </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${currentProgress}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="h-full bg-gradient-to-r from-primary-500 to-primary-600"
+            className="h-full bg-primary"
           />
         </div>
       </div>
 
       {/* Customer Info */}
-      <div className="space-y-2 mb-4 pb-4 border-b border-gray-100">
+      <div className="space-y-2 mb-4 pb-4 border-b border-border">
         <div className="flex items-center gap-2 text-sm">
-          <User size={16} className="text-gray-400" />
-          <span className="text-gray-900 font-medium">
+          <User size={16} className="text-muted-foreground" />
+          <span className="text-foreground font-medium">
             {order.customers?.name || "N/A"}
           </span>
         </div>
         {order.customers?.phone && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="ml-6">{order.customers.phone}</span>
           </div>
         )}
@@ -79,13 +79,13 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
       {/* Order Details */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
-          <p className="text-xs text-gray-500 mb-1">Total Cost</p>
-          <p className="font-bold text-gray-900">
+          <p className="text-xs text-muted-foreground mb-1">Total Cost</p>
+          <p className="font-bold text-foreground">
             K{parseFloat(order.total_cost).toFixed(2)}
           </p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Balance</p>
+          <p className="text-xs text-muted-foreground mb-1">Balance</p>
           <p
             className={`font-bold ${order.balance > 0 ? "text-red-600" : "text-green-600"}`}
           >
@@ -96,15 +96,15 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
 
       {/* Due Date */}
       {order.due_date && (
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-          <Calendar size={16} className="text-gray-400" />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <Calendar size={16} className="text-muted-foreground" />
           <span>Due: {format(new Date(order.due_date), "MMM dd, yyyy")}</span>
         </div>
       )}
 
       {/* Description */}
       {order.description && (
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
           {order.description}
         </p>
       )}
@@ -114,24 +114,29 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
         <Button
           variant="ghost"
           onClick={() => onView(order)}
-          className="flex-1 text-primary-600 hover:bg-primary-50"
-          icon={Eye}
+          className="flex-1 text-primary hover:bg-primary/10"
         >
+          <Eye className="mr-2 h-4 w-4" />
           View
         </Button>
         <Button
           variant="ghost"
+          size="icon"
           onClick={() => onEdit(order)}
           className="text-blue-600 hover:bg-blue-50"
-          icon={Edit}
-        />
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
         <Button
           variant="ghost"
+          size="icon"
           onClick={() => onDelete(order.id)}
           className="text-red-600 hover:bg-red-50"
-          icon={Trash2}
-        />
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
     </motion.div>
   );
 }
+

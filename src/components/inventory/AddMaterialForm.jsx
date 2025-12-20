@@ -1,8 +1,18 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import Input from "../common/Input";
-import Button from "../common/Button";
+import { useForm, Controller } from "react-hook-form";
 import { Package, DollarSign, Layers, User } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const CATEGORIES = [
   "fabric",
@@ -25,6 +35,7 @@ export default function AddMaterialForm({ material, onSubmit, onCancel }) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
   } = useForm({
@@ -64,144 +75,172 @@ export default function AddMaterialForm({ material, onSubmit, onCancel }) {
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         {/* Material Name */}
-        <div className="md:col-span-2">
-          <Input
-            label="Material Name"
-            placeholder="e.g., Silk Fabric - Red"
-            icon={Package}
-            error={errors.name?.message}
-            {...register("name", { required: "Material name is required" })}
-          />
+        <div className="md:col-span-2 space-y-2">
+            <Label htmlFor="name">Material Name</Label>
+            <div className="relative">
+                <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                    id="name"
+                    placeholder="e.g., Silk Fabric - Red"
+                    className={`pl-9 ${errors.name ? "border-destructive" : ""}`}
+                    {...register("name", { required: "Material name is required" })}
+                />
+            </div>
+            {errors.name && (<p className="text-sm text-destructive">{errors.name.message}</p>)}
         </div>
 
         {/* Category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category
-          </label>
-          <select
-            className="input-field"
-            {...register("category", { required: "Category is required" })}
-          >
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-              </option>
-            ))}
-          </select>
-          {errors.category && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.category.message}
-            </p>
-          )}
+        <div className="space-y-2">
+          <Label>Category</Label>
+          <Controller
+             control={control}
+             name="category"
+             rules={{ required: "Category is required" }}
+             render={({ field }) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {CATEGORIES.map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+             )}
+          />
+          {errors.category && (<p className="text-sm text-destructive">{errors.category.message}</p>)}
         </div>
 
         {/* Unit */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Unit of Measurement
-          </label>
-          <select
-            className="input-field"
-            {...register("unit", { required: "Unit is required" })}
-          >
-            {UNITS.map((unit) => (
-              <option key={unit} value={unit}>
-                {unit.charAt(0).toUpperCase() + unit.slice(1)}
-              </option>
-            ))}
-          </select>
-          {errors.unit && (
-            <p className="mt-1 text-sm text-red-600">{errors.unit.message}</p>
-          )}
+        <div className="space-y-2">
+          <Label>Unit of Measurement</Label>
+          <Controller
+             control={control}
+             name="unit"
+             rules={{ required: "Unit is required" }}
+             render={({ field }) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {UNITS.map((unit) => (
+                            <SelectItem key={unit} value={unit}>
+                                {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+             )}
+          />
+           {errors.unit && (<p className="text-sm text-destructive">{errors.unit.message}</p>)}
         </div>
 
         {/* Stock Quantity */}
-        <div>
-          <Input
-            label="Current Stock Quantity"
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            icon={Layers}
-            error={errors.stock_quantity?.message}
-            {...register("stock_quantity", {
-              required: "Stock quantity is required",
-              min: { value: 0, message: "Must be 0 or greater" },
-            })}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="stock_quantity">Current Stock Quantity</Label>
+            <div className="relative">
+                <Layers className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                    id="stock_quantity"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className={`pl-9 ${errors.stock_quantity ? "border-destructive" : ""}`}
+                    {...register("stock_quantity", {
+                        required: "Stock quantity is required",
+                        min: { value: 0, message: "Must be 0 or greater" },
+                    })}
+                />
+            </div>
+             {errors.stock_quantity && (<p className="text-sm text-destructive">{errors.stock_quantity.message}</p>)}
         </div>
 
         {/* Minimum Stock Level */}
-        <div>
-          <Input
-            label="Minimum Stock Level"
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            icon={Layers}
-            error={errors.min_stock_level?.message}
-            {...register("min_stock_level", {
-              required: "Minimum stock level is required",
-              min: { value: 0, message: "Must be 0 or greater" },
-            })}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="min_stock_level">Minimum Stock Level</Label>
+            <div className="relative">
+                <Layers className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                    id="min_stock_level"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className={`pl-9 ${errors.min_stock_level ? "border-destructive" : ""}`}
+                    {...register("min_stock_level", {
+                        required: "Minimum stock level is required",
+                        min: { value: 0, message: "Must be 0 or greater" },
+                    })}
+                />
+            </div>
+             {errors.min_stock_level && (<p className="text-sm text-destructive">{errors.min_stock_level.message}</p>)}
         </div>
 
         {/* Cost per Unit */}
-        <div>
-          <Input
-            label="Cost per Unit (K)"
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            icon={DollarSign}
-            error={errors.cost_per_unit?.message}
-            {...register("cost_per_unit", {
-              required: "Cost per unit is required",
-              min: { value: 0, message: "Must be 0 or greater" },
-            })}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="cost_per_unit">Cost per Unit (K)</Label>
+            <div className="relative">
+                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                    id="cost_per_unit"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className={`pl-9 ${errors.cost_per_unit ? "border-destructive" : ""}`}
+                    {...register("cost_per_unit", {
+                        required: "Cost per unit is required",
+                        min: { value: 0, message: "Must be 0 or greater" },
+                    })}
+                />
+            </div>
+             {errors.cost_per_unit && (<p className="text-sm text-destructive">{errors.cost_per_unit.message}</p>)}
         </div>
 
         {/* Supplier */}
-        <div>
-          <Input
-            label="Supplier (Optional)"
-            placeholder="e.g., ABC Textiles"
-            icon={User}
-            {...register("supplier")}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="supplier">Supplier (Optional)</Label>
+            <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                    id="supplier"
+                    placeholder="e.g., ABC Textiles"
+                    className="pl-9"
+                    {...register("supplier")}
+                />
+            </div>
         </div>
 
         {/* Description */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description (Optional)
-          </label>
-          <textarea
+        <div className="md:col-span-2 space-y-2">
+          <Label htmlFor="description">Description (Optional)</Label>
+          <Textarea
+            id="description"
             rows={3}
-            className="input-field resize-none"
             placeholder="Add any additional notes about this material..."
+            className="resize-none"
             {...register("description")}
           />
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+      <div className="flex gap-3 justify-end pt-4 border-t">
         <Button
           type="button"
-          variant="secondary"
+          variant="outline"
           onClick={onCancel}
           disabled={loading}
         >
           Cancel
         </Button>
-        <Button type="submit" loading={loading}>
+        <Button type="submit" disabled={loading}>
           {material ? "Update Material" : "Add Material"}
         </Button>
       </div>
     </form>
   );
 }
+

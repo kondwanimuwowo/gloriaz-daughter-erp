@@ -5,12 +5,15 @@ import {
   ShoppingCart,
   Users,
   UserCircle,
-  Scissors,
   Shield,
+  DollarSign,
+  BarChart3,
   X,
+  Scissors,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
+import { cn } from "@/lib/utils";
 
 export default function MobileSidebar({ isOpen, onClose }) {
   const { profile } = useAuthStore();
@@ -47,9 +50,21 @@ export default function MobileSidebar({ isOpen, onClose }) {
       roles: ["admin", "manager", "employee"],
     },
     {
+      path: "/finance",
+      icon: DollarSign,
+      label: "Finance",
+      roles: ["admin", "manager"],
+    },
+    {
+      path: "/analytics",
+      icon: BarChart3,
+      label: "Analytics",
+      roles: ["admin", "manager"],
+    },
+    {
       path: "/users",
       icon: Shield,
-      label: "User Management",
+      label: "Users",
       roles: ["admin"],
     },
   ];
@@ -68,7 +83,7 @@ export default function MobileSidebar({ isOpen, onClose }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
           />
 
           {/* Sidebar */}
@@ -76,45 +91,46 @@ export default function MobileSidebar({ isOpen, onClose }) {
             initial={{ x: -300 }}
             animate={{ x: 0 }}
             exit={{ x: -300 }}
-            transition={{ type: "tween", duration: 0.3 }}
-            className="fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-gray-200 z-50 lg:hidden flex flex-col"
+            transition={{ type: "spring", damping: 25 }}
+            className="fixed left-0 top-0 h-full w-72 bg-card shadow-2xl z-50 lg:hidden flex flex-col"
           >
             {/* Header */}
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+            <div className="p-6 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <Scissors className="text-white" size={24} />
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Scissors className="text-primary" size={24} />
                 </div>
                 <div>
-                  <h1 className="font-bold text-xl text-gray-900">G D</h1>
-                  <p className="text-xs text-gray-500">Fashion ERP</p>
+                  <h1 className="font-bold text-xl text-primary tracking-tight">GLORIA'S</h1>
+                  <p className="text-[10px] font-semibold text-primary/70 uppercase tracking-widest -mt-1">Daughter</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground"
               >
-                <X size={20} className="text-gray-500" />
+                <X size={24} />
               </button>
             </div>
 
             {/* Navigation */}
             <nav className="flex-1 p-4 overflow-y-auto">
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 {filteredNavItems.map((item) => (
                   <li key={item.path}>
                     <NavLink
                       to={item.path}
                       onClick={onClose}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                          isActive
-                            ? "bg-primary-50 text-primary-700 font-medium"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`
+                        cn(
+                            "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
+                            isActive
+                                ? "bg-primary/10 text-primary font-bold"
+                                : "text-muted-foreground hover:bg-muted/50"
+                        )
                       }
                     >
-                      <item.icon size={20} />
+                      <item.icon size={20} className="text-primary" />
                       <span>{item.label}</span>
                     </NavLink>
                   </li>
@@ -123,17 +139,17 @@ export default function MobileSidebar({ isOpen, onClose }) {
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-200">
-              <div className="bg-primary-50 rounded-lg p-3 mb-3">
-                <p className="text-xs font-semibold text-primary-900 mb-1">
-                  Logged in as
+            <div className="p-4 border-t border-border">
+              <div className="bg-muted/30 rounded-xl p-3 mb-3 border border-border/50">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
+                  Access Level
                 </p>
-                <p className="text-sm font-medium text-primary-700 capitalize">
+                <p className="text-sm font-semibold text-foreground capitalize">
                   {profile?.role || "User"}
                 </p>
               </div>
-              <p className="text-xs text-gray-500 text-center">
-                v1.0.0 - Gloriaz Daughter
+              <p className="text-xs text-muted-foreground text-center font-medium">
+                GLORIA'S DAUGHTER ERP
               </p>
             </div>
           </motion.aside>
@@ -142,3 +158,4 @@ export default function MobileSidebar({ isOpen, onClose }) {
     </AnimatePresence>
   );
 }
+

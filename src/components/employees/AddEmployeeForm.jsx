@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import Input from "../common/Input";
-import Button from "../common/Button";
+import { useForm, Controller } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { User, Mail, Phone, DollarSign, Briefcase } from "lucide-react";
+
+import { getZambianDate } from "../../utils/dateUtils";
 
 const ROLES = ["tailor", "cutter", "designer", "manager", "assistant", "other"];
 
@@ -12,6 +23,7 @@ export default function AddEmployeeForm({ employee, onSubmit, onCancel }) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
   } = useForm({
@@ -20,7 +32,7 @@ export default function AddEmployeeForm({ employee, onSubmit, onCancel }) {
       role: "tailor",
       email: "",
       phone: "",
-      hire_date: new Date().toISOString().split("T")[0],
+      hire_date: getZambianDate(),
       hourly_rate: 0,
       active: true,
     },
@@ -50,36 +62,44 @@ export default function AddEmployeeForm({ employee, onSubmit, onCancel }) {
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         {/* Full Name */}
-        <div className="md:col-span-2">
-          <Input
-            label="Full Name"
-            placeholder="e.g., Jane Phiri"
-            icon={User}
-            error={errors.name?.message}
-            {...register("name", { required: "Name is required" })}
-          />
+        <div className="md:col-span-2 space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                <Input
+                    id="name"
+                    placeholder="e.g., Jane Phiri"
+                    className={`pl-10 ${errors.name ? "border-red-500" : ""}`}
+                    {...register("name", { required: "Name is required" })}
+                />
+            </div>
+            {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
         </div>
 
         {/* Role */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Role
-          </label>
+        <div className="space-y-2">
+          <Label htmlFor="role">Role</Label>
           <div className="relative">
-            <Briefcase
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <select
-              className="input-field pl-10"
-              {...register("role", { required: "Role is required" })}
-            >
-              {ROLES.map((role) => (
-                <option key={role} value={role}>
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </option>
-              ))}
-            </select>
+             <Controller
+                control={control}
+                name="role"
+                rules={{ required: "Role is required" }}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger className="pl-10">
+                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                        <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLES.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role.charAt(0).toUpperCase() + role.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
           </div>
           {errors.role && (
             <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
@@ -87,78 +107,98 @@ export default function AddEmployeeForm({ employee, onSubmit, onCancel }) {
         </div>
 
         {/* Hire Date */}
-        <div>
-          <Input
-            label="Hire Date"
-            type="date"
-            error={errors.hire_date?.message}
-            {...register("hire_date", { required: "Hire date is required" })}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="hire_date">Hire Date</Label>
+            <Input
+                id="hire_date"
+                type="date"
+                className={errors.hire_date ? "border-red-500" : ""}
+                {...register("hire_date", { required: "Hire date is required" })}
+            />
+            {errors.hire_date && <p className="text-xs text-red-500">{errors.hire_date.message}</p>}
         </div>
 
         {/* Email */}
-        <div>
-          <Input
-            label="Email (Optional)"
-            type="email"
-            placeholder="jane@example.com"
-            icon={Mail}
-            error={errors.email?.message}
-            {...register("email", {
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: "Invalid email address",
-              },
-            })}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="email">Email (Optional)</Label>
+            <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                <Input
+                    id="email"
+                    type="email"
+                    placeholder="jane@example.com"
+                    className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                    {...register("email", {
+                    pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: "Invalid email address",
+                    },
+                    })}
+                />
+            </div>
+            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
         </div>
 
         {/* Phone */}
-        <div>
-          <Input
-            label="Phone Number"
-            type="tel"
-            placeholder="+260 XXX XXX XXX"
-            icon={Phone}
-            error={errors.phone?.message}
-            {...register("phone", { required: "Phone number is required" })}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+260 XXX XXX XXX"
+                    className={`pl-10 ${errors.phone ? "border-red-500" : ""}`}
+                    {...register("phone", { required: "Phone number is required" })}
+                />
+            </div>
+            {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
         </div>
 
         {/* Hourly Rate */}
-        <div>
-          <Input
-            label="Hourly Rate (K) - Optional"
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            icon={DollarSign}
-            error={errors.hourly_rate?.message}
-            {...register("hourly_rate", {
-              min: { value: 0, message: "Must be 0 or greater" },
-            })}
-          />
+        <div className="space-y-2">
+            <Label htmlFor="hourly_rate">Hourly Rate (K) - Optional</Label>
+            <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                <Input
+                    id="hourly_rate"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className={`pl-10 ${errors.hourly_rate ? "border-red-500" : ""}`}
+                    {...register("hourly_rate", {
+                    min: { value: 0, message: "Must be 0 or greater" },
+                    })}
+                />
+            </div>
+            {errors.hourly_rate && <p className="text-xs text-red-500">{errors.hourly_rate.message}</p>}
         </div>
 
         {/* Active Status */}
         {employee && (
           <div className="md:col-span-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                {...register("active")}
-              />
-              <span className="text-sm font-medium text-gray-700">
-                Employee is active
-              </span>
-            </label>
+             <Controller
+                control={control}
+                name="active"
+                render={({ field }) => (
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="active"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor="active" className="font-medium cursor-pointer">
+                            Employee is active
+                        </Label>
+                    </div>
+                )}
+            />
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+      <div className="flex gap-3 justify-end pt-4 border-t border-border">
         <Button
           type="button"
           variant="secondary"
@@ -167,10 +207,12 @@ export default function AddEmployeeForm({ employee, onSubmit, onCancel }) {
         >
           Cancel
         </Button>
-        <Button type="submit" loading={loading}>
+        <Button type="submit" disabled={loading}>
+            {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
           {employee ? "Update Employee" : "Add Employee"}
         </Button>
       </div>
     </form>
   );
 }
+
