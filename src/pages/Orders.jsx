@@ -60,6 +60,13 @@ export default function Orders() {
     fetchStats();
   }, [fetchOrders]);
 
+  // Handle auto-open of create modal from other pages (e.g. Inquiries)
+  useEffect(() => {
+    if (location.state?.createOrder) {
+      setShowCreateModal(true);
+    }
+  }, [location.state]);
+
   // Handle deep linking for specific order
   useEffect(() => {
     if (location.state?.openOrderId && orders.length > 0) {
@@ -290,7 +297,12 @@ export default function Orders() {
           </DialogHeader>
           <CreateOrderForm
             onSubmit={handleCreateOrder}
-            onCancel={() => setShowCreateModal(false)}
+            onCancel={() => {
+              setShowCreateModal(false);
+              // Clear location state
+              navigate(location.pathname, { replace: true, state: {} });
+            }}
+            initialData={location.state?.createOrder ? location.state : null}
           />
         </DialogContent>
       </Dialog>

@@ -23,6 +23,8 @@ import Finance from "./pages/Finance"; // NEW
 import Analytics from "./pages/Analytics"; // NEW
 import CatalogLayout from "./components/catalog/CatalogLayout";
 import CatalogHome from "./pages/catalog/CatalogHome";
+import ProductDetail from "./pages/catalog/ProductDetail";
+import InquiryDashboard from "./pages/InquiryDashboard";
 import { ThemeProvider } from "@/components/theme-provider";
 
 function App() {
@@ -88,6 +90,7 @@ function App() {
           {/* Public Catalog Routes */}
           <Route path="/catalog" element={<CatalogLayout />}>
             <Route index element={<CatalogHome />} />
+            <Route path=":productId" element={<ProductDetail />} />
           </Route>
 
           {/* Public Auth Routes */}
@@ -114,6 +117,7 @@ function App() {
 
             {/* All authenticated users */}
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="inquiries" element={<InquiryDashboard />} />
             <Route path="orders" element={<Orders />} />
             <Route path="customers" element={<Customers />} />
             <Route path="profile" element={<Profile />} />

@@ -9,6 +9,7 @@ import {
   Shield,
   DollarSign,
   BarChart3,
+  MessageCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -34,6 +35,12 @@ export default function Sidebar() {
       path: "/orders",
       icon: ShoppingCart,
       label: "Orders",
+      roles: ["admin", "manager", "employee"],
+    },
+    {
+      path: "/inquiries",
+      icon: MessageCircle,
+      label: "Inquiries",
       roles: ["admin", "manager", "employee"],
     },
     {

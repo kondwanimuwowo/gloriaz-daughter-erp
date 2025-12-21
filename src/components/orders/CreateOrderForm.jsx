@@ -32,7 +32,7 @@ import { useFinancialStore } from "../../store/useFinancialStore";
 import { productService } from "../../services/productService";
 import toast from "react-hot-toast";
 
-export default function CreateOrderForm({ order, onSubmit, onCancel }) {
+export default function CreateOrderForm({ order, onSubmit, onCancel, initialData }) {
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -78,6 +78,28 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
     },
   });
 
+  // Handle initial data from inquiry conversion
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.productId) {
+        setOrderType("standard");
+        setValue("order_type", "standard");
+        setValue("product_id", initialData.productId);
+        // We'll trigger handleProductChange later once products are loaded
+      }
+      
+      if (initialData.createOrder) {
+        // Try to finding existing customer by phone or create new logic would be here
+        // For now we just pre-fill what we can match if we had a customer search
+        // Since we don't have customer creation/search here, we rely on user to select/create
+      }
+
+      if (initialData.specialRequests) {
+        setValue("notes", initialData.specialRequests);
+      }
+    }
+  }, [initialData, setValue]);
+
   useEffect(() => {
     fetchCustomers();
     fetchEmployees();
@@ -90,6 +112,11 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
     try {
       const data = await productService.getAllProducts();
       setProducts(data || []);
+      
+      // If we have an initial product ID, update the form now that products are loaded
+      if (initialData?.productId && data) {
+        handleProductChange(initialData.productId, data);
+      }
     } catch (error) {
       console.error("Failed to fetch products:", error);
     }
@@ -246,8 +273,8 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
     recalculatePricing(materialCost, costs.labour, costs.overhead);
   };
 
-  const handleProductChange = (productId) => {
-    const product = products.find(p => p.id === productId);
+  const handleProductChange = (productId, productList = products) => {
+    const product = productList.find(p => p.id === productId);
     if (product) {
       setValue("product_id", productId);
       setValue("description", product.name + (product.description ? ` - ${product.description}` : ""));
