@@ -18,6 +18,25 @@ export default function ProductDetail() {
   const [showInquiryForm, setShowInquiryForm] = useState(false);
   const [imageZoomed, setImageZoomed] = useState(false);
 
+  // Hooks must be at top level
+  const images = useMemo(() => {
+    if (!product) return [];
+    
+    // Start with the main image
+    const imgs = product.image_url ? [product.image_url] : [];
+    
+    // Add unique gallery images
+    if (product.gallery_images && Array.isArray(product.gallery_images)) {
+      product.gallery_images.forEach(img => {
+        if (img && img !== product.image_url && !imgs.includes(img)) {
+          imgs.push(img);
+        }
+      });
+    }
+    
+    return imgs;
+  }, [product]);
+
   useEffect(() => {
     loadProduct();
   }, [productId]);
@@ -64,23 +83,7 @@ export default function ProductDetail() {
     );
   }
 
-  const images = useMemo(() => {
-    if (!product) return [];
-    
-    // Start with the main image
-    const imgs = [product.image_url];
-    
-    // Add unique gallery images
-    if (product.gallery_images && Array.isArray(product.gallery_images)) {
-      product.gallery_images.forEach(img => {
-        if (img && img !== product.image_url && !imgs.includes(img)) {
-          imgs.push(img);
-        }
-      });
-    }
-    
-    return imgs;
-  }, [product]);
+  // NOTE: removed strict useMemo usage below since it's now at the top
 
   const getPriceDisplay = () => {
     if (product.customizable) {
