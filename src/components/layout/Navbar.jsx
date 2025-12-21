@@ -324,8 +324,19 @@ export default function Navbar({ onMenuClick }) {
           </button>
         </div>
 
-        {/* Right Side - Notifications & Profile */}
+        {/* Right Side - Catalog, Notifications & Profile */}
         <div className="flex items-center gap-2 md:gap-4">
+          {/* View Catalog Button */}
+          <a
+            href="/catalog"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:flex items-center gap-2 px-3 py-2 bg-[#8B4513] hover:bg-[#A0522D] text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            <Package size={16} />
+            <span>View Catalog</span>
+          </a>
+
           {/* Notifications */}
           <button className="relative p-2 hover:bg-accent rounded-lg transition-colors">
             <Bell size={20} className="text-muted-foreground" />

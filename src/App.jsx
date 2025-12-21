@@ -21,6 +21,8 @@ import Profile from "./pages/Profile";
 import FirstTimeSetup from "./pages/FirstTimeSetup";
 import Finance from "./pages/Finance"; // NEW
 import Analytics from "./pages/Analytics"; // NEW
+import CatalogLayout from "./components/catalog/CatalogLayout";
+import CatalogHome from "./pages/catalog/CatalogHome";
 import { ThemeProvider } from "@/components/theme-provider";
 
 function App() {
@@ -83,7 +85,12 @@ function App() {
       <Router>
         <Toaster position="top-right" />
         <Routes>
-          {/* Public Routes */}
+          {/* Public Catalog Routes */}
+          <Route path="/catalog" element={<CatalogLayout />}>
+            <Route index element={<CatalogHome />} />
+          </Route>
+
+          {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route
             path="/signup"
