@@ -10,6 +10,7 @@ export default function CatalogHome() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("name");
@@ -21,6 +22,7 @@ export default function CatalogHome() {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [allProducts, featured, cats] = await Promise.all([
         productService.getAllProducts(),
         productService.getFeaturedProducts(),
@@ -32,6 +34,7 @@ export default function CatalogHome() {
       setCategories(cats || []);
     } catch (error) {
       console.error("Error loading products:", error);
+      setError("Failed to load products. Please refresh the page.");
     } finally {
       setLoading(false);
     }
@@ -131,6 +134,16 @@ export default function CatalogHome() {
         <div className="text-center py-12">
           <div className="w-12 h-12 border-4 border-[#8B4513] border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-[#6B6B6B] mt-4">Loading products...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 text-lg mb-4">{error}</p>
+          <button 
+            onClick={loadData}
+            className="px-6 py-2 bg-[#8B4513] text-white rounded-lg hover:bg-[#A0522D] transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="text-center py-12">

@@ -28,13 +28,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'X-Client-Info': 'erp-client',
       'apikey': supabaseAnonKey,
     },
-    // Increase fetch timeout to 60 seconds
-    fetch: (url, options = {}) => {
-      return fetch(url, {
-        ...options,
-        signal: options.signal || AbortSignal.timeout(60000),
-      });
-    },
   },
   db: {
     schema: 'public',
