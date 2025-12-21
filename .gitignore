@@ -23,10 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-*.txt
+all.txt
 
-#Enviroment variables
-.env
-.env.local
-.env.*.local
 
