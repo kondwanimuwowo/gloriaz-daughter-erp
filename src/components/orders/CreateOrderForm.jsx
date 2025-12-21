@@ -24,16 +24,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import MaterialSelector from "./MaterialSelector";
 import AddCustomerForm from "../customers/AddCustomerForm";
 import { supabase } from "../../lib/supabase";
 import { useFinancialStore } from "../../store/useFinancialStore";
+import { productService } from "../../services/productService";
 import toast from "react-hot-toast";
 
 export default function CreateOrderForm({ order, onSubmit, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [orderType, setOrderType] = useState("custom");
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const { 
@@ -69,6 +73,8 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
       description: "",
       notes: "",
       assigned_tailor_id: "",
+      order_type: "custom",
+      product_id: "",
     },
   });
 
@@ -77,11 +83,22 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
     fetchEmployees();
     fetchGarmentTypes();
     fetchFinancialSettings();
+    fetchProducts();
   }, [fetchGarmentTypes, fetchFinancialSettings]);
+
+  const fetchProducts = async () => {
+    try {
+      const data = await productService.getAllProducts();
+      setProducts(data || []);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    }
+  };
 
   useEffect(() => {
     if (order) {
       reset(order);
+      setOrderType(order.order_type || "custom");
       setCosts({
         material: order.material_cost || 0,
         labour: order.labour_cost || 0,
@@ -229,6 +246,17 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
     recalculatePricing(materialCost, costs.labour, costs.overhead);
   };
 
+  const handleProductChange = (productId) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setValue("product_id", productId);
+      setValue("description", product.name + (product.description ? ` - ${product.description}` : ""));
+      
+      const price = parseFloat(product.base_price || 0);
+      setValue("total_cost", price.toFixed(2), { shouldValidate: true, shouldDirty: true });
+    }
+  };
+
   // Watch for total cost and deposit changes
   const totalCost = watch("total_cost") || 0;
   const deposit = watch("deposit") || 0;
@@ -264,6 +292,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
         overhead_cost: costs.overhead,
         material_cost: costs.material,
         profit_margin: parseFloat(profitMargin.toFixed(2)),
+        order_type: orderType,
       };
       await onSubmit(orderData);
       if (!order) {
@@ -280,6 +309,49 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      {/* Order Type Selection */}
+      <div className="bg-muted/30 p-4 rounded-lg border">
+        <Label className="mb-3 block text-base font-semibold">Order Type</Label>
+        <RadioGroup
+          defaultValue="custom"
+          value={orderType}
+          onValueChange={(val) => {
+            setOrderType(val);
+            setValue("order_type", val);
+          }}
+          className="flex gap-6"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="custom" id="custom" />
+            <Label htmlFor="custom" className="cursor-pointer">Custom Order (Tailor Made)</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="standard" id="standard" />
+            <Label htmlFor="standard" className="cursor-pointer">Predesigned Garment (Ready to Wear/Standard)</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
+      {/* Product Selection (Standard Only) */}
+      {orderType === "standard" && (
+        <div className="animate-in fade-in slide-in-from-top-2">
+          <Label className="mb-2 block">Select Garment / Product</Label>
+          <Select onValueChange={handleProductChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a predesigned garment..." />
+            </SelectTrigger>
+            <SelectContent>
+              {products.map((product) => (
+                <SelectItem key={product.id} value={product.id}>
+                  {product.name} - K{parseFloat(product.base_price).toFixed(2)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <input type="hidden" {...register("product_id")} />
+        </div>
+      )}
+
       {/* Customer Selection */}
       <div>
         <Label className="mb-2 block">Customer</Label>

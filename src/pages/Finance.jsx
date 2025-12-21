@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { format, subMonths, addMonths } from "date-fns";
+import { format, subMonths, addMonths, startOfMonth } from "date-fns";
+
 import {
   DollarSign,
   Calendar,
@@ -49,13 +50,34 @@ import StatsCard from "../components/dashboard/StatsCard";
 import { exportExpenses, exportPayments, exportFinancialSummary } from "../utils/excelExport";
 
 export default function Finance() {
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [periodType, setPeriodType] = useState("monthly"); // monthly, quarterly, annual
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Base date to calculate range from
   const [activeTab, setActiveTab] = useState("overview");
   const [showSettings, setShowSettings] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Calculate Date Range based on periodType and selectedDate
+  const dateRange = useMemo(() => {
+     let start, end;
+     const date = new Date(selectedDate);
+     
+     if (periodType === "annual") {
+        start = new Date(date.getFullYear(), 0, 1);
+        end = new Date(date.getFullYear(), 11, 31);
+     } else if (periodType === "quarterly") {
+        const quarter = Math.floor(date.getMonth() / 3);
+        start = new Date(date.getFullYear(), quarter * 3, 1);
+        end = new Date(date.getFullYear(), (quarter * 3) + 3, 0);
+     } else {
+        // Monthly
+        start = new Date(date.getFullYear(), date.getMonth(), 1);
+        end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+     }
+     return { start, end };
+  }, [periodType, selectedDate]);
 
   const handlePaymentClick = (payment) => {
     if (payment.order_id) {
@@ -76,7 +98,7 @@ export default function Finance() {
     expenses,
     payments,
     overheadCosts,
-    fetchMonthlyFinancialSummary,
+    fetchFinancialSummary,
     fetchExpenses,
     fetchPayments,
     fetchOverheadCosts,
@@ -87,32 +109,55 @@ export default function Finance() {
 
   useEffect(() => {
     loadData();
-  }, [selectedMonth]);
+  }, [dateRange]);
 
   const loadData = async () => {
-    const startDate = format(selectedMonth, "yyyy-MM-01");
-    const endDate = format(
-      new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0),
-      "yyyy-MM-dd"
-    );
+    const startDate = format(dateRange.start, "yyyy-MM-dd");
+    const endDate = format(dateRange.end, "yyyy-MM-dd");
 
     await Promise.all([
-      fetchMonthlyFinancialSummary(selectedMonth),
+      fetchFinancialSummary(startDate, endDate),
       fetchExpenses(startDate, endDate),
       fetchPayments(startDate, endDate),
-      fetchOverheadCosts(selectedMonth),
+      fetchOverheadCosts(startDate, endDate),
     ]);
   };
 
-  const handleMonthChange = (direction) => {
-    if (direction === "prev") {
-      setSelectedMonth(subMonths(selectedMonth, 1));
+  const handlePeriodChange = (direction) => {
+    const newDate = new Date(selectedDate);
+    const offset = direction === "prev" ? -1 : 1;
+
+    if (periodType === "annual") {
+      newDate.setFullYear(newDate.getFullYear() + offset);
+    } else if (periodType === "quarterly") {
+      newDate.setMonth(newDate.getMonth() + (offset * 3));
     } else {
-      const next = addMonths(selectedMonth, 1);
-      if (next <= new Date()) {
-        setSelectedMonth(next);
-      }
+      newDate.setMonth(newDate.getMonth() + offset);
     }
+    setSelectedDate(newDate);
+  };
+
+  const isNextDisabled = () => {
+     const today = new Date();
+     // Simple check: if start of next period is in future
+     // Actually, users might want to see future projections if overheads are set? 
+     // But usually we limit to current time.
+     // Let's limit strictly to current period containing today.
+     if (periodType === 'monthly' && selectedDate >= startOfMonth(today)) return true;
+     if (periodType === 'annual' && selectedDate.getFullYear() >= today.getFullYear()) return true;
+     // Quarterly check is a bit complex, let's just allow it for now or implement strict logic
+     return false;
+  };
+  
+  const formatPeriodLabel = () => {
+     if (periodType === "annual") {
+       return format(selectedDate, "yyyy");
+     } else if (periodType === "quarterly") {
+       const quarter = Math.floor(selectedDate.getMonth() / 3) + 1;
+       return `Q${quarter} ${format(selectedDate, "yyyy")}`;
+     } else {
+       return format(selectedDate, "MMMM yyyy");
+     }
   };
 
   const handleExportSummary = () => {
@@ -242,17 +287,38 @@ export default function Finance() {
       </div>
 
       <Card>
-        <div className="flex items-center justify-between p-2">
-           <Button variant="ghost" onClick={() => handleMonthChange("prev")}>
-             <ChevronLeft className="h-4 w-4" />
-           </Button>
-           <div className="flex items-center gap-2">
-             <Calendar className="h-5 w-5 text-primary" />
-             <span className="text-lg font-semibold">{format(selectedMonth, "MMMM yyyy")}</span>
+        <div className="flex flex-col sm:flex-row items-center justify-between p-4 gap-4">
+           {/* Period Type Selection */}
+           <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Select value={periodType} onValueChange={setPeriodType}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Period Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="annual">Annual</SelectItem>
+                </SelectContent>
+              </Select>
            </div>
-           <Button variant="ghost" onClick={() => handleMonthChange("next")} disabled={selectedMonth >= new Date()}>
-             <ChevronRight className="h-4 w-4" />
-           </Button>
+
+           {/* Date Navigation */}
+           <div className="flex items-center justify-center gap-4 flex-1">
+             <Button variant="ghost" size="icon" onClick={() => handlePeriodChange("prev")}>
+               <ChevronLeft className="h-4 w-4" />
+             </Button>
+             
+             <div className="flex items-center gap-2 text-lg font-semibold min-w-[200px] justify-center">
+                <Calendar className="h-5 w-5 text-primary" />
+                {formatPeriodLabel()}
+             </div>
+
+             <Button variant="ghost" size="icon" onClick={() => handlePeriodChange("next")} disabled={isNextDisabled()}>
+               <ChevronRight className="h-4 w-4" />
+             </Button>
+           </div>
+           
+           <div className="w-full sm:w-auto"></div>
         </div>
       </Card>
 
@@ -404,7 +470,7 @@ export default function Finance() {
         </TabsContent>
 
         <TabsContent value="overhead" className="space-y-4">
-             <OverheadManager selectedMonth={selectedMonth} onDataChange={loadData} />
+             <OverheadManager selectedMonth={selectedDate} onDataChange={loadData} />
         </TabsContent>
       </Tabs>
 

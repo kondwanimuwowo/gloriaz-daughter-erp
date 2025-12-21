@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function StockUpdateModal({
@@ -19,6 +20,7 @@ export default function StockUpdateModal({
   onUpdate,
 }) {
   const [quantity, setQuantity] = useState("");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -27,8 +29,9 @@ export default function StockUpdateModal({
 
     setLoading(true);
     try {
-      await onUpdate(material.id, parseFloat(quantity), operation);
+      await onUpdate(material.id, parseFloat(quantity), operation, notes);
       setQuantity("");
+      setNotes("");
       onClose();
     } catch (error) {
       console.error(error);
@@ -82,6 +85,21 @@ export default function StockUpdateModal({
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               required
+            />
+          </div>
+
+          {/* Notes Input */}
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes / Reason (Optional)</Label>
+            <Textarea
+              id="notes"
+              placeholder={
+                operation === "add"
+                  ? "e.g., New shipment arrived"
+                  : "e.g., Used for urgent repair"
+              }
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
             />
           </div>
 

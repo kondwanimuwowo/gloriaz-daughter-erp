@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { useInventoryStore } from "../store/useInventoryStore";
+import { inventoryService } from "../services/inventoryService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DataTable } from "@/components/DataTable";
@@ -63,6 +64,23 @@ export default function Inventory() {
       }
     }
   }, [location.state, materials]);
+
+  // Fetch history when viewing a material
+  const [transactions, setTransactions] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    if (viewingMaterial) {
+      setLoadingHistory(true);
+      inventoryService
+        .getMaterialHistory(viewingMaterial.id)
+        .then(data => setTransactions(data || []))
+        .catch(console.error)
+        .finally(() => setLoadingHistory(false));
+    } else {
+      setTransactions([]);
+    }
+  }, [viewingMaterial]);
 
   // Calculate stats
   const totalMaterials = materials.length;
@@ -250,78 +268,109 @@ export default function Inventory() {
                     {viewingMaterial?.name}
                   </DialogTitle>
               </DialogHeader>
-              
+
               {viewingMaterial && (
-                <div className="space-y-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-6 py-4">
+                  {/* Actions Toolbar - Moved to Top */}
+                  <div className="flex flex-wrap gap-2 p-2 bg-muted/50 rounded-lg border">
+                     <Button className="flex-1 sm:flex-none" onClick={() => openStockUpdateModal(viewingMaterial, 'add')}>
+                        <ArrowUpCircle className="mr-2 h-4 w-4" /> Restock
+                      </Button>
+                      <Button className="flex-1 sm:flex-none" variant="secondary" onClick={() => openStockUpdateModal(viewingMaterial, 'deduct')}>
+                        <ArrowDownCircle className="mr-2 h-4 w-4" /> Use Stock
+                      </Button>
+                      <div className="mx-auto sm:mx-0 flex-1"></div>
+                      <Button variant="outline" size="sm" onClick={openEditFromView}>
+                        <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteMaterial(viewingMaterial?.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                  </div>
+
+                  {/* Material Details */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Category</p>
                       <p className="font-medium capitalize">{viewingMaterial.category}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Unit</p>
-                      <p className="font-medium">{viewingMaterial.unit}</p>
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Current Stock</p>
-                      <p className={`text-xl font-bold ${parseFloat(viewingMaterial.stock_quantity) <= parseFloat(viewingMaterial.min_stock_level) ? 'text-red-500' : 'text-green-600'}`}>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Stock</p>
+                      <p className={`text-lg font-bold ${parseFloat(viewingMaterial.stock_quantity) <= parseFloat(viewingMaterial.min_stock_level) ? 'text-red-500' : 'text-green-600'}`}>
                         {viewingMaterial.stock_quantity} {viewingMaterial.unit}
                       </p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Min. Stock Level</p>
-                      <p className="text-xl font-bold">{viewingMaterial.min_stock_level} {viewingMaterial.unit}</p>
+                     <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Min Level</p>
+                      <p className="font-medium">{viewingMaterial.min_stock_level} {viewingMaterial.unit}</p>
                     </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Cost per Unit</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Cost/Unit</p>
                       <p className="font-medium">
                         {new Intl.NumberFormat("en-ZM", { style: "currency", currency: "ZMW" }).format(viewingMaterial.cost_per_unit)}
                       </p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Total Value</p>
-                      <p className="font-medium">
-                        {new Intl.NumberFormat("en-ZM", { style: "currency", currency: "ZMW" }).format(viewingMaterial.stock_quantity * viewingMaterial.cost_per_unit)}
-                      </p>
+                  </div>
+
+                  {viewingMaterial.supplier && (
+                    <div className="text-sm bg-blue-50 text-blue-800 px-3 py-1.5 rounded border border-blue-100">
+                      <span className="font-semibold">Supplier:</span> {viewingMaterial.supplier}
+                    </div>
+                  )}
+                  
+                  <Separator />
+
+                  {/* Transaction History Table */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                       <TrendingUp className="h-4 w-4" /> Inventory History
+                    </h3>
+                    
+                    <div className="border rounded-md overflow-hidden max-h-[200px] overflow-y-auto bg-background">
+                       <table className="w-full text-sm">
+                          <thead className="bg-muted sticky top-0">
+                            <tr>
+                              <th className="h-9 px-3 text-left font-medium text-muted-foreground">Date</th>
+                              <th className="h-9 px-3 text-left font-medium text-muted-foreground">Type</th>
+                              <th className="h-9 px-3 text-right font-medium text-muted-foreground">Qty</th>
+                              <th className="h-9 px-3 text-left font-medium text-muted-foreground">Reason/Note</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {loadingHistory ? (
+                               <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">Loading history...</td></tr>
+                            ) : transactions.length === 0 ? (
+                               <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">No history found.</td></tr>
+                            ) : (
+                               transactions.map((tx) => (
+                                 <tr key={tx.id} className="border-t hover:bg-muted/50">
+                                   <td className="p-2 whitespace-nowrap">
+                                      {new Date(tx.created_at).toLocaleDateString()} <br/>
+                                      <span className="text-[10px] text-muted-foreground">{new Date(tx.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                   </td>
+                                   <td className="p-2">
+                                     <Badge variant="outline" className={`
+                                        uppercase text-[10px] px-1 py-0
+                                        ${tx.operation_type === 'restock' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}
+                                     `}>
+                                       {tx.operation_type}
+                                     </Badge>
+                                   </td>
+                                   <td className={`p-2 text-right font-medium ${tx.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                     {tx.quantity_change > 0 ? '+' : ''}{tx.quantity_change}
+                                   </td>
+                                   <td className="p-2 max-w-[150px] truncate text-muted-foreground" title={tx.notes}>
+                                     {tx.notes || "-"}
+                                   </td>
+                                 </tr>
+                               ))
+                            )}
+                          </tbody>
+                       </table>
                     </div>
                   </div>
-                  
-                  {viewingMaterial.supplier && (
-                    <>
-                      <Separator />
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">Supplier</p>
-                        <p className="font-medium">{viewingMaterial.supplier}</p>
-                      </div>
-                    </>
-                  )}
                 </div>
               )}
-              
-              <DialogFooter className="flex-col sm:flex-row gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => openStockUpdateModal(viewingMaterial, 'add')}>
-                  <ArrowUpCircle className="mr-2 h-4 w-4 text-green-500" /> Restock
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={() => openStockUpdateModal(viewingMaterial, 'deduct')}>
-                  <ArrowDownCircle className="mr-2 h-4 w-4 text-orange-500" /> Use Stock
-                </Button>
-                <Button className="flex-1" onClick={openEditFromView}>
-                  <Pencil className="mr-2 h-4 w-4" /> Edit Details
-                </Button>
-                <Button variant="destructive" size="icon" onClick={() => handleDeleteMaterial(viewingMaterial?.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </DialogFooter>
           </DialogContent>
       </Dialog>
 
@@ -353,46 +402,17 @@ export default function Inventory() {
       </Dialog>
 
       {/* Stock Update Dialog */}
-      <Dialog open={stockUpdateModal.isOpen} onOpenChange={(open) => !open && setStockUpdateModal(prev => ({ ...prev, isOpen: false }))}>
-          <DialogContent>
-               <DialogHeader>
-                  <DialogTitle>{stockUpdateModal.operation === 'add' ? 'Restock' : 'Use Stock'}: {stockUpdateModal.material?.name}</DialogTitle>
-              </DialogHeader>
-               <StockUpdateForm 
-                  material={stockUpdateModal.material}
-                  operation={stockUpdateModal.operation}
-                  onUpdate={handleStockUpdate}
-                  onCancel={() => setStockUpdateModal({ ...stockUpdateModal, isOpen: false })}
-               />
-          </DialogContent>
-      </Dialog>
+      <StockUpdateModal
+        isOpen={stockUpdateModal.isOpen}
+        onClose={() => setStockUpdateModal((prev) => ({ ...prev, isOpen: false }))}
+        material={stockUpdateModal.material}
+        operation={stockUpdateModal.operation}
+        onUpdate={handleStockUpdate}
+      />
     </div>
   );
 }
 
-// Simple wrapper for the stock update form
-function StockUpdateForm({ material, operation, onUpdate, onCancel }) {
-    const [quantity, setQuantity] = useState("");
-    
-    return (
-        <div className="space-y-4">
-             <div className="space-y-2">
-                 <label className="text-sm font-medium">Quantity to {operation === 'add' ? 'Add' : 'Deduct'}</label>
-                 <input 
-                    type="number" 
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    value={quantity}
-                    onChange={e => setQuantity(e.target.value)}
-                    min="0"
-                    step="0.1"
-                 />
-             </div>
-             <div className="flex justify-end gap-2">
-                 <Button variant="outline" onClick={onCancel}>Cancel</Button>
-                 <Button onClick={() => onUpdate(material.id, parseFloat(quantity), operation)}>Confirm</Button>
-             </div>
-        </div>
-    )
-}
+
 
 

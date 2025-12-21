@@ -63,7 +63,10 @@ Gloriaz Daughter ERP is a complete business management system designed specifica
 ### Frontend
 
 - **React 18** - UI framework
-- **React Router** - Navigation
+- **Vite** - Build tool
+- **Shadcn UI** - Component library
+- **TanStack Table** - Advanced data tables
+- **TanStack Query** - Data fetching & caching
 - **Tailwind CSS** - Styling
 - **Framer Motion** - Animations
 - **Recharts** - Data visualization
@@ -72,8 +75,9 @@ Gloriaz Daughter ERP is a complete business management system designed specifica
 
 ### State Management
 
-- **Zustand** - Lightweight state management
+- **Zustand** - Global state management
 - **React Hot Toast** - Notifications
+- **Context API** - Theme & Auth state
 
 ### Backend & Database
 

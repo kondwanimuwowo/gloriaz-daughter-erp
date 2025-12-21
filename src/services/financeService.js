@@ -52,9 +52,16 @@ export const financeService = {
 
   // ==================== OVERHEAD COSTS ====================
 
-  async getOverheadCosts(month = new Date()) {
-    const start = startOfMonth(month);
-    const end = endOfMonth(month);
+  async getOverheadCosts(startDate, endDate) {
+    // If only one arg provided and it's a date object/string for month
+    let start, end;
+    if (arguments.length === 1 && !endDate) {
+       start = startOfMonth(new Date(startDate));
+       end = endOfMonth(new Date(startDate));
+    } else {
+       start = new Date(startDate);
+       end = new Date(endDate);
+    }
 
     const { data, error } = await supabase
       .from("overhead_costs")
@@ -231,9 +238,20 @@ export const financeService = {
 
   // ==================== ANALYTICS & CALCULATIONS ====================
 
-  async getMonthlyFinancialSummary(month = new Date()) {
-    const start = startOfMonth(month);
-    const end = endOfMonth(month);
+  async getFinancialSummary(startDate, endDate) {
+    // Determine range
+    let start, end;
+    if (arguments.length === 1 && !endDate) {
+       // Support legacy call with single 'month' arg
+       start = startOfMonth(new Date(startDate));
+       end = endOfMonth(new Date(startDate));
+    } else {
+       start = new Date(startDate);
+       end = new Date(endDate);
+    }
+    
+    const startStr = format(start, "yyyy-MM-dd");
+    const endStr = format(end, "yyyy-MM-dd");
 
     // Get all data in parallel
     const [
@@ -250,18 +268,18 @@ export const financeService = {
       supabase
         .from("overhead_costs")
         .select("amount")
-        .gte("month", format(start, "yyyy-MM-dd"))
-        .lte("month", format(end, "yyyy-MM-dd")),
+        .gte("month", startStr)
+        .lte("month", endStr),
       supabase
         .from("expenses")
         .select("amount")
-        .gte("expense_date", format(start, "yyyy-MM-dd"))
-        .lte("expense_date", format(end, "yyyy-MM-dd")),
+        .gte("expense_date", startStr)
+        .lte("expense_date", endStr),
       supabase
         .from("payments")
         .select("amount")
-        .gte("payment_date", format(start, "yyyy-MM-dd"))
-        .lte("payment_date", format(end, "yyyy-MM-dd")),
+        .gte("payment_date", startStr)
+        .lte("payment_date", endStr),
     ]);
 
     const totalRevenue =
@@ -284,7 +302,8 @@ export const financeService = {
       totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
     return {
-      month: format(month, "MMMM yyyy"),
+      periodStart: startStr,
+      periodEnd: endStr,
       totalOrders: orders?.length || 0,
       completedOrders:
         orders?.filter((o) => ["completed", "delivered"].includes(o.status))
@@ -307,6 +326,11 @@ export const financeService = {
       cashFlow: parseFloat((totalPayments - totalCosts).toFixed(2)),
       avgOrderValue: orders?.length > 0 ? totalRevenue / orders.length : 0,
     };
+  },
+  
+  // Legacy alias for backward compatibility (though we'll update store)
+  async getMonthlyFinancialSummary(month) {
+      return this.getFinancialSummary(month);
   },
 
   async getOverheadPerOrder(month = new Date()) {

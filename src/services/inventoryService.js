@@ -57,7 +57,7 @@ export const inventoryService = {
   },
 
   // Update stock quantity
-  async updateStock(id, quantity, operation = "add") {
+  async updateStock(id, quantity, operation = "add", notes = "") {
     // Get current stock
     const { data: material } = await supabase
       .from("materials")
@@ -82,6 +82,22 @@ export const inventoryService = {
       .single();
 
     if (error) throw error;
+
+    // Log transaction
+    try {
+      await supabase.from("inventory_transactions").insert([
+        {
+          material_id: id,
+          quantity_change: operation === "add" ? quantity : -quantity,
+          operation_type: operation === "add" ? "restock" : "usage",
+          notes: notes,
+        },
+      ]);
+    } catch (logError) {
+      console.error("Failed to log inventory transaction:", logError);
+      // Don't fail the main operation if logging fails, but warn
+    }
+
     return data;
   },
 
@@ -125,6 +141,17 @@ export const inventoryService = {
       .select("*")
       .eq("category", category)
       .order("name");
+
+    if (error) throw error;
+    return data;
+  },
+  // Get transaction history for a material
+  async getMaterialHistory(materialId) {
+    const { data, error } = await supabase
+      .from("inventory_transactions")
+      .select("*")
+      .eq("material_id", materialId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return data;

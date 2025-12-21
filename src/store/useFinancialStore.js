@@ -243,10 +243,11 @@ export const useFinancialStore = create((set, get) => ({
     }
   },
 
-  fetchMonthlyFinancialSummary: async (month = new Date()) => {
+  fetchFinancialSummary: async (startDate, endDate) => {
     set({ loading: true });
     try {
-      const summary = await financeService.getMonthlyFinancialSummary(month);
+      // If called with just one arg (month date object), service handles it
+      const summary = await financeService.getFinancialSummary(startDate, endDate);
       set({ monthlyFinancialSummary: summary, loading: false });
     } catch (error) {
       set({ loading: false });

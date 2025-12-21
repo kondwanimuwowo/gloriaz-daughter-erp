@@ -126,6 +126,8 @@ export const orderService = {
           description: orderData.description,
           notes: orderData.notes,
           assigned_tailor_id: orderData.assigned_tailor_id,
+          order_type: orderData.order_type || "custom",
+          product_id: orderData.product_id || null,
         },
       ])
       .select()
@@ -184,7 +186,8 @@ export const orderService = {
       await inventoryService.updateStock(
         material.material_id,
         material.quantity_used,
-        "subtract"
+        "subtract",
+        `Order #${orderId} deduction`
       );
     }
   },

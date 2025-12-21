@@ -79,12 +79,13 @@ export const useInventoryStore = create((set, get) => ({
   },
 
   // Update stock
-  updateStock: async (id, quantity, operation) => {
+  updateStock: async (id, quantity, operation, notes = "") => {
     try {
       const updatedMaterial = await inventoryService.updateStock(
         id,
         quantity,
-        operation
+        operation,
+        notes
       );
       set((state) => ({
         materials: state.materials.map((m) =>

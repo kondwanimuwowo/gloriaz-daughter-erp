@@ -79,6 +79,8 @@ CREATE TABLE orders (
   description TEXT,
   notes TEXT,
   assigned_tailor_id UUID REFERENCES employees(id) ON DELETE SET NULL,
+  order_type VARCHAR(50) DEFAULT 'custom',
+  product_id UUID, -- distinct from order_items, links to main product if standard
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -114,6 +116,39 @@ CREATE TABLE order_timeline (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Inventory Transactions table
+CREATE TABLE inventory_transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  material_id UUID REFERENCES materials(id) ON DELETE CASCADE,
+  quantity_change DECIMAL(10, 2) NOT NULL,
+  operation_type VARCHAR(50) NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Products table (for predesigned garments)
+CREATE TABLE products (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  base_price DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  category VARCHAR(100),
+  image_url TEXT,
+  estimated_days INTEGER DEFAULT 7,
+  active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- User Profiles table (links to auth.users)
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name VARCHAR(255),
+  role VARCHAR(50) DEFAULT 'employee',
+  active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ============================================
 -- INDEXES
 -- ============================================
@@ -125,6 +160,9 @@ CREATE INDEX idx_attendance_date ON attendance(date);
 CREATE INDEX idx_materials_category ON materials(category);
 CREATE INDEX idx_order_materials_order ON order_materials(order_id);
 CREATE INDEX idx_order_timeline_order ON order_timeline(order_id);
+CREATE INDEX idx_inventory_transactions_material ON inventory_transactions(material_id);
+CREATE INDEX idx_products_category ON products(category);
+CREATE INDEX idx_orders_product ON orders(product_id);
 
 -- ============================================
 -- FUNCTIONS
@@ -170,6 +208,20 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Function to handle new user signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.user_profiles (id, full_name, role)
+  VALUES (
+    NEW.id,
+    NEW.raw_user_meta_data->>'full_name',
+    COALESCE(NEW.raw_user_meta_data->>'role', 'employee')
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- ============================================
 -- TRIGGERS
 -- ============================================
@@ -192,6 +244,14 @@ CREATE TRIGGER update_employees_updated_at BEFORE UPDATE ON employees
 
 CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  
+CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger to call the function on auth user creation
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================
 -- SAMPLE DATA (Optional)
@@ -221,3 +281,9 @@ INSERT INTO customers (name, phone, email, measurements) VALUES
 ('Martha Mumba', '+260 977 111 222', 'martha@email.com', '{"bust": 36, "waist": 28, "hips": 38}'::jsonb),
 ('Sarah Banda', '+260 966 333 444', 'sarah@email.com', '{"bust": 34, "waist": 26, "hips": 36}'::jsonb),
 ('Grace Phiri', '+260 955 555 666', 'grace@email.com', '{"bust": 38, "waist": 30, "hips": 40}'::jsonb);
+
+-- Insert sample products (predesigned garments)
+INSERT INTO products (name, description, base_price, category, estimated_days) VALUES
+('Summer Breeze Dress', 'Light cotton dress with floral pattern', 450.00, 'dress', 3),
+('Executive Suit - Navy', 'Classic fit navy blue suit', 1200.00, 'suit', 5),
+('Traditional Chitenge Wrapper', 'Custom print wrapper set', 300.00, 'traditional', 2);
