@@ -22,8 +22,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       // Exponential backoff with max 10 seconds
       return Math.min(1000 * Math.pow(2, tries), 10000);
     },
-    // Log connection state changes for debugging
-    logger: import.meta.env.DEV ? console : undefined,
   },
   global: {
     headers: {
