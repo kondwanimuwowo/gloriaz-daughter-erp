@@ -168,72 +168,75 @@ export default function InquiryForm({ product, onClose }) {
           </div>
 
           {/* Size Preference */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-[#2C2C2C]">Size & Measurements</h3>
+          <div className="space-y-4 pt-2">
+            <h3 className="font-semibold text-[#2C2C2C] border-b pb-2">Size & Measurements</h3>
             
             {/* Size Selector */}
-            <div>
-              <Label htmlFor="preferred_size">Preferred Size</Label>
-              <Select
-                onValueChange={(value) => setValue("preferred_size", value)}
-                defaultValue=""
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select a size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="S">Small (S)</SelectItem>
-                  <SelectItem value="M">Medium (M)</SelectItem>
-                  <SelectItem value="L">Large (L)</SelectItem>
-                  <SelectItem value="XL">Extra Large (XL)</SelectItem>
-                  <SelectItem value="XXL">XXL</SelectItem>
-                  <SelectItem value="Custom">Custom Size</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="preferred_size">Preferred Size</Label>
+                <Select
+                  onValueChange={(value) => setValue("preferred_size", value)}
+                  defaultValue=""
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select a size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="S">Small (S)</SelectItem>
+                    <SelectItem value="M">Medium (M)</SelectItem>
+                    <SelectItem value="L">Large (L)</SelectItem>
+                    <SelectItem value="XL">Extra Large (XL)</SelectItem>
+                    <SelectItem value="XXL">XXL</SelectItem>
+                    <SelectItem value="Custom">Custom Size</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Custom Measurements Checkbox */}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="custom_measurements_needed"
-                checked={customMeasurementsNeeded}
-                onCheckedChange={(checked) =>
-                  setValue("custom_measurements_needed", checked)
-                }
-              />
-              <Label
-                htmlFor="custom_measurements_needed"
-                className="text-sm font-normal cursor-pointer"
-              >
-                I need custom measurements taken
-              </Label>
+              {/* Custom Measurements Checkbox */}
+              <div className="flex items-center space-x-2 mt-8 md:mt-0 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <Checkbox
+                  id="custom_measurements_needed"
+                  checked={!!customMeasurementsNeeded}
+                  onCheckedChange={(checked) =>
+                    setValue("custom_measurements_needed", !!checked, { shouldDirty: true })
+                  }
+                />
+                <Label
+                  htmlFor="custom_measurements_needed"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  I need custom measurements taken
+                </Label>
+              </div>
             </div>
           </div>
 
           {/* Special Requests */}
-          <div>
-            <Label htmlFor="special_requests">
-              Special Requests or Notes (Optional)
+          <div className="pt-2">
+            <Label htmlFor="special_requests" className="font-semibold text-[#2C2C2C] mb-2 block">
+              Special Requests or Notes
             </Label>
             <Textarea
               id="special_requests"
               {...register("special_requests")}
               placeholder="Any specific requirements, color preferences, or questions..."
-              rows={4}
-              className="mt-1"
+              rows={3}
+              className="mt-1 resize-none"
             />
           </div>
 
           {/* Contact Method */}
-          <div>
-            <Label htmlFor="contact_method">
+          <div className="bg-[#fdf8f6] p-4 rounded-lg border border-[#eaddd7]">
+            <Label htmlFor="contact_method" className="font-semibold text-[#8B4513]">
               Preferred Contact Method <span className="text-red-500">*</span>
             </Label>
+             <p className="text-xs text-[#a0522d] mb-2">How should we reach out to you?</p>
             <Select
               onValueChange={(value) => setValue("contact_method", value)}
               defaultValue="whatsapp"
             >
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1 bg-white border-[#eaddd7]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -14,6 +14,8 @@ import StatsCard from "../components/dashboard/StatsCard";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 
+import { supabase } from "../lib/supabase"; // NEW IMPORT
+
 export default function InquiryDashboard() {
   const [inquiries, setInquiries] = useState([]);
   const [stats, setStats] = useState(null);
@@ -25,6 +27,22 @@ export default function InquiryDashboard() {
 
   useEffect(() => {
     loadData();
+
+    const subscription = supabase
+      .channel("inquiries")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "customer_inquiries" },
+        () => {
+          loadData();
+          toast("Inquiry list updated", { icon: "🔔" });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadData = async () => {

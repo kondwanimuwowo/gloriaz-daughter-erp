@@ -17,12 +17,10 @@ export const inquiryService = {
           contact_method: inquiryData.contact_method || 'whatsapp',
           status: 'new'
         },
-      ])
-      .select()
-      .single();
+      ]);
 
     if (error) throw error;
-    return data;
+    return { success: true };
   },
 
   // Get all inquiries (ERP - authenticated)

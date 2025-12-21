@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, MessageCircle, Phone, Mail, Clock, Ruler, Sparkles } from "lucide-react";
 import { productService } from "../../services/productService";
@@ -64,9 +64,23 @@ export default function ProductDetail() {
     );
   }
 
-  const images = product.gallery_images && product.gallery_images.length > 0
-    ? product.gallery_images
-    : [product.image_url];
+  const images = useMemo(() => {
+    if (!product) return [];
+    
+    // Start with the main image
+    const imgs = [product.image_url];
+    
+    // Add unique gallery images
+    if (product.gallery_images && Array.isArray(product.gallery_images)) {
+      product.gallery_images.forEach(img => {
+        if (img && img !== product.image_url && !imgs.includes(img)) {
+          imgs.push(img);
+        }
+      });
+    }
+    
+    return imgs;
+  }, [product]);
 
   const getPriceDisplay = () => {
     if (product.customizable) {
