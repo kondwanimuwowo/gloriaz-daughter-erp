@@ -92,10 +92,10 @@ export default function InquiryForm({ product, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg max-w-2xl w-full my-8">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] flex flex-col shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-['Playfair_Display'] font-bold text-[#2C2C2C]">
               Request This Design
@@ -110,107 +110,107 @@ export default function InquiryForm({ product, onClose }) {
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-          {/* Personal Information */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-[#2C2C2C]">Your Information</h3>
-            
-            {/* Name */}
-            <div>
-              <Label htmlFor="customer_name">
-                Full Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="customer_name"
-                {...register("customer_name", { required: "Name is required" })}
-                placeholder="John Doe"
-                className="mt-1"
-              />
-              {errors.customer_name && (
-                <p className="text-sm text-red-500 mt-1">{errors.customer_name.message}</p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <Label htmlFor="customer_phone">
-                Phone Number <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="customer_phone"
-                {...register("customer_phone", {
-                  required: "Phone number is required",
-                  validate: validatePhone,
-                })}
-                placeholder="+260 97 1234567"
-                className="mt-1"
-              />
-              {errors.customer_phone && (
-                <p className="text-sm text-red-500 mt-1">{errors.customer_phone.message}</p>
-              )}
-              <p className="text-xs text-[#6B6B6B] mt-1">
-                Format: +260 97 1234567 or 0971234567
-              </p>
-            </div>
-
-            {/* Email (Optional) */}
-            <div>
-              <Label htmlFor="customer_email">Email (Optional)</Label>
-              <Input
-                id="customer_email"
-                type="email"
-                {...register("customer_email")}
-                placeholder="john@example.com"
-                className="mt-1"
-              />
-            </div>
-          </div>
-
-          {/* Size Preference */}
-          <div className="space-y-4 pt-2">
-            <h3 className="font-semibold text-[#2C2C2C] border-b pb-2">Size & Measurements</h3>
-            
-            {/* Size Selector */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Form - Scrollable Area */}
+        <div className="overflow-y-auto p-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Personal Information */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-[#2C2C2C]">Your Information</h3>
+              
+              {/* Name */}
               <div>
-                <Label htmlFor="preferred_size">Preferred Size</Label>
-                <Select
-                  onValueChange={(value) => setValue("preferred_size", value)}
-                  defaultValue=""
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select a size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="S">Small (S)</SelectItem>
-                    <SelectItem value="M">Medium (M)</SelectItem>
-                    <SelectItem value="L">Large (L)</SelectItem>
-                    <SelectItem value="XL">Extra Large (XL)</SelectItem>
-                    <SelectItem value="XXL">XXL</SelectItem>
-                    <SelectItem value="Custom">Custom Size</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="customer_name">
+                  Full Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="customer_name"
+                  {...register("customer_name", { required: "Name is required" })}
+                  placeholder="John Doe"
+                  className="mt-1"
+                />
+                {errors.customer_name && (
+                  <p className="text-sm text-red-500 mt-1">{errors.customer_name.message}</p>
+                )}
               </div>
 
-              {/* Custom Measurements Checkbox */}
-              <div className="flex items-center space-x-2 mt-8 md:mt-0 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <Checkbox
-                  id="custom_measurements_needed"
-                  checked={!!customMeasurementsNeeded}
-                  onCheckedChange={(checked) =>
-                    setValue("custom_measurements_needed", !!checked, { shouldDirty: true })
-                  }
-                />
-                <Label
-                  htmlFor="custom_measurements_needed"
-                  className="text-sm font-medium cursor-pointer"
-                >
-                  I need custom measurements taken
+              {/* Phone */}
+              <div>
+                <Label htmlFor="customer_phone">
+                  Phone Number <span className="text-red-500">*</span>
                 </Label>
+                <Input
+                  id="customer_phone"
+                  {...register("customer_phone", {
+                    required: "Phone number is required",
+                    validate: validatePhone,
+                  })}
+                  placeholder="+260 97 1234567"
+                  className="mt-1"
+                />
+                {errors.customer_phone && (
+                  <p className="text-sm text-red-500 mt-1">{errors.customer_phone.message}</p>
+                )}
+                <p className="text-xs text-[#6B6B6B] mt-1">
+                  Format: +260 97 1234567 or 0971234567
+                </p>
+              </div>
+
+              {/* Email (Optional) */}
+              <div>
+                <Label htmlFor="customer_email">Email (Optional)</Label>
+                <Input
+                  id="customer_email"
+                  type="email"
+                  {...register("customer_email")}
+                  placeholder="john@example.com"
+                  className="mt-1"
+                />
               </div>
             </div>
-          </div>
+
+            {/* Size Preference */}
+            <div className="space-y-4 pt-2">
+              <h3 className="font-semibold text-[#2C2C2C] border-b pb-2">Size & Measurements</h3>
+              
+              {/* Size Selector */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="preferred_size">Preferred Size</Label>
+                  <Select
+                    onValueChange={(value) => setValue("preferred_size", value)}
+                    defaultValue=""
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="S">Small (S)</SelectItem>
+                      <SelectItem value="M">Medium (M)</SelectItem>
+                      <SelectItem value="L">Large (L)</SelectItem>
+                      <SelectItem value="XL">Extra Large (XL)</SelectItem>
+                      <SelectItem value="XXL">XXL</SelectItem>
+                      <SelectItem value="Custom">Custom Size</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Custom Measurements Checkbox */}
+                <div className="flex items-center space-x-3 mt-8 md:mt-0 p-3 bg-gray-50 rounded-lg border border-gray-100 h-[72px]">
+                  <input
+                    type="checkbox"
+                    id="custom_measurements_needed"
+                    className="h-5 w-5 rounded border-gray-300 text-[#8B4513] focus:ring-[#8B4513] cursor-pointer"
+                    {...register("custom_measurements_needed")}
+                  />
+                  <Label
+                    htmlFor="custom_measurements_needed"
+                    className="text-sm font-medium cursor-pointer select-none"
+                  >
+                    I need custom measurements taken
+                  </Label>
+                </div>
+              </div>
+            </div>
 
           {/* Special Requests */}
           <div className="pt-2">
@@ -279,6 +279,7 @@ export default function InquiryForm({ product, onClose }) {
             regarding your inquiry.
           </p>
         </form>
+        </div>
       </div>
     </div>
   );
