@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Phone, Mail, Eye, CheckCircle, XCircle, Clock, Package } from "lucide-react";
+import { MessageCircle, Phone, Mail, Eye, CheckCircle, XCircle, Clock, Package, Trash2 } from "lucide-react";
 import { inquiryService } from "../services/inquiryService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +87,24 @@ export default function InquiryDashboard() {
     } catch (error) {
       console.error("Error saving notes:", error);
       toast.error("Failed to save notes");
+    }
+  };
+
+  const handleDeleteInquiry = async (inquiryId) => {
+    if (!confirm('Are you sure you want to delete this inquiry? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await inquiryService.deleteInquiry(inquiryId);
+      toast.success("Inquiry deleted successfully");
+      loadData();
+      if (viewingInquiry?.id === inquiryId) {
+        setViewingInquiry(null);
+      }
+    } catch (error) {
+      console.error("Error deleting inquiry:", error);
+      toast.error("Failed to delete inquiry");
     }
   };
 
@@ -302,6 +320,15 @@ export default function InquiryDashboard() {
                             Convert
                           </Button>
                         ) : null}
+                        
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteInquiry(inquiry.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -397,6 +424,15 @@ export default function InquiryDashboard() {
                   className="flex-1"
                 >
                   Convert to Order
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    handleDeleteInquiry(viewingInquiry.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
                 </Button>
               </div>
             </div>
