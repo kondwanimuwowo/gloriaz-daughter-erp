@@ -57,33 +57,52 @@ export const inventoryService = {
   },
 
   // Update stock quantity
-  async updateStock(id, quantity, operation = "add", notes = "") {
-    // Get current stock
+  async updateStock(id, quantity, operation = "add", notes = "", orderId = null, unitCost = null) {
+    // Get current stock and cost
     const { data: material } = await supabase
       .from("materials")
-      .select("stock_quantity")
+      .select("stock_quantity, cost_per_unit")
       .eq("id", id)
       .single();
 
+    const currentQuantity = parseFloat(material.stock_quantity);
+    const currentCost = parseFloat(material.cost_per_unit);
+    
     const newQuantity =
       operation === "add"
-        ? parseFloat(material.stock_quantity) + parseFloat(quantity)
-        : parseFloat(material.stock_quantity) - parseFloat(quantity);
+        ? currentQuantity + parseFloat(quantity)
+        : currentQuantity - parseFloat(quantity);
+
+    // Calculate new cost per unit if restocking with a different price
+    let newCostPerUnit = currentCost;
+    if (operation === "add" && unitCost !== null && unitCost !== currentCost) {
+      // Weighted average cost calculation
+      const currentValue = currentQuantity * currentCost;
+      const newStockValue = parseFloat(quantity) * parseFloat(unitCost);
+      newCostPerUnit = (currentValue + newStockValue) / newQuantity;
+    }
+
+    // Prepare update object
+    const updateData = {
+      stock_quantity: newQuantity,
+      last_restocked: operation === "add" ? new Date().toISOString() : undefined,
+    };
+
+    // Only update cost_per_unit if it changed
+    if (newCostPerUnit !== currentCost) {
+      updateData.cost_per_unit = newCostPerUnit;
+    }
 
     const { data, error } = await supabase
       .from("materials")
-      .update({
-        stock_quantity: newQuantity,
-        last_restocked:
-          operation === "add" ? new Date().toISOString() : undefined,
-      })
+      .update(updateData)
       .eq("id", id)
       .select()
       .single();
 
     if (error) throw error;
 
-    // Log transaction
+    // Log transaction with order_id and unit_cost
     try {
       await supabase.from("inventory_transactions").insert([
         {
@@ -91,6 +110,8 @@ export const inventoryService = {
           quantity_change: operation === "add" ? quantity : -quantity,
           operation_type: operation === "add" ? "restock" : "usage",
           notes: notes,
+          order_id: orderId,
+          unit_cost: unitCost || currentCost, // Use provided cost or current cost
         },
       ]);
     } catch (logError) {

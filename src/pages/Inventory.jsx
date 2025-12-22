@@ -111,8 +111,8 @@ export default function Inventory() {
     }
   };
 
-  const handleStockUpdate = async (id, quantity, operation) => {
-    await updateStock(id, quantity, operation);
+  const handleStockUpdate = async (id, quantity, operation, notes, orderId, unitCost) => {
+    await updateStock(id, quantity, operation, notes, orderId, unitCost);
     setStockUpdateModal({ isOpen: false, material: null, operation: null });
     setViewingMaterial(null); // Close view modal
   };
@@ -333,14 +333,15 @@ export default function Inventory() {
                               <th className="h-9 px-3 text-left font-medium text-muted-foreground">Date</th>
                               <th className="h-9 px-3 text-left font-medium text-muted-foreground">Type</th>
                               <th className="h-9 px-3 text-right font-medium text-muted-foreground">Qty</th>
+                              <th className="h-9 px-3 text-left font-medium text-muted-foreground">Order</th>
                               <th className="h-9 px-3 text-left font-medium text-muted-foreground">Reason/Note</th>
                             </tr>
                           </thead>
                           <tbody>
                             {loadingHistory ? (
-                               <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">Loading history...</td></tr>
+                               <tr><td colSpan={5} className="p-4 text-center text-muted-foreground">Loading history...</td></tr>
                             ) : transactions.length === 0 ? (
-                               <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">No history found.</td></tr>
+                               <tr><td colSpan={5} className="p-4 text-center text-muted-foreground">No history found.</td></tr>
                             ) : (
                                transactions.map((tx) => (
                                  <tr key={tx.id} className="border-t hover:bg-muted/50">
@@ -358,6 +359,13 @@ export default function Inventory() {
                                    </td>
                                    <td className={`p-2 text-right font-medium ${tx.quantity_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                      {tx.quantity_change > 0 ? '+' : ''}{tx.quantity_change}
+                                   </td>
+                                   <td className="p-2 text-xs">
+                                     {tx.order_id ? (
+                                       <span className="text-blue-600 font-mono">{tx.order_id}</span>
+                                     ) : (
+                                       <span className="text-muted-foreground">-</span>
+                                     )}
                                    </td>
                                    <td className="p-2 max-w-[150px] truncate text-muted-foreground" title={tx.notes}>
                                      {tx.notes || "-"}
