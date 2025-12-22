@@ -217,11 +217,74 @@ INSERT INTO products (name, description, base_price, category, image_url, estima
 )
 ON CONFLICT DO NOTHING;
 
--- 8. Update existing products table to add gallery images (example for first product)
--- Note: You'll need to add actual image URLs after uploading images
+-- 8. Update products with gallery images
 UPDATE products SET gallery_images = ARRAY[
   '/images/products/product-1-main.jpg',
   '/images/products/product-1-detail-1.jpg',
   '/images/products/product-1-detail-2.jpg',
   '/images/products/product-1-lifestyle.jpg'
 ] WHERE name = 'Zambian Sunset Chitenge Dress';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-2-main.jpg',
+  '/images/products/product-2-detail-1.jpg',
+  '/images/products/product-2-detail-2.jpg',
+  '/images/products/product-2-lifestyle.jpg'
+] WHERE name = 'Executive Kaunda Suit';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-3-main.jpg',
+  '/images/products/product-3-detail-1.jpg',
+  '/images/products/product-3-detail-2.jpg',
+  '/images/products/product-3-lifestyle.jpg'
+] WHERE name = 'Lusaka Business Blazer';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-4-main.jpg',
+  '/images/products/product-4-detail-1.jpg',
+  '/images/products/product-4-detail-2.jpg',
+  '/images/products/product-4-lifestyle.jpg'
+] WHERE name = 'Victoria Falls Evening Gown';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-5-main.jpg',
+  '/images/products/product-5-detail-1.jpg',
+  '/images/products/product-5-detail-2.jpg',
+  '/images/products/product-5-lifestyle.jpg'
+] WHERE name = 'Kafue Casual Dress';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-6-main.jpg',
+  '/images/products/product-6-detail-1.jpg',
+  '/images/products/product-6-detail-2.jpg',
+  '/images/products/product-6-lifestyle.jpg'
+] WHERE name = 'Copper Belt Shirt';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-7-main.jpg',
+  '/images/products/product-7-detail-1.jpg',
+  '/images/products/product-7-detail-2.jpg',
+  '/images/products/product-7-lifestyle.jpg'
+] WHERE name = 'Bridal Elegance Gown';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-8-main.jpg',
+  '/images/products/product-8-detail-1.jpg',
+  '/images/products/product-8-detail-2.jpg',
+  '/images/products/product-8-lifestyle.jpg'
+] WHERE name = 'Matebeto Ceremony Dress';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-9-main.jpg',
+  '/images/products/product-9-detail-1.jpg',
+  '/images/products/product-9-detail-2.jpg',
+  '/images/products/product-9-lifestyle.jpg'
+] WHERE name = 'Safari Chic Jumpsuit';
+
+UPDATE products SET gallery_images = ARRAY[
+  '/images/products/product-10-main.jpg',
+  '/images/products/product-10-detail-1.jpg',
+  '/images/products/product-10-detail-2.jpg',
+  '/images/products/product-10-lifestyle.jpg'
+] WHERE name = 'Heritage Wrap Dress';
+
