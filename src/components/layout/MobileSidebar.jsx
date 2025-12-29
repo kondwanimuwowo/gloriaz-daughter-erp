@@ -116,6 +116,17 @@ export default function MobileSidebar({ isOpen, onClose }) {
             {/* Navigation */}
             <nav className="flex-1 p-4 overflow-y-auto">
               <ul className="space-y-1">
+                <li>
+                  <a
+                    href="/catalog"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-muted/50 transition-all duration-200 mb-2 border border-primary/10 bg-primary/5"
+                  >
+                    <Package size={20} className="text-primary" />
+                    <span className="font-bold text-primary">View Public Catalog</span>
+                  </a>
+                </li>
                 {filteredNavItems.map((item) => (
                   <li key={item.path}>
                     <NavLink
@@ -123,10 +134,10 @@ export default function MobileSidebar({ isOpen, onClose }) {
                       onClick={onClose}
                       className={({ isActive }) =>
                         cn(
-                            "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
-                            isActive
-                                ? "bg-primary/10 text-primary font-bold"
-                                : "text-muted-foreground hover:bg-muted/50"
+                          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
+                          isActive
+                            ? "bg-primary/10 text-primary font-bold"
+                            : "text-muted-foreground hover:bg-muted/50"
                         )
                       }
                     >
