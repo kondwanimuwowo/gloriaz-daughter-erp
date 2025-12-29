@@ -562,24 +562,24 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                   return (
                     <div
                       className={`p-5 rounded-lg border-2 shadow-md ${profitStatus === "loss"
-                          ? "bg-gradient-to-br from-red-50 to-red-100 border-red-300"
-                          : profitStatus === "low"
-                            ? "bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-300"
-                            : profitStatus === "healthy"
-                              ? "bg-gradient-to-br from-green-50 to-green-100 border-green-300"
-                              : profitStatus === "excellent"
-                                ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-300"
-                                : "bg-gradient-to-br from-slate-50 to-slate-100 border-slate-300"
+                        ? "bg-gradient-to-br from-red-50 to-red-100 border-red-300"
+                        : profitStatus === "low"
+                          ? "bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-300"
+                          : profitStatus === "healthy"
+                            ? "bg-gradient-to-br from-green-50 to-green-100 border-green-300"
+                            : profitStatus === "excellent"
+                              ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-300"
+                              : "bg-gradient-to-br from-slate-50 to-slate-100 border-slate-300"
                         }`}
                     >
                       {/* Header */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <div className={`p-2 rounded-lg ${profitStatus === "loss" ? "bg-red-200" :
-                              profitStatus === "low" ? "bg-yellow-200" :
-                                profitStatus === "healthy" ? "bg-green-200" :
-                                  profitStatus === "excellent" ? "bg-emerald-200" :
-                                    "bg-slate-200"
+                            profitStatus === "low" ? "bg-yellow-200" :
+                              profitStatus === "healthy" ? "bg-green-200" :
+                                profitStatus === "excellent" ? "bg-emerald-200" :
+                                  "bg-slate-200"
                             }`}>
                             <TrendingUp
                               size={20}
@@ -596,10 +596,10 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                             <div className="flex items-center gap-2">
                               <span
                                 className={`text-sm font-bold ${profitStatus === "loss" ? "text-red-900" :
-                                    profitStatus === "low" ? "text-yellow-900" :
-                                      profitStatus === "healthy" ? "text-green-900" :
-                                        profitStatus === "excellent" ? "text-emerald-900" :
-                                          "text-slate-900"
+                                  profitStatus === "low" ? "text-yellow-900" :
+                                    profitStatus === "healthy" ? "text-green-900" :
+                                      profitStatus === "excellent" ? "text-emerald-900" :
+                                        "text-slate-900"
                                   }`}
                               >
                                 Profit Analysis
@@ -609,10 +609,10 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                                   <Info
                                     size={14}
                                     className={`cursor-help ${profitStatus === "loss" ? "text-red-600" :
-                                        profitStatus === "low" ? "text-yellow-600" :
-                                          profitStatus === "healthy" ? "text-green-600" :
-                                            profitStatus === "excellent" ? "text-emerald-600" :
-                                              "text-slate-600"
+                                      profitStatus === "low" ? "text-yellow-600" :
+                                        profitStatus === "healthy" ? "text-green-600" :
+                                          profitStatus === "excellent" ? "text-emerald-600" :
+                                            "text-slate-600"
                                       }`}
                                   />
                                 </TooltipTrigger>
@@ -640,10 +640,10 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                               </Tooltip>
                             </div>
                             <p className={`text-xs ${profitStatus === "loss" ? "text-red-700" :
-                                profitStatus === "low" ? "text-yellow-700" :
-                                  profitStatus === "healthy" ? "text-green-700" :
-                                    profitStatus === "excellent" ? "text-emerald-700" :
-                                      "text-slate-700"
+                              profitStatus === "low" ? "text-yellow-700" :
+                                profitStatus === "healthy" ? "text-green-700" :
+                                  profitStatus === "excellent" ? "text-emerald-700" :
+                                    "text-slate-700"
                               }`}>
                               Step-by-step calculation
                             </p>
@@ -651,10 +651,10 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                         </div>
                         <span
                           className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 ${profitStatus === "loss" ? "bg-red-200 text-red-800" :
-                              profitStatus === "low" ? "bg-yellow-200 text-yellow-800" :
-                                profitStatus === "healthy" ? "bg-green-200 text-green-800" :
-                                  profitStatus === "excellent" ? "bg-emerald-200 text-emerald-800" :
-                                    "bg-slate-200 text-slate-800"
+                            profitStatus === "low" ? "bg-yellow-200 text-yellow-800" :
+                              profitStatus === "healthy" ? "bg-green-200 text-green-800" :
+                                profitStatus === "excellent" ? "bg-emerald-200 text-emerald-800" :
+                                  "bg-slate-200 text-slate-800"
                             }`}
                         >
                           <span>{statusIcon}</span>
@@ -699,7 +699,7 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className={`font-bold ${profitAmount < 0 ? "text-red-900" :
-                                "text-green-900"
+                              "text-green-900"
                               }`}>
                               = Profit Amount:
                             </span>
@@ -721,10 +721,10 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
 
                       {/* Profit Percentage */}
                       <div className={`p-3 rounded-lg text-center ${profitStatus === "loss" ? "bg-red-200/50" :
-                          profitStatus === "low" ? "bg-yellow-200/50" :
-                            profitStatus === "healthy" ? "bg-green-200/50" :
-                              profitStatus === "excellent" ? "bg-emerald-200/50" :
-                                "bg-slate-200/50"
+                        profitStatus === "low" ? "bg-yellow-200/50" :
+                          profitStatus === "healthy" ? "bg-green-200/50" :
+                            profitStatus === "excellent" ? "bg-emerald-200/50" :
+                              "bg-slate-200/50"
                         }`}>
                         <div className="flex items-center justify-center gap-2 mb-1">
                           <span className="text-xs font-medium text-slate-700">Profit Margin:</span>
@@ -747,10 +747,10 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                           </Tooltip>
                         </div>
                         <span className={`text-3xl font-bold ${profitStatus === "loss" ? "text-red-900" :
-                            profitStatus === "low" ? "text-yellow-900" :
-                              profitStatus === "healthy" ? "text-green-900" :
-                                profitStatus === "excellent" ? "text-emerald-900" :
-                                  "text-slate-900"
+                          profitStatus === "low" ? "text-yellow-900" :
+                            profitStatus === "healthy" ? "text-green-900" :
+                              profitStatus === "excellent" ? "text-emerald-900" :
+                                "text-slate-900"
                           }`}>
                           {profitPercentage.toFixed(1)}%
                         </span>
@@ -783,153 +783,93 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                       )}
                     </div>
                   );
-                })()}>
-                <span className="font-semibold">Profit Amount:</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info size={12} className="cursor-help opacity-60" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>The actual money earned after covering all production costs.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <span
-                className={`font-bold ${profitAmount > 0 ? "text-green-600" : profitAmount < 0 ? "text-red-600" : "text-muted-foreground"}`}
-              >
-                K{profitAmount.toFixed(2)}
-              </span>
-            </div>
-        </div>
-      </div>
+                })()}
 
-      {/* Final Profit Display */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-muted-foreground">Profit Margin %:</span>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info size={12} className="cursor-help opacity-60" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              <p>The percentage of the selling price that is profit. Higher is better!</p>
-              <p className="mt-1 text-xs font-mono">
-                ({profitAmount.toFixed(2)} ÷ {sellingPrice.toFixed(2)}) × 100 = {profitPercentage.toFixed(1)}%
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <span
-          className={`text-2xl font-bold ${profitAmount > 0 ? "text-green-600" : profitAmount < 0 ? "text-red-600" : "text-muted-foreground"}`}
-        >
-          {profitPercentage.toFixed(1)}%
-        </span>
-      </div>
 
-      {/* Status Message */}
-      {profitAmount < 0 && (
-        <div className="mt-3 p-2 bg-red-100 rounded text-xs text-red-800">
-          ⚠️ <strong>Loss Alert:</strong> This order is priced below cost!
-        </div>
-      )}
-      {profitAmount >= 0 && profitPercentage < 20 && (
-        <div className="mt-3 p-2 bg-yellow-100 rounded text-xs text-yellow-800">
-          ⚡ <strong>Low Margin:</strong> Consider increasing price for better profitability.
-        </div>
-      )}
-      {profitPercentage >= 20 && (
-        <div className="mt-3 p-2 bg-green-100 rounded text-xs text-green-800">
-          ✅ <strong>Healthy Margin:</strong> Good profitability on this order!
-        </div>
-      )}
-    </div>
-  );
-}) ()}
-
-{/* Payment Status */ }
-<div className="border-t border-border pt-4">
-  <div className="flex items-center justify-between mb-2">
-    <span className="text-sm text-muted-foreground">
-      Deposit Paid
-    </span>
-    <span className="font-semibold text-green-600">
-      K{parseFloat(order.deposit).toFixed(2)}
-    </span>
-  </div>
-  <div className="flex items-center justify-between">
-    <span className="font-bold text-foreground">Balance Due</span>
-    <span
-      className={`text-xl font-bold ${order.balance > 0
-        ? "text-red-600"
-        : "text-green-600"
-        }`}
-    >
-      K{parseFloat(order.balance).toFixed(2)}
-    </span>
-  </div>
-</div>
+                {/* Payment Status */}
+                <div className="border-t border-border pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">
+                      Deposit Paid
+                    </span>
+                    <span className="font-semibold text-green-600">
+                      K{parseFloat(order.deposit).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-foreground">Balance Due</span>
+                    <span
+                      className={`text-xl font-bold ${order.balance > 0
+                        ? "text-red-600"
+                        : "text-green-600"
+                        }`}
+                    >
+                      K{parseFloat(order.balance).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
               </TooltipProvider >
             </CardContent >
           </Card >
         </div >
 
-  {/* Right Column - Timeline & Actions */ }
-  < div className = "space-y-6" >
-    {/* Status Actions */ }
-{
-  nextStatus &&
-  order.status !== "delivered" &&
-  order.status !== "cancelled" && (
-    <Card className="border-primary/20 bg-primary/5">
-      <CardHeader>
-        <CardTitle>Update Status</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Notes (Optional)
-          </label>
-          <textarea
-            rows={3}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="Add notes about this status change..."
-            value={statusNotes}
-            onChange={(e) => setStatusNotes(e.target.value)}
-          />
-        </div>
+        {/* Right Column - Timeline & Actions */}
+        < div className="space-y-6" >
+          {/* Status Actions */}
+          {
+            nextStatus &&
+            order.status !== "delivered" &&
+            order.status !== "cancelled" && (
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle>Update Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Notes (Optional)
+                    </label>
+                    <textarea
+                      rows={3}
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Add notes about this status change..."
+                      value={statusNotes}
+                      onChange={(e) => setStatusNotes(e.target.value)}
+                    />
+                  </div>
 
-        <Button
-          onClick={handleStatusChange}
-          disabled={changingStatus}
-          className="w-full"
-        >
-          Move to{" "}
-          {nextStatus.charAt(0).toUpperCase() + nextStatus.slice(1)}
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+                  <Button
+                    onClick={handleStatusChange}
+                    disabled={changingStatus}
+                    className="w-full"
+                  >
+                    Move to{" "}
+                    {nextStatus.charAt(0).toUpperCase() + nextStatus.slice(1)}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
 
-        {nextStatus === "production" && (
-          <p className="text-xs text-yellow-700 bg-yellow-50 p-2 rounded mt-2">
-            ⚠️ Materials will be deducted from inventory
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
+                  {nextStatus === "production" && (
+                    <p className="text-xs text-yellow-700 bg-yellow-50 p-2 rounded mt-2">
+                      ⚠️ Materials will be deducted from inventory
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          }
 
-{/* Order Timeline */ }
-<Card>
-  <CardHeader>
-    <CardTitle>Order Timeline</CardTitle>
-  </CardHeader>
-  <CardContent>
-    <OrderTimeline
-      timeline={order.timeline || []}
-      currentStatus={order.status}
-    />
-  </CardContent>
-</Card>
+          {/* Order Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OrderTimeline
+                timeline={order.timeline || []}
+                currentStatus={order.status}
+              />
+            </CardContent>
+          </Card>
         </div >
       </div >
     </div >
