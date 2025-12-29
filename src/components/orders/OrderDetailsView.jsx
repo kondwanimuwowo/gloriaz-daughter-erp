@@ -230,85 +230,36 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
             </CardContent>
           </Card>
 
-          {/* Pricing Summary - Enhanced for User-Friendliness */}
+          {/* Pricing Summary */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-primary" />
-                Pricing &amp; Profitability
+                Pricing & Profitability
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <TooltipProvider>
                 {/* Cost Breakdown */}
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h4 className="text-sm font-semibold text-foreground">
-                      Cost Breakdown
-                    </h4>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">
-                          Individual costs that went into producing this garment
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
+                  <h4 className="text-sm font-semibold text-foreground mb-3">
+                    Cost Breakdown
+                  </h4>
                   <div className="space-y-2">
-                    {/* Individual cost items with tooltips */}
                     <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Material Cost</span>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Cost of fabrics and materials used
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
+                      <span className="text-muted-foreground">Material Cost</span>
                       <span className="font-semibold text-foreground">
                         K{parseFloat(order.material_cost || 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Labour Cost</span>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Cost of tailoring and craftsmanship
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
+                      <span className="text-muted-foreground">Labour Cost</span>
                       <span className="font-semibold text-foreground">
                         K{parseFloat(order.labour_cost || 0).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Overhead Cost</span>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">
-                              Shared business costs (rent, utilities, etc.) allocated to this order
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
+                      <span className="text-muted-foreground">Overhead Cost</span>
                       <span className="font-semibold text-foreground">
                         K{parseFloat(order.overhead_cost || 0).toFixed(2)}
                       </span>
@@ -331,298 +282,257 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                   </div>
                 </div>
 
-                {/* Base Cost (Without Markup) - NEW SECTION */}
+                {/* Base Cost (Without Markup) - NEW */}
+                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Package size={18} className="text-orange-600" />
+                      <span className="text-sm font-semibold text-orange-900">
+                        Base Cost (Without Markup)
+                      </span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info size={14} className="text-orange-600 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>This is the total cost to produce this garment, including all materials, labour, and overhead. This is the minimum price needed to break even.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <span className="text-xl font-bold text-orange-900">
+                      K{(
+                        parseFloat(order.material_cost || 0) +
+                        parseFloat(order.labour_cost || 0) +
+                        parseFloat(order.overhead_cost || 0)
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-orange-700">
+                    Minimum price to cover all production costs
+                  </p>
+                </div>
+
+                {/* Recommended Price - NEW */}
                 {(() => {
-                  // Calculate all values once for reuse
+                  const baseCost =
+                    parseFloat(order.material_cost || 0) +
+                    parseFloat(order.labour_cost || 0) +
+                    parseFloat(order.overhead_cost || 0);
+                  const recommendedMargin = 30;
+                  const recommendedPrice = baseCost * (1 + recommendedMargin / 100);
+
+                  return (
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Calculator size={18} className="text-purple-600" />
+                          <span className="text-sm font-semibold text-purple-900">
+                            Recommended Price
+                          </span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info size={14} className="text-purple-600 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>Suggested selling price with a {recommendedMargin}% profit margin.</p>
+                              <p className="mt-1 font-mono text-xs">
+                                K{baseCost.toFixed(2)} + (K{baseCost.toFixed(2)} × {recommendedMargin}%) = K{recommendedPrice.toFixed(2)}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <span className="text-xl font-bold text-purple-900">
+                          K{recommendedPrice.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-purple-700">
+                        Base Cost + {recommendedMargin}% markup
+                      </p>
+                    </div>
+                  );
+                })()}
+
+                {/* Actual Selling Price */}
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-blue-900">
+                      Actual Selling Price
+                    </span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info size={14} className="text-blue-600 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>The final price charged to the customer for this order.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <span className="text-xl font-bold text-blue-600">
+                    K{parseFloat(order.total_cost).toFixed(2)}
+                  </span>
+                </div>
+
+                {/* Profit Margin - Enhanced with Detailed Breakdown */}
+                {(() => {
                   const totalCosts =
                     parseFloat(order.material_cost || 0) +
                     parseFloat(order.labour_cost || 0) +
                     parseFloat(order.overhead_cost || 0);
                   const sellingPrice = parseFloat(order.total_cost || 0);
-                  const profit = sellingPrice - totalCosts;
+                  const profitAmount = sellingPrice - totalCosts;
                   const profitPercentage =
-                    sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
-                  
-                  // Calculate recommended price based on a 25% profit margin
-                  // (You can adjust this or fetch from settings if available)
-                  const recommendedProfitMargin = 25; // 25% recommended margin
-                  const recommendedPrice = totalCosts * (1 + recommendedProfitMargin / 100);
+                    sellingPrice > 0 ? (profitAmount / sellingPrice) * 100 : 0;
 
                   return (
-                    <>
-                      {/* Base Cost (Total Production Cost) */}
-                      <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div
+                      className={`p-4 rounded-lg border-2 ${profitAmount > 0
+                        ? "bg-green-50 border-green-200"
+                        : profitAmount < 0
+                          ? "bg-red-50 border-red-200"
+                          : "bg-muted border-border"
+                        }`}
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <Calculator className="h-4 w-4 text-amber-700" />
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-medium text-amber-900">
-                              Base Cost (Without Markup)
-                            </span>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="h-4 w-4 text-amber-700 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">
-                                  This is the minimum cost to produce the garment. 
-                                  Selling below this means a loss!
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </div>
-                        <span className="text-lg font-bold text-amber-900">
-                          K{totalCosts.toFixed(2)}
-                        </span>
-                      </div>
-
-                      {/* Recommended Price - NEW SECTION */}
-                      <div className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-purple-700" />
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-medium text-purple-900">
-                              Recommended Price
-                            </span>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="h-4 w-4 text-purple-700 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">
-                                  Suggested selling price with {recommendedProfitMargin}% profit margin
-                                  <br />
-                                  <span className="text-xs text-muted-foreground mt-1 block">
-                                    Formula: K{totalCosts.toFixed(2)} + (K{totalCosts.toFixed(2)} × {recommendedProfitMargin}%)
-                                  </span>
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </div>
-                        <span className="text-lg font-bold text-purple-900">
-                          K{recommendedPrice.toFixed(2)}
-                        </span>
-                      </div>
-
-                      {/* Actual Selling Price */}
-                      <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium text-blue-900">
-                            Actual Selling Price
+                          <TrendingUp
+                            size={18}
+                            className={profitAmount > 0 ? "text-green-600" : profitAmount < 0 ? "text-red-600" : "text-muted-foreground"}
+                          />
+                          <span
+                            className={`text-sm font-semibold ${profitAmount > 0
+                              ? "text-green-900"
+                              : profitAmount < 0
+                                ? "text-red-900"
+                                : "text-foreground"
+                              }`}
+                          >
+                            Profit Analysis
                           </span>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Info className="h-4 w-4 text-blue-700 cursor-help" />
+                              <Info
+                                size={14}
+                                className={`cursor-help ${profitAmount > 0 ? "text-green-600" : profitAmount < 0 ? "text-red-600" : "text-muted-foreground"}`}
+                              />
                             </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs">
-                                The price charged to the customer for this order
-                              </p>
+                            <TooltipContent className="max-w-xs">
+                              <p className="font-semibold mb-1">How Profit is Calculated:</p>
+                              <p className="text-xs font-mono">Profit Amount = Selling Price - Base Cost</p>
+                              <p className="text-xs font-mono mt-1">Profit Margin % = (Profit Amount ÷ Selling Price) × 100</p>
                             </TooltipContent>
                           </Tooltip>
                         </div>
-                        <span className="text-xl font-bold text-blue-600">
-                          K{sellingPrice.toFixed(2)}
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded-full ${profitAmount > 0
+                            ? "bg-green-100 text-green-700"
+                            : profitAmount < 0
+                              ? "bg-red-100 text-red-700"
+                              : "bg-muted text-muted-foreground"
+                            }`}
+                        >
+                          {profitPercentage.toFixed(1)}% margin
                         </span>
                       </div>
 
-                      {/* Enhanced Profit Margin Section with Detailed Breakdown */}
-                      <div
-                        className={`p-4 rounded-lg border-2 ${
-                          profit > 0
-                            ? "bg-green-50 border-green-200"
-                            : profit < 0
-                            ? "bg-red-50 border-red-200"
-                            : "bg-muted border-border"
-                        }`}
-                      >
-                        <div className="space-y-3">
-                          {/* Header */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`text-sm font-semibold ${
-                                  profit > 0
-                                    ? "text-green-900"
-                                    : profit < 0
-                                    ? "text-red-900"
-                                    : "text-foreground"
-                                }`}
-                              >
-                                💰 Profit Analysis
-                              </span>
+                      {/* Calculation Breakdown */}
+                      <div className="space-y-2 mb-3 p-3 bg-white/50 rounded border border-current/10">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Selling Price:</span>
+                          <span className="font-semibold">K{sellingPrice.toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Base Cost:</span>
+                          <span className="font-semibold">- K{totalCosts.toFixed(2)}</span>
+                        </div>
+                        <div className="pt-2 border-t border-current/20">
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1">
+                              <span className="font-semibold">Profit Amount:</span>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                  <Info size={12} className="cursor-help opacity-60" />
                                 </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="max-w-xs">
-                                    Breakdown of how much profit this order generates
-                                  </p>
+                                <TooltipContent className="max-w-xs">
+                                  <p>The actual money earned after covering all production costs.</p>
                                 </TooltipContent>
                               </Tooltip>
                             </div>
                             <span
-                              className={`text-xs font-medium px-3 py-1 rounded-full ${
-                                profit > 0
-                                  ? "bg-green-100 text-green-700"
-                                  : profit < 0
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-muted text-muted-foreground"
-                              }`}
+                              className={`font-bold ${profitAmount > 0 ? "text-green-600" : profitAmount < 0 ? "text-red-600" : "text-muted-foreground"}`}
                             >
-                              {profitPercentage.toFixed(1)}% margin
+                              K{profitAmount.toFixed(2)}
                             </span>
                           </div>
-
-                          {/* Step-by-step calculation */}
-                          <div className="bg-white/50 rounded p-3 space-y-2 text-sm">
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-muted-foreground">① Selling Price</span>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="max-w-xs">Price charged to customer</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                              <span className="font-medium">K{sellingPrice.toFixed(2)}</span>
-                            </div>
-                            
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-muted-foreground">② Total Costs</span>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="max-w-xs">All costs to produce (materials + labour + overhead)</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                              <span className="font-medium">- K{totalCosts.toFixed(2)}</span>
-                            </div>
-
-                            <div className="pt-2 border-t border-border">
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-semibold">③ Profit Amount (① - ②)</span>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="max-w-xs">
-                                        The actual money earned after covering all costs
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </div>
-                                <span
-                                  className={`text-xl font-bold ${
-                                    profit > 0
-                                      ? "text-green-600"
-                                      : profit < 0
-                                      ? "text-red-600"
-                                      : "text-muted-foreground"
-                                  }`}
-                                >
-                                  K{profit.toFixed(2)}
-                                  {profit < 0 && <span className="text-xs ml-1">LOSS</span>}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex justify-between items-center text-xs text-muted-foreground">
-                              <div className="flex items-center gap-1.5">
-                                <span>④ Profit Margin % (③ ÷ ① × 100)</span>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="max-w-xs">
-                                      What percentage of the selling price is profit
-                                      <br />
-                                      <span className="text-xs mt-1 block">
-                                        Formula: (K{profit.toFixed(2)} ÷ K{sellingPrice.toFixed(2)}) × 100
-                                      </span>
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                              <span className="font-medium">{profitPercentage.toFixed(1)}%</span>
-                            </div>
-                          </div>
-
-                          {/* Visual indicator and recommendation */}
-                          {profit < 0 && (
-                            <div className="mt-2 p-2 bg-red-100 border border-red-300 rounded text-xs">
-                              <p className="font-semibold text-red-900">
-                                ⚠️ Warning: This order is sold at a loss!
-                              </p>
-                              <p className="text-red-700 mt-1">
-                                Consider repricing. Minimum break-even: K{totalCosts.toFixed(2)}
-                              </p>
-                            </div>
-                          )}
-                          
-                          {profit >= 0 && profitPercentage < 15 && (
-                            <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs">
-                              <p className="font-semibold text-yellow-900">
-                                💡 Low profit margin detected
-                              </p>
-                              <p className="text-yellow-700 mt-1">
-                                Consider increasing to {recommendedProfitMargin}% margin: K{recommendedPrice.toFixed(2)}
-                              </p>
-                            </div>
-                          )}
-
-                          {profit >= 0 && profitPercentage >= 15 && (
-                            <div className="mt-2 p-2 bg-green-100 border border-green-300 rounded text-xs">
-                              <p className="font-semibold text-green-900">
-                                ✅ Healthy profit margin!
-                              </p>
-                              <p className="text-green-700 mt-1">
-                                This order is priced well for profitability.
-                              </p>
-                            </div>
-                          )}
                         </div>
                       </div>
-                    </>
+
+                      {/* Final Profit Display */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground">Profit Margin %:</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info size={12} className="cursor-help opacity-60" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>The percentage of the selling price that is profit. Higher is better!</p>
+                              <p className="mt-1 text-xs font-mono">
+                                ({profitAmount.toFixed(2)} ÷ {sellingPrice.toFixed(2)}) × 100 = {profitPercentage.toFixed(1)}%
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <span
+                          className={`text-2xl font-bold ${profitAmount > 0 ? "text-green-600" : profitAmount < 0 ? "text-red-600" : "text-muted-foreground"}`}
+                        >
+                          {profitPercentage.toFixed(1)}%
+                        </span>
+                      </div>
+
+                      {/* Status Message */}
+                      {profitAmount < 0 && (
+                        <div className="mt-3 p-2 bg-red-100 rounded text-xs text-red-800">
+                          ⚠️ <strong>Loss Alert:</strong> This order is priced below cost!
+                        </div>
+                      )}
+                      {profitAmount >= 0 && profitPercentage < 20 && (
+                        <div className="mt-3 p-2 bg-yellow-100 rounded text-xs text-yellow-800">
+                          ⚡ <strong>Low Margin:</strong> Consider increasing price for better profitability.
+                        </div>
+                      )}
+                      {profitPercentage >= 20 && (
+                        <div className="mt-3 p-2 bg-green-100 rounded text-xs text-green-800">
+                          ✅ <strong>Healthy Margin:</strong> Good profitability on this order!
+                        </div>
+                      )}
+                    </div>
                   );
                 })()}
-              </TooltipProvider>
 
-              {/* Payment Status */}
-              <div className="border-t border-border pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">
-                    Deposit Paid
-                  </span>
-                  <span className="font-semibold text-green-600">
-                    K{parseFloat(order.deposit).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-foreground">Balance Due</span>
-                  <span
-                    className={`text-xl font-bold ${
-                      order.balance > 0
+                {/* Payment Status */}
+                <div className="border-t border-border pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">
+                      Deposit Paid
+                    </span>
+                    <span className="font-semibold text-green-600">
+                      K{parseFloat(order.deposit).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-foreground">Balance Due</span>
+                    <span
+                      className={`text-xl font-bold ${order.balance > 0
                         ? "text-red-600"
                         : "text-green-600"
-                    }`}
-                  >
-                    K{parseFloat(order.balance).toFixed(2)}
-                  </span>
+                        }`}
+                    >
+                      K{parseFloat(order.balance).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </TooltipProvider>
             </CardContent>
           </Card>
         </div>
