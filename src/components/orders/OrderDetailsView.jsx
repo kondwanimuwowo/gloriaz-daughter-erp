@@ -785,7 +785,6 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                   );
                 })()}
 
-
                 {/* Payment Status */}
                 <div className="border-t border-border pt-4">
                   <div className="flex items-center justify-between mb-2">
