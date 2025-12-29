@@ -784,39 +784,39 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                     </div>
                   );
                 })()}
+              </TooltipProvider>
+            </CardContent>
+          </Card>
 
-                {/* Payment Status */}
-                <div className="border-t border-border pt-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">
-                      Deposit Paid
-                    </span>
-                    <span className="font-semibold text-green-600">
-                      K{parseFloat(order.deposit).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-foreground">Balance Due</span>
-                    <span
-                      className={`text-xl font-bold ${order.balance > 0
-                        ? "text-red-600"
-                        : "text-green-600"
-                        }`}
-                    >
-                      K{parseFloat(order.balance).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </TooltipProvider >
-            </CardContent >
-          </Card >
-        </div >
+          {/* Materials Used */}
+          {/* Payment Status */}
+          <div className="border-t border-border pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">
+                Deposit Paid
+              </span>
+              <span className="font-semibold text-green-600">
+                K{parseFloat(order.deposit).toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-foreground">Balance Due</span>
+              <span
+                className={`text-xl font-bold ${order.balance > 0
+                  ? "text-red-600"
+                  : "text-green-600"
+                  }`}
+              >
+                K{parseFloat(order.balance).toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Right Column - Timeline & Actions */}
-        < div className="space-y-6" >
+        <div className="space-y-6">
           {/* Status Actions */}
-          {
-            nextStatus &&
+          {nextStatus &&
             order.status !== "delivered" &&
             order.status !== "cancelled" && (
               <Card className="border-primary/20 bg-primary/5">
@@ -854,8 +854,7 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                   )}
                 </CardContent>
               </Card>
-            )
-          }
+            )}
 
           {/* Order Timeline */}
           <Card>
@@ -869,9 +868,8 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
               />
             </CardContent>
           </Card>
-        </div >
-      </div >
-    </div >
+        </div>
+      </div>
+    </div>
   );
 }
-
