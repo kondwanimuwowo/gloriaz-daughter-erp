@@ -15,7 +15,8 @@ import {
     MousePointer2,
     Clock,
     ChevronRight,
-    LayoutDashboard
+    LayoutDashboard,
+    ShoppingCart,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -314,37 +315,37 @@ const Manual = () => {
             <div className="flex flex-col lg:flex-row gap-8 flex-1 overflow-hidden min-h-0">
                 {/* Fixed Navigation Sidebar */}
                 <div className="w-full lg:w-72 flex-shrink-0 no-print">
-                    <div className="bg-slate-50 border rounded-3xl p-3 h-fit">
-                        <div className="space-y-1">
+                    <div className="bg-slate-50 border rounded-3xl p-3 h-fit flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible gap-2 lg:gap-0">
+                        <div className="flex flex-row lg:flex-col gap-2 lg:gap-1 min-w-max lg:min-w-0 w-full">
                             {sections.map((section) => (
                                 <button
                                     key={section.id}
                                     onClick={() => setActiveSection(section.id)}
                                     className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 text-left",
+                                        "lg:w-full flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2 lg:py-3 rounded-xl lg:rounded-2xl transition-all duration-200 text-left whitespace-nowrap",
                                         activeSection === section.id
-                                            ? "bg-white shadow-md text-primary font-bold scale-[1.02]"
-                                            : "text-muted-foreground hover:bg-white/60 hover:text-slate-900"
+                                            ? "bg-white shadow-sm lg:shadow-md text-primary font-bold scale-[1.02] border border-slate-200 lg:border-transparent"
+                                            : "text-muted-foreground hover:bg-white/60 hover:text-slate-900 border border-transparent"
                                     )}
                                 >
                                     <div className={cn(
-                                        "p-2 rounded-xl transition-colors",
+                                        "p-1.5 lg:p-2 rounded-lg lg:rounded-xl transition-colors",
                                         activeSection === section.id ? section.bg + " " + section.color : "bg-slate-200/50 text-slate-400"
                                     )}>
-                                        {section.icon}
+                                        {React.cloneElement(section.icon, { size: 16 })}
                                     </div>
-                                    <div className="flex-1 overflow-hidden">
-                                        <div className="text-sm whitespace-nowrap overflow-hidden text-ellipsis">{section.title}</div>
-                                        <div className="text-[10px] font-medium opacity-60 leading-tight block lg:hidden xl:block">{section.subtitle}</div>
+                                    <div className="flex-1 lg:overflow-hidden">
+                                        <div className="text-xs lg:text-sm">{section.title}</div>
+                                        <div className="text-[10px] font-medium opacity-60 leading-tight hidden xl:block">{section.subtitle}</div>
                                     </div>
                                     {activeSection === section.id && (
-                                        <ChevronRight size={14} className="text-primary" />
+                                        <ChevronRight size={14} className="text-primary hidden lg:block" />
                                     )}
                                 </button>
                             ))}
                         </div>
 
-                        <div className="mt-8 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                        <div className="hidden lg:block mt-8 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                             <h5 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-2">Road Test Period</h5>
                             <p className="text-[11px] text-slate-600 leading-normal">
                                 This manual is updated weekly based on your feedback. Have a suggestion? Let us know!
@@ -404,25 +405,5 @@ const Manual = () => {
         </div>
     );
 };
-
-// Generic ShoppingCart icon as fallback since Lucide import might need adjustment based on project
-const ShoppingCart = ({ size, className }) => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-    >
-        <circle cx="8" cy="21" r="1" />
-        <circle cx="19" cy="21" r="1" />
-        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-    </svg>
-);
 
 export default Manual;

@@ -144,6 +144,43 @@
             font-size: 0.875rem;
         }
 
+        @media (max-width: 640px) {
+            body {
+                padding: 20px;
+                font-size: 16px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .toc {
+                padding: 15px;
+            }
+
+            .toc ul {
+                grid-template-columns: 1fr;
+            }
+
+            .print-btn {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+
         code {
             font-family: ui-monospace, monospace;
         }
@@ -164,10 +201,25 @@
             align-items: center;
             gap: 8px;
             transition: transform 0.2s;
+            z-index: 50;
         }
 
-        .print-btn:hover {
-            transform: scale(1.05);
+        @media (max-width: 640px) {
+            .print-btn .btn-text {
+                display: none;
+            }
+
+            .print-btn {
+                padding: 0;
+                width: 48px;
+                height: 48px;
+                justify-content: center;
+                border-radius: 50%;
+                bottom: 24px;
+                right: 24px;
+                top: auto;
+                box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+            }
         }
 
         .footer {
@@ -182,8 +234,9 @@
 </head>
 
 <body>
-    <button class="print-btn no-print" onclick="window.print()">
-        🖨️ Export to PDF
+    <button class="print-btn no-print" onclick="window.print()" title="Print Manual">
+        <span>🖨️</span>
+        <span class="btn-text">Export to PDF</span>
     </button>
 
     <div class="header">

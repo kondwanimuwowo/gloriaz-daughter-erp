@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import Layout from "../components/layout/Layout";
 // import ProductionBatchCard from "../components/production/ProductionBatchCard";
 import CreateBatchModal from "../components/production/CreateBatchModal";
+import BatchDetailsModal from "../components/production/BatchDetailsModal";
 import { toast } from "react-hot-toast";
 import { notificationService } from "../services/notificationService";
 
@@ -13,6 +14,8 @@ const Production = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [selectedBatch, setSelectedBatch] = useState(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
     useEffect(() => {
         fetchBatches();
@@ -149,13 +152,21 @@ const Production = () => {
             ) : filteredBatches.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredBatches.map((batch) => (
-                        <div key={batch.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-5">
+                        <div
+                            key={batch.id}
+                            onClick={() => {
+                                setSelectedBatch(batch);
+                                setIsViewModalOpen(true);
+                            }}
+                            className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all p-5 cursor-pointer hover:border-primary/30 group"
+                        >
                             <div className="flex justify-between items-start mb-3">
                                 <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">
                                     {batch.batch_number}
                                 </span>
                                 <select
                                     value={batch.status}
+                                    onClick={(e) => e.stopPropagation()}
                                     onChange={(e) => handleUpdateStatus(batch.id, e.target.value, batch)}
                                     className={`text-xs font-semibold px-2 py-1 rounded-full border-none focus:ring-0 focus:outline-none cursor-pointer appearance-none ${getStatusColor(batch.status)}`}
                                 >
@@ -248,6 +259,17 @@ const Production = () => {
                 onSuccess={() => {
                     setIsCreateModalOpen(false);
                     fetchBatches();
+                }}
+            />
+
+            <BatchDetailsModal
+                isOpen={isViewModalOpen}
+                audio={false}
+                onClose={() => setIsViewModalOpen(false)}
+                batch={selectedBatch}
+                onStatusUpdate={(id, status, batch) => {
+                    handleUpdateStatus(id, status, batch);
+                    setIsViewModalOpen(false);
                 }}
             />
         </div>
