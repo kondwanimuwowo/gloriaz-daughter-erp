@@ -5,6 +5,7 @@ import Layout from "../components/layout/Layout";
 // import ProductionBatchCard from "../components/production/ProductionBatchCard";
 import CreateBatchModal from "../components/production/CreateBatchModal";
 import { toast } from "react-hot-toast";
+import { notificationService } from "../services/notificationService";
 
 const Production = () => {
     const [batches, setBatches] = useState([]);
@@ -66,7 +67,6 @@ const Production = () => {
 
             // Notify if completed
             if (newStatus === "completed") {
-                const { notificationService } = await import("../services/notificationService");
                 await notificationService.notifyProductionComplete(
                     batch.batch_number,
                     batch.product?.name || "Product",

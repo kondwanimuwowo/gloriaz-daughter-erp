@@ -523,18 +523,21 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================
 
 -- Order Number
+DROP TRIGGER IF EXISTS trigger_set_order_number ON orders;
 CREATE TRIGGER trigger_set_order_number
 BEFORE INSERT ON orders
 FOR EACH ROW
 EXECUTE FUNCTION set_order_number();
 
 -- Batch Number
+DROP TRIGGER IF EXISTS trigger_set_batch_number ON production_batches;
 CREATE TRIGGER trigger_set_batch_number
 BEFORE INSERT ON production_batches
 FOR EACH ROW
 EXECUTE FUNCTION set_batch_number();
 
 -- Update Batch Status
+DROP TRIGGER IF EXISTS trigger_update_batch_status ON production_stages;
 CREATE TRIGGER trigger_update_batch_status
 AFTER UPDATE ON production_stages
 FOR EACH ROW
@@ -542,6 +545,7 @@ WHEN (OLD.status IS DISTINCT FROM NEW.status)
 EXECUTE FUNCTION update_batch_status();
 
 -- Auto Create Finished Goods
+DROP TRIGGER IF EXISTS trigger_auto_create_finished_goods ON production_batches;
 CREATE TRIGGER trigger_auto_create_finished_goods
 AFTER UPDATE ON production_batches
 FOR EACH ROW
@@ -549,18 +553,38 @@ WHEN (NEW.status = 'completed')
 EXECUTE FUNCTION auto_create_finished_goods();
 
 -- Updated At Triggers
+DROP TRIGGER IF EXISTS update_materials_updated_at ON materials;
 CREATE TRIGGER update_materials_updated_at BEFORE UPDATE ON materials FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_customers_updated_at ON customers;
 CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_employees_updated_at ON employees;
 CREATE TRIGGER update_employees_updated_at BEFORE UPDATE ON employees FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_orders_updated_at ON orders;
 CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
 CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_garment_types_updated_at ON garment_types;
 CREATE TRIGGER update_garment_types_updated_at BEFORE UPDATE ON garment_types FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_products_updated_at ON products;
 CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_production_batches_updated_at ON production_batches;
 CREATE TRIGGER update_production_batches_updated_at BEFORE UPDATE ON production_batches FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_production_stages_updated_at ON production_stages;
 CREATE TRIGGER update_production_stages_updated_at BEFORE UPDATE ON production_stages FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER trigger_notifications_updated_at BEFORE UPDATE ON notifications FOR EACH ROW EXECUTE FUNCTION update_notifications_updated_at();
+
+DROP TRIGGER IF EXISTS trigger_notifications_updated_at ON notifications;
+CREATE TRIGGER trigger_notifications_updated_at BEFORE UPDATE ON notifications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Auth User Creation
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
@@ -571,18 +595,22 @@ CREATE TRIGGER on_auth_user_created
 
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own notifications" ON notifications;
 CREATE POLICY "Users can view their own notifications"
 ON notifications FOR SELECT
 USING (auth.uid() = user_id OR user_id IS NULL);
 
+DROP POLICY IF EXISTS "Users can update their own notifications" ON notifications;
 CREATE POLICY "Users can update their own notifications"
 ON notifications FOR UPDATE
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own notifications" ON notifications;
 CREATE POLICY "Users can delete their own notifications"
 ON notifications FOR DELETE
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Authenticated users can create notifications" ON notifications;
 CREATE POLICY "Authenticated users can create notifications"
 ON notifications FOR INSERT
 WITH CHECK (auth.role() = 'authenticated');

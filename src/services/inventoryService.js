@@ -2,7 +2,51 @@ import { supabase } from "../lib/supabase";
 import { notificationService } from "./notificationService";
 
 export const inventoryService = {
-  // ... existing methods ...
+  // Get all materials
+  async getAllMaterials() {
+    const { data, error } = await supabase
+      .from("materials")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Add a new material
+  async addMaterial(materialData) {
+    const { data, error } = await supabase
+      .from("materials")
+      .insert([materialData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Update a material
+  async updateMaterial(id, updates) {
+    const { data, error } = await supabase
+      .from("materials")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Delete a material
+  async deleteMaterial(id) {
+    const { error } = await supabase
+      .from("materials")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+  },
 
   // Update stock quantity
   async updateStock(id, quantity, operation = "add", notes = "", orderId = null, unitCost = null) {

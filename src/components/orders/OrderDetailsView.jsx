@@ -26,7 +26,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import OrderStatusBadge from "./OrderStatusBadge";
-import OrderTimeline from "./OrderTimeline";
+import { StatusTimeline } from "./StatusTimeline";
 
 const STATUS_FLOW = [
   "enquiry",
@@ -468,11 +468,10 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
           {/* Order Timeline */}
           <Card>
             <CardHeader>
-              <CardTitle>Order Timeline</CardTitle>
+              <CardTitle>Progress Tracking</CardTitle>
             </CardHeader>
             <CardContent>
-              <OrderTimeline
-                timeline={order.timeline || []}
+              <StatusTimeline
                 currentStatus={order.status}
               />
             </CardContent>

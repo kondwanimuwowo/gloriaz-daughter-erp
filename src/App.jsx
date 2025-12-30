@@ -22,6 +22,7 @@ import FirstTimeSetup from "./pages/FirstTimeSetup";
 import Finance from "./pages/Finance"; // NEW
 import Analytics from "./pages/Analytics"; // NEW
 import Production from "./pages/Production"; // NEW
+import Manual from "./pages/Manual"; // NEW
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -170,6 +171,8 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              <Route path="manual" element={<Manual />} />
             </Route>
 
             {/* Catch all - redirect to dashboard */}

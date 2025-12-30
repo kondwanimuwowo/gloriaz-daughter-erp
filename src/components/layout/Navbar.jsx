@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   Users,
   X,
+  Command,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -199,20 +200,27 @@ export default function Navbar({ onMenuClick }) {
                 type="text"
                 id="navbar-search-input"
                 autoComplete="off"
-                placeholder="Search orders, materials, customers..."
+                placeholder="Search everything..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
-                className="w-full pl-10 pr-10 py-2 border border-border bg-background rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-foreground placeholder:text-muted-foreground transition-all"
+                className="w-full pl-10 pr-16 py-2 border border-border bg-background rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground placeholder:text-muted-foreground transition-all shadow-sm"
               />
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground z-10"
-                >
-                  <X size={16} />
-                </button>
-              )}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none select-none">
+                {searchQuery ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); clearSearch(); }}
+                    className="pointer-events-auto p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                  >
+                    <X size={14} />
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1 px-1.5 py-0.5 bg-muted rounded border border-border/50">
+                    <span className="text-[10px] font-medium text-muted-foreground">⌘</span>
+                    <span className="text-[10px] font-medium text-muted-foreground">K</span>
+                  </div>
+                )}
+              </div>
 
               {/* Search Results Dropdown */}
               <AnimatePresence>
@@ -221,8 +229,30 @@ export default function Navbar({ onMenuClick }) {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-lg shadow-lg max-h-96 overflow-y-auto z-50"
+                    className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-xl shadow-2xl max-h-[70vh] overflow-y-auto z-50 p-2 space-y-2"
                   >
+                    {!searchQuery && (
+                      <div className="px-2 py-3">
+                        <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest px-2 mb-2">Quick Actions</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button onClick={() => { navigate("/orders"); setShowResults(false); }} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 border border-border/40 transition-colors text-left group">
+                            <div className="p-2 rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors"><ShoppingCart size={16} /></div>
+                            <div>
+                              <p className="text-sm font-semibold">New Order</p>
+                              <p className="text-[10px] text-muted-foreground">Start custom garment</p>
+                            </div>
+                          </button>
+                          <button onClick={() => { navigate("/inventory"); setShowResults(false); }} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 border border-border/40 transition-colors text-left group">
+                            <div className="p-2 rounded-md bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Package size={16} /></div>
+                            <div>
+                              <p className="text-sm font-semibold">Inventory</p>
+                              <p className="text-[10px] text-muted-foreground">Check stock levels</p>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Orders */}
                     {searchResults.orders.length > 0 && (
                       <div>

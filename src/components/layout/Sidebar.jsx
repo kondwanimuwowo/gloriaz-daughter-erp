@@ -9,6 +9,7 @@ import {
   Shield,
   DollarSign,
   BarChart3,
+  HelpCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -98,7 +99,7 @@ export default function Sidebar() {
       </div>
 
       {/* Scrollable Menu Section */}
-      <nav className="flex-1 overflow-y-auto p-4">
+      <nav className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         <ul className="space-y-1">
           {filteredNavItems.map((item) => (
             <li key={item.path}>
@@ -126,6 +127,21 @@ export default function Sidebar() {
 
       {/* Fixed Footer - User Info Section */}
       <div className="flex-shrink-0 p-4 border-t border-border bg-card">
+        <NavLink
+          to="/manual"
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-2 px-3 py-2 rounded-md mb-4 transition-all text-xs font-semibold",
+              isActive
+                ? "bg-primary text-white"
+                : "bg-primary/5 text-primary hover:bg-primary/10 border border-primary/20"
+            )
+          }
+        >
+          <HelpCircle size={14} />
+          <span>HELP & MANUAL</span>
+        </NavLink>
+
         <div className="bg-muted/30 rounded-lg p-3 mb-3 border border-border/50">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
             Access Level

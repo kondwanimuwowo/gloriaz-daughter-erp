@@ -195,13 +195,13 @@
         <h2>Contents</h2>
         <ul>
             <li><a href="#getting-started">Getting Started</a></li>
-            <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#dashboard">Dashboard Overview</a></li>
             <li><a href="#orders">Order Management</a></li>
-            <li><a href="#customers">Customers</a></li>
-            <li><a href="#inventory">Inventory</a></li>
-            <li><a href="#production">Production</a></li>
-            <li><a href="#finance">Finance</a></li>
-            <li><a href="#settings">Settings</a></li>
+            <li><a href="#customers">Customer Management</a></li>
+            <li><a href="#inventory">Inventory Management</a></li>
+            <li><a href="#production">Production Workflow</a></li>
+            <li><a href="#finance">Financial Reports</a></li>
+            <li><a href="#settings">Settings & Configuration</a></li>
         </ul>
     </div>
 
@@ -209,37 +209,38 @@
         <h2>1. Getting Started</h2>
         <h3>Logging In</h3>
         <ol>
-            <li>Open your browser and navigate to the ERP URL.</li>
-            <li>Enter your email and password provided by the administrator.</li>
+            <li>Open your web browser (Chrome, Firefox, or Safari recommended).</li>
+            <li>Navigate to your ERP dashboard.</li>
+            <li>Enter your email and password.</li>
             <li>Click <strong>Sign In</strong>.</li>
         </ol>
         <div class="tip">
-            <strong>💡 PRO TIP:</strong> Bookmark the URL in your browser for one-click access every morning.
+            <strong>💡 TIP:</strong> Bookmark the URL for quick access every morning!
         </div>
     </section>
 
     <section id="dashboard" class="page-break">
         <h2>2. Dashboard Overview</h2>
-        <p>The dashboard provides a real-time snapshot of your business operations.</p>
+        <p>The dashboard is your command center, showing key metrics and quick actions.</p>
         <table>
             <thead>
                 <tr>
                     <th>Metric</th>
-                    <th>Description</th>
+                    <th>Purpose</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><strong>Total Orders</strong></td>
-                    <td>Count of all active and pending orders.</td>
+                    <td>Current number of active orders in the system.</td>
                 </tr>
                 <tr>
-                    <td><strong>Revenue</strong></td>
-                    <td>Total sales recorded in the current month.</td>
+                    <td><strong>Pending Orders</strong></td>
+                    <td>Orders that require immediate attention or measurements.</td>
                 </tr>
                 <tr>
                     <td><strong>Low Stock</strong></td>
-                    <td>Alerts for materials that need reordering.</td>
+                    <td>Materials that have dropped below your set safety threshold.</td>
                 </tr>
             </tbody>
         </table>
@@ -247,69 +248,66 @@
 
     <section id="orders" class="page-break">
         <h2>3. Order Management</h2>
-        <p>The system supports two types of orders: <strong>Custom</strong> (bespoke tailoring) and
-            <strong>Pre-Designed</strong> (standard catalog items).</p>
-
-        <h3>Creating a New Order</h3>
+        <h3>Step-by-Step Order Creation</h3>
         <ol>
-            <li>Click <strong>Orders</strong> → <strong>+ Create Order</strong>.</li>
-            <li>Select <strong>Custom</strong> or <strong>Standard</strong>.</li>
-            <li>Select a customer (or add a new one inline).</li>
-            <li>Add materials or products.</li>
-            <li>The system automatically calculates suggested pricing based on your settings.</li>
-            <li>Set the deposit and due date.</li>
+            <li>Click <strong>+ Create Order</strong> in the sidebar or dashboard.</li>
+            <li>Select the <strong>Order Type</strong> (Custom or Pre-designed).</li>
+            <li>Search for an existing customer or add a new one instantly.</li>
+            <li>Select materials and specify quantities.</li>
+            <li>Review the auto-calculated costs and set your final selling price.</li>
+            <li>Log the deposit paid to generate the balance due.</li>
         </ol>
-
         <div class="warning">
-            <strong>⚠️ IMPORTANT:</strong> Always record the deposit accurately to ensure financial reports remain
-            correct.
+            <strong>⚠️ WARNING:</strong> Ensure you select the correct material variant to keep inventory counts
+            accurate.
         </div>
     </section>
 
     <section id="customers" class="page-break">
         <h2>4. Customer Management</h2>
-        <p>Track customer profiles, measurements, and order history in one place.</p>
+        <p>Keep a detailed database of every client, including their unique measurements and order history.</p>
         <ul>
-            <li><strong>Profiles:</strong> Store phone numbers, emails, and notes.</li>
-            <li><strong>Measurements:</strong> Save detailed measurements for repeat clients.</li>
-            <li><strong>History:</strong> See every order a customer has placed.</li>
+            <li><strong>Measurements:</strong> Store values like Bust, Waist, Hips, and Shoulder width for repeat
+                orders.</li>
+            <li><strong>Order History:</strong> Access all past invoices and designs for specific customers.</li>
+            <li><strong>Profiles:</strong> Update contact info and delivery addresses easily.</li>
         </ul>
     </section>
 
     <section id="inventory" class="page-break">
         <h2>5. Inventory Management</h2>
-        <p>Manage your fabrics, trims, and finished goods.</p>
+        <p>Track your fabrics, threads, and finished goods in real-time.</p>
         <ul>
-            <li><strong>Real-time Tracking:</strong> Stock levels update automatically as you use materials in orders.
-            </li>
-            <li><strong>Restocking:</strong> Log new purchases to update your average cost per unit.</li>
-            <li><strong>Low Stock Alerts:</strong> Set thresholds to get notified before you run out.</li>
+            <li><strong>Stock Alerts:</strong> System alerts appear in red when a material is running low.</li>
+            <li><strong>Restocking:</strong> Use the 'Restock' action to update stock and average cost.</li>
+            <li><strong>Usage:</strong> Inventory is automatically deducted when you create custom or pre-designed
+                orders.</li>
         </ul>
     </section>
 
     <section id="production" class="page-break">
         <h2>6. Production Workflow</h2>
-        <p>Track the journey of every garment from cutting to completion.</p>
+        <p>Manage the tailoring process through five clear stages.</p>
         <div class="tip">
-            <strong>Production Stages:</strong> Cutting ✂️ → Stitching 🧵 → Finishing ✨ → Quality Check 🔍 → Completed ✅
+            <strong>The Workflow:</strong> Cutting ✂️ → Stitching 🧵 → Finishing ✨ → Quality Check 🔍 → Completed ✅
         </div>
-        <p>When a batch is marked as <strong>Completed</strong>, the system automatically increases your finished goods
-            inventory.</p>
+        <p>Progress bars update automatically. Once a batch is marked <strong>Completed</strong>, it is ready to be
+            delivered and finished goods stock is increased.</p>
     </section>
 
     <section id="finance" class="page-break">
         <h2>7. Financial Reports</h2>
-        <p>Access professional reports to see how your business is performing.</p>
+        <p>Monitor your profit margins and revenue growth.</p>
         <ul>
-            <li><strong>Profit & Loss:</strong> See your gross revenue minus material, labour, and overhead costs.</li>
-            <li><strong>Revenue Trends:</strong> Track growth over weeks or months.</li>
-            <li><strong>Export:</strong> Download reports in Excel or PDF format for accounting.</li>
+            <li><strong>P&L Report:</strong> View Income vs Expenses (Materials, Labour, Overhead).</li>
+            <li><strong>Sales Trends:</strong> Visualize which days or weeks are most productive.</li>
+            <li><strong>Export:</strong> Download data for tax or accounting purposes.</li>
         </ul>
     </section>
 
     <div class="footer">
         <p>Gloriaz Daughter ERP - User Manual v1.0</p>
-        <p>&copy; 2025 Digital Solutions for Tailoring Pro</p>
+        <p>Generated for Road Test Period - December 2025</p>
     </div>
 </body>
 

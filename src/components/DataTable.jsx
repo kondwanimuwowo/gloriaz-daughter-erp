@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-table"
 import { ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -27,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/ui/EmptyState"
 
 function TableSkeleton({ columns }) {
   return (
@@ -63,10 +65,10 @@ function TableSkeleton({ columns }) {
   )
 }
 
-export function DataTable({ 
-  columns, 
-  data, 
-  filterColumn = "email", 
+export function DataTable({
+  columns,
+  data,
+  filterColumn = "email",
   searchPlaceholder = "Filter...",
   onRowClick,
   loading = false,
@@ -187,56 +189,76 @@ export function DataTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() => onRowClick && onRowClick(row.original)}
-                  className={cn(
-                    "px-6",
-                    onRowClick && "cursor-pointer hover:bg-muted/50 transition-colors"
-                  )}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-6 py-4">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              <AnimatePresence mode="popLayout">
+                {table.getRowModel().rows.map((row, index) => (
+                  <motion.tr
+                    key={row.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.2,
+                      delay: index * 0.03,
+                      ease: "easeOut"
+                    }}
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => onRowClick && onRowClick(row.original)}
+                    className={cn(
+                      "px-6 border-b transition-colors hover:bg-muted/50",
+                      onRowClick && "cursor-pointer"
+                    )}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="px-6 py-4">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
             ) : (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-[400px] text-center"
                 >
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <p className="text-muted-foreground font-medium">{emptyMessage}</p>
-                    {emptyDescription && (
-                      <p className="text-sm text-muted-foreground mt-1">{emptyDescription}</p>
-                    )}
-                  </div>
+                  <EmptyState.NoResults
+                    searchTerm={(table.getColumn(filterColumn)?.getFilterValue()) || ""}
+                  />
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4 px-6 border-t">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+      <div className="flex items-center justify-between py-4 px-6 border-t bg-muted/5">
+        <div className="flex-1 text-sm text-muted-foreground flex items-center gap-4">
+          <div className="font-medium">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </div>
+          <div className="h-4 w-[1px] bg-border" />
+          <div>
+            Total {table.getFilteredRowModel().rows.length} results
+          </div>
+          {table.getFilteredSelectedRowModel().rows.length > 0 && (
+            <>
+              <div className="h-4 w-[1px] bg-border" />
+              <div className="text-primary font-medium">
+                {table.getFilteredSelectedRowModel().rows.length} selected
+              </div>
+            </>
+          )}
         </div>
-        <div className="space-x-2">
+        <div className="flex items-center space-x-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            aria-label="Go to previous page"
+            className="h-8 px-3"
           >
             Previous
           </Button>
@@ -245,7 +267,7 @@ export function DataTable({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            aria-label="Go to next page"
+            className="h-8 px-3"
           >
             Next
           </Button>
