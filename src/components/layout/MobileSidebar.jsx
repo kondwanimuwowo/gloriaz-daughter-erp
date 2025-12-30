@@ -38,6 +38,12 @@ export default function MobileSidebar({ isOpen, onClose }) {
       roles: ["admin", "manager", "employee"],
     },
     {
+      path: "/production",
+      icon: Scissors,
+      label: "Production",
+      roles: ["admin", "manager", "employee"],
+    },
+    {
       path: "/employees",
       icon: Users,
       label: "Employees",
@@ -123,10 +129,10 @@ export default function MobileSidebar({ isOpen, onClose }) {
                       onClick={onClose}
                       className={({ isActive }) =>
                         cn(
-                            "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
-                            isActive
-                                ? "bg-primary/10 text-primary font-bold"
-                                : "text-muted-foreground hover:bg-muted/50"
+                          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
+                          isActive
+                            ? "bg-primary/10 text-primary font-bold"
+                            : "text-muted-foreground hover:bg-muted/50"
                         )
                       }
                     >

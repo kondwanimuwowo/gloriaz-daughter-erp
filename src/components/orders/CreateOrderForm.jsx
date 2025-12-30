@@ -25,6 +25,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 import MaterialSelector from "./MaterialSelector";
 import AddCustomerForm from "../customers/AddCustomerForm";
 import { supabase } from "../../lib/supabase";
@@ -40,11 +48,11 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
   const [orderType, setOrderType] = useState("custom");
   const [selectedMaterials, setSelectedMaterials] = useState([]);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
-  const { 
-    garmentTypes, 
-    fetchGarmentTypes, 
-    financialSettings, 
-    fetchFinancialSettings 
+  const {
+    garmentTypes,
+    fetchGarmentTypes,
+    financialSettings,
+    fetchFinancialSettings
   } = useFinancialStore();
 
   const [costs, setCosts] = useState({
@@ -55,6 +63,8 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
     tax: 0,
     recommendedPrice: 0
   });
+
+  const [quantity, setQuantity] = useState(order?.quantity || 1);
 
   const {
     register,
@@ -75,6 +85,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
       assigned_tailor_id: "",
       order_type: "custom",
       product_id: "",
+      quantity: 1,
     },
   });
 
@@ -159,22 +170,23 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
   const recalculatePricing = (materialCost, labourCost, overheadCost) => {
     const settings = financialSettings;
     const baseTotal = materialCost + labourCost + overheadCost;
-    
+
     const defaultMargin = parseFloat(settings?.default_profit_margin || 0);
     const taxRate = parseFloat(settings?.tax_rate || 0);
-    
-    // Apply profit margin to calculate suggested selling price
+
+    // Apply profit margin (Markup) to calculate suggested selling price
+    // Formula: Selling Price = Cost * (1 + Margin%)
     const suggestedPrice = baseTotal * (1 + defaultMargin / 100);
-    
+
     // Apply tax if applicable
     const finalPrice = suggestedPrice * (1 + taxRate / 100);
-    
+
     // Auto-update selling price for new orders or if currently 0
     const currentSellingPrice = watch("total_cost");
     if (!order || currentSellingPrice === 0 || currentSellingPrice === "0.00") {
       setValue("total_cost", finalPrice.toFixed(2));
     }
-    
+
     setCosts({
       material: materialCost,
       labour: labourCost,
@@ -197,10 +209,10 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
         const settings = financialSettings || await financeService.getFinancialSettings();
         const customHourlyRate = parseFloat(settings?.custom_hourly_rate || 0);
         const estimatedHours = parseFloat(selectedType.estimated_hours || 0);
-        
+
         // Calculate labour cost: use hourly rate if hours are set, otherwise use base labour cost
-        const labourCost = estimatedHours > 0 && customHourlyRate > 0 
-          ? estimatedHours * customHourlyRate 
+        const labourCost = estimatedHours > 0 && customHourlyRate > 0
+          ? estimatedHours * customHourlyRate
           : parseFloat(selectedType.base_labour_cost || 0);
 
         // Calculate overhead
@@ -251,7 +263,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
     if (product) {
       setValue("product_id", productId);
       setValue("description", product.name + (product.description ? ` - ${product.description}` : ""));
-      
+
       const price = parseFloat(product.base_price || 0);
       setValue("total_cost", price.toFixed(2), { shouldValidate: true, shouldDirty: true });
     }
@@ -310,27 +322,44 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Order Type Selection */}
-      <div className="bg-muted/30 p-4 rounded-lg border">
-        <Label className="mb-3 block text-base font-semibold">Order Type</Label>
-        <RadioGroup
-          defaultValue="custom"
-          value={orderType}
-          onValueChange={(val) => {
-            setOrderType(val);
-            setValue("order_type", val);
-          }}
-          className="flex gap-6"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="custom" id="custom" />
-            <Label htmlFor="custom" className="cursor-pointer">Custom Order (Tailor Made)</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="standard" id="standard" />
-            <Label htmlFor="standard" className="cursor-pointer">Predesigned Garment (Ready to Wear/Standard)</Label>
-          </div>
-        </RadioGroup>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Scissors size={18} className="text-primary" />
+            Order Type
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info size={14} className="text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="font-semibold mb-1">Choose Order Type:</p>
+                <p className="text-xs"><strong>Custom:</strong> Made-to-measure garment with material selection</p>
+                <p className="text-xs mt-1"><strong>Pre-designed:</strong> Ready-made garment from finished goods inventory</p>
+              </TooltipContent>
+            </Tooltip>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            defaultValue="custom"
+            value={orderType}
+            onValueChange={(val) => {
+              setOrderType(val);
+              setValue("order_type", val);
+            }}
+            className="flex gap-6"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="custom" id="custom" />
+              <Label htmlFor="custom" className="cursor-pointer">Custom Order (Tailor Made)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="standard" id="standard" />
+              <Label htmlFor="standard" className="cursor-pointer">Pre-designed Garment</Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
 
       {/* Product Selection (Standard Only) */}
       {orderType === "standard" && (
@@ -353,474 +382,455 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
       )}
 
       {/* Customer Selection */}
-      <div>
-        <Label className="mb-2 block">Customer</Label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Select
-              value={watchCustomer}
-              onValueChange={(value) => setValue("customer_id", value)}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User size={18} className="text-primary" />
+            Customer Information
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info size={14} className="text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                Select an existing customer or add a new one
+              </TooltipContent>
+            </Tooltip>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Label className="mb-2 block">Customer</Label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Select
+                value={watchCustomer}
+                onValueChange={(value) => setValue("customer_id", value)}
+              >
+                <SelectTrigger className="pl-10">
+                  <User
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-600 z-10"
+                    size={16}
+                  />
+                  <SelectValue placeholder="Select customer..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name} - {customer.phone}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register("customer_id", { required: "Customer is required" })}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setShowAddCustomerDialog(true)}
+              title="Add New Customer"
             >
-              <SelectTrigger className="pl-10">
-                 <User
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-600 z-10"
-                  size={16}
-                />
-                <SelectValue placeholder="Select customer..." />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((customer) => (
-                  <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name} - {customer.phone}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <input
-              type="hidden"
-              {...register("customer_id", { required: "Customer is required" })}
-            />
+              <Plus size={16} />
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => setShowAddCustomerDialog(true)}
-            title="Add New Customer"
-          >
-            <Plus size={16} />
-          </Button>
-        </div>
-        {errors.customer_id && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.customer_id.message}
-          </p>
-        )}
-
-        <Dialog open={showAddCustomerDialog} onOpenChange={setShowAddCustomerDialog}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Add New Customer</DialogTitle>
-            </DialogHeader>
-            <AddCustomerForm
-              onSubmit={handleAddNewCustomer}
-              onCancel={() => setShowAddCustomerDialog(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Garment Type Selection */}
-      <div>
-        <Label className="mb-2 flex items-center gap-2">
-          <Scissors size={16} />
-          Garment Type
-        </Label>
-        <Select
-          value={watchGarmentType}
-          onValueChange={handleGarmentTypeChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select garment type..." />
-          </SelectTrigger>
-          <SelectContent>
-            {garmentTypes.map((type) => (
-              <SelectItem key={type.id} value={type.id}>
-                {type.name} - K{parseFloat(type.base_labour_cost).toFixed(2)}{" "}
-                labour
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <input
-          type="hidden"
-          {...register("garment_type_id", {
-            required: "Garment type is required",
-          })}
-        />
-        {errors.garment_type_id && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.garment_type_id.message}
-          </p>
-        )}
-        <p className="text-xs text-muted-foreground mt-1">
-          Labour cost will be automatically set based on garment type
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Due Date */}
-        <div>
-          <Label className="mb-2 block">Due Date</Label>
-          <div className="relative">
-            <Input
-              type="date"
-              className="pl-10"
-              {...register("due_date", { required: "Due date is required" })}
-            />
-             <Calendar
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={16}
-            />
-          </div>
-           {errors.due_date && (
+          {errors.customer_id && (
             <p className="mt-1 text-sm text-red-600">
-              {errors.due_date.message}
+              {errors.customer_id.message}
             </p>
           )}
-        </div>
 
-        {/* Assigned Tailor */}
-        <div>
-          <Label className="mb-2 flex items-center gap-2">
-            Assign to Tailor (Optional)
-          </Label>
-          <div className="relative">
-             <Select
-              value={watchTailor}
-              onValueChange={(value) => setValue("assigned_tailor_id", value)}
-            >
-              <SelectTrigger className="pl-10">
-                 <Scissors
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-600 z-10"
-                  size={16}
-                />
-                <SelectValue placeholder="Unassigned" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unassigned">Unassigned</SelectItem>
-                {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.name} ({employee.role})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-             <input type="hidden" {...register("assigned_tailor_id")} />
-          </div>
-        </div>
-      </div>
+          <Dialog open={showAddCustomerDialog} onOpenChange={setShowAddCustomerDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add New Customer</DialogTitle>
+              </DialogHeader>
+              <AddCustomerForm
+                onSubmit={handleAddNewCustomer}
+                onCancel={() => setShowAddCustomerDialog(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
 
-      {/* Description */}
-      <div>
-        <Label className="mb-2 flex items-center gap-2">
-          <FileText size={16} />
-          Order Description
-        </Label>
-        <Textarea
-          rows={4}
-          className="resize-none"
-          placeholder="Describe the garment(s) to be made, style, color, special requirements, etc."
-          {...register("description", { required: "Description is required" })}
-        />
-        {errors.description && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.description.message}
-          </p>
-        )}
-      </div>
-
-      {/* Materials Section */}
-      <MaterialSelector
-        selectedMaterials={selectedMaterials}
-        onChange={handleMaterialsChange}
-      />
-
-      {/* Cost Breakdown Section */}
-      <div className="border-t border-border pt-6">
-        <h3 className="font-semibold text-foreground mb-4">Cost Breakdown</h3>
-
-        {/* Material Cost (Auto-calculated) */}
-        <div className="mb-4 p-4 bg-muted/50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Package size={18} className="text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">
-                Material Cost
-              </span>
-            </div>
-            <span className="text-lg font-bold text-foreground">
-              K{costs.material.toFixed(2)}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Auto-calculated from materials
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Labour Cost */}
-          <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Wrench size={18} className="text-purple-600" />
-                <span className="text-sm font-medium text-purple-900">
-                  Labour Cost
-                </span>
-              </div>
-              <span className="text-lg font-bold text-purple-900">
-                K{costs.labour.toFixed(2)}
-              </span>
-            </div>
-            <p className="text-xs text-purple-700">Set by garment type</p>
-          </div>
-
-          {/* Overhead Cost */}
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Building2 size={18} className="text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">
-                  Overhead Cost
-                </span>
-              </div>
-              <span className="text-lg font-bold text-blue-900">
-                K{costs.overhead.toFixed(2)}
-              </span>
-            </div>
-            <p className="text-xs text-blue-700">Auto-calculated per order</p>
-          </div>
-        </div>
-
-        {/* Cost Summary Card */}
-        <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-purple-50 rounded-lg border border-primary/20">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Materials:</span>
-              <span className="font-semibold text-foreground">
-                K{costs.material.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Labour:</span>
-              <span className="font-semibold text-foreground">
-                K{costs.labour.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Overhead:</span>
-              <span className="font-semibold text-foreground">
-                K{costs.overhead.toFixed(2)}
-              </span>
-            </div>
-            {costs.tax > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tax:</span>
-                <span className="font-semibold text-foreground">
-                  K{costs.tax.toFixed(2)}
-                </span>
-              </div>
-            )}
-            <div className="pt-2 border-t border-primary/20">
-              <div className="flex justify-between">
-                <span className="font-bold text-foreground">Recommended Price:</span>
-                <span className="text-xl font-bold text-primary">
-                  K{parseFloat(watch("total_cost") || 0).toFixed(2)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Pricing */}
-      <div className="border-t border-border pt-6">
-        <h3 className="font-semibold text-foreground mb-4">Final Pricing</h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Total Cost */}
-          <div>
-            <Label className="mb-2 block">Selling Price (K)</Label>
-            <div className="relative">
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                className="pl-10"
-                {...register("total_cost", {
-                  required: "Selling price is required",
-                  min: {
-                    value: costs.total,
-                    message: `Must be at least K${costs.total.toFixed(2)} (total costs)`,
-                  },
+      {/* Garment Details - Only for Custom Orders */}
+      {orderType === "custom" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Scissors size={18} className="text-primary" />
+              Garment Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Garment Type Selection */}
+            <div>
+              <Label className="mb-2 flex items-center gap-2">
+                <Scissors size={16} />
+                Garment Type
+              </Label>
+              <Select
+                value={watchGarmentType}
+                onValueChange={handleGarmentTypeChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select garment type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {garmentTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>
+                      {type.name} - K{parseFloat(type.base_labour_cost).toFixed(2)}{" "}
+                      labour
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <input
+                type="hidden"
+                {...register("garment_type_id", {
+                  required: "Garment type is required",
                 })}
               />
-              <DollarSign
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={16}
+              {errors.garment_type_id && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.garment_type_id.message}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Labour cost will be automatically set based on garment type
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Due Date */}
+              <div>
+                <Label className="mb-2 block">Due Date</Label>
+                <div className="relative">
+                  <Input
+                    type="date"
+                    className="pl-10"
+                    {...register("due_date", { required: "Due date is required" })}
+                  />
+                  <Calendar
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    size={16}
+                  />
+                </div>
+                {errors.due_date && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.due_date.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Assigned Tailor */}
+              <div>
+                <Label className="mb-2 flex items-center gap-2">
+                  Assign to Tailor (Optional)
+                </Label>
+                <div className="relative">
+                  <Select
+                    value={watchTailor}
+                    onValueChange={(value) => setValue("assigned_tailor_id", value)}
+                  >
+                    <SelectTrigger className="pl-10">
+                      <Scissors
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-600 z-10"
+                        size={16}
+                      />
+                      <SelectValue placeholder="Unassigned" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.name} ({employee.role})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" {...register("assigned_tailor_id")} />
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <Label className="mb-2 flex items-center gap-2">
+                <FileText size={16} />
+                Order Description
+              </Label>
+              <Textarea
+                rows={4}
+                className="resize-none"
+                placeholder="Describe the garment(s) to be made, style, color, special requirements, etc."
+                {...register("description", { required: "Description is required" })}
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
+
+            {/* Materials Section */}
+            <div>
+              <Label className="mb-3 flex items-center gap-2 text-base font-semibold">
+                <Package size={18} className="text-primary" />
+                Materials Selection
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info size={14} className="text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Select fabrics and accessories needed for this garment
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
+              <MaterialSelector
+                selectedMaterials={selectedMaterials}
+                onChange={handleMaterialsChange}
               />
             </div>
-            {errors.total_cost && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.total_cost.message}
-              </p>
-            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quantity & Pricing Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package size={20} className="text-primary" />
+            Order Quantity & Pricing
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+
+          {/* Quantity Input */}
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <Label className="mb-2 flex items-center gap-2 font-semibold">
+              <Package size={16} className="text-primary" />
+              Quantity
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info size={14} className="text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  Number of units for this order (for bulk orders)
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Input
+              type="number"
+              min="1"
+              value={quantity}
+              onChange={(e) => {
+                const newQty = parseInt(e.target.value) || 1;
+                setQuantity(newQty);
+                // Recalculate pricing with new quantity
+                recalculatePricing(costs.material / (order?.quantity || 1) * newQty, costs.labour / (order?.quantity || 1) * newQty, costs.overhead / (order?.quantity || 1) * newQty);
+              }}
+              className="max-w-[150px] text-lg font-semibold"
+            />
             <p className="text-xs text-muted-foreground mt-1">
-              Set your selling price (minimum: K{costs.total.toFixed(2)})
+              {quantity > 1 ? `Bulk order: ${quantity} units` : 'Single unit order'}
             </p>
           </div>
 
-          {/* Deposit */}
-          <div>
-            <Label className="mb-2 block">Deposit (K)</Label>
-            <div className="relative">
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                className="pl-10"
-                {...register("deposit", {
-                  min: { value: 0, message: "Must be 0 or greater" },
-                })}
-              />
-                <DollarSign
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
+          {/* Cost Breakdown */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-3">
+              <DollarSign size={18} className="text-slate-600" />
+              <h3 className="font-semibold text-slate-900">Cost Breakdown</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info size={14} className="text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  <p className="font-semibold mb-1">Production Costs:</p>
+                  <p className="text-xs">• Materials: Fabrics & accessories</p>
+                  <p className="text-xs">• Labour: Tailor's time</p>
+                  <p className="text-xs">• Overhead: Business expenses</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
-            {errors.deposit && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.deposit.message}
-              </p>
-            )}
-          </div>
 
-          {/* Balance (Calculated) */}
-          <div>
-            <Label className="mb-2 block">Balance Due (K)</Label>
-            <div
-              className={`h-10 px-3 py-2 rounded-md border border-input bg-muted/50 font-bold flex items-center ${
-                balance > 0 ? "text-red-600" : "text-green-600"
-              }`}
-            >
-              {balance.toFixed(2)}
-            </div>
-          </div>
-        </div>
-
-        {/* Profit Margin Preview - Enhanced with Visual Indicators */}
-        {costs.total > 0 && (
-          <div className={`mt-4 p-4 rounded-lg border-2 transition-all ${
-            (() => {
-              const revenue = parseFloat(totalCost || 0);
-              const totalCosts = costs.total;
-              const profit = revenue - totalCosts;
-              const profitPercentage = revenue > 0 ? (profit / revenue) * 100 : 0;
-              
-              if (profit < 0) return "bg-red-50 border-red-300";
-              if (profitPercentage < 20) return "bg-yellow-50 border-yellow-300";
-              return "bg-green-50 border-green-300";
-            })()
-          }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className={`text-sm font-semibold mb-1 ${
-                  (() => {
-                    const revenue = parseFloat(totalCost || 0);
-                    const totalCosts = costs.total;
-                    const profit = revenue - totalCosts;
-                    
-                    if (profit < 0) return "text-red-800";
-                    if (((profit / revenue) * 100) < 20) return "text-yellow-800";
-                    return "text-green-800";
-                  })()
-                }`}>
-                  💰 Expected Profit
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Selling Price - Total Costs
-                </p>
+            <div className="bg-slate-50 rounded-lg p-4 space-y-2 border border-slate-200">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600">Materials</span>
+                <span className="font-semibold text-slate-900">
+                  K{costs.material.toFixed(2)}
+                  {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.material / quantity).toFixed(2)} × {quantity})</span>}
+                </span>
               </div>
-              <div className="text-right">
-                {(() => {
-                  const revenue = parseFloat(totalCost || 0);
-                  const totalCosts = costs.total;
-                  const profit = revenue - totalCosts;
-                  const profitPercentage =
-                    revenue > 0 ? (profit / revenue) * 100 : 0;
-
-                  return (
-                    <>
-                      <p
-                        className={`text-3xl font-bold mb-1 ${
-                          profit > 0
-                            ? "text-green-600"
-                            : profit < 0
-                              ? "text-red-600"
-                              : "text-gray-500"
-                        }`}
-                      >
-                        K{Math.abs(profit).toFixed(2)}
-                        {profit < 0 && <span className="text-sm ml-1">LOSS</span>}
-                      </p>
-                      <div className="flex items-center justify-end gap-2">
-                        <span
-                          className={`text-xs font-bold px-3 py-1 rounded-full ${
-                            profit > 0
-                              ? profitPercentage >= 20
-                                ? "bg-green-100 text-green-700"
-                                : "bg-yellow-100 text-yellow-700"
-                              : profit < 0
-                                ? "bg-red-100 text-red-700"
-                                : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {profitPercentage.toFixed(1)}% margin
-                        </span>
-                      </div>
-                    </>
-                  );
-                })()}
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600">Labour</span>
+                <span className="font-semibold text-slate-900">
+                  K{costs.labour.toFixed(2)}
+                  {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.labour / quantity).toFixed(2)} × {quantity})</span>}
+                </span>
               </div>
-            </div>
-            
-            {/* Warnings and Recommendations */}
-            {(() => {
-              const revenue = parseFloat(totalCost || 0);
-              const totalCosts = costs.total;
-              const profit = revenue - totalCosts;
-              const profitPercentage = revenue > 0 ? (profit / revenue) * 100 : 0;
-              
-              if (profit < 0) {
-                return (
-                  <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded">
-                    <p className="text-sm font-semibold text-red-900 flex items-center gap-2">
-                      ⚠️ Pricing Below Cost!
-                    </p>
-                    <p className="text-xs text-red-700 mt-1">
-                      Minimum recommended price: K{(costs.total * 1.2).toFixed(2)} (20% margin)
-                    </p>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600">Overhead</span>
+                <span className="font-semibold text-slate-900">
+                  K{costs.overhead.toFixed(2)}
+                  {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.overhead / quantity).toFixed(2)} × {quantity})</span>}
+                </span>
+              </div>
+              <div className="pt-2 mt-2 border-t border-slate-300">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-bold text-slate-900">Total Cost</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info size={12} className="inline-block ml-1 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Break-even point (no profit)
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
-                );
-              }
-              
-              if (profitPercentage < 20) {
-                return (
-                  <div className="mt-3 p-3 bg-yellow-100 border border-yellow-300 rounded">
-                    <p className="text-sm font-semibold text-yellow-900 flex items-center gap-2">
-                      ⚡ Low Profit Margin
-                    </p>
-                    <p className="text-xs text-yellow-700 mt-1">
-                      Consider pricing at K{(costs.total * 1.2).toFixed(2)} for a healthier 20% margin
-                    </p>
-                  </div>
-                );
-              }
-              
-              return (
-                <div className="mt-3 p-3 bg-green-100 border border-green-300 rounded">
-                  <p className="text-sm font-semibold text-green-900 flex items-center gap-2">
-                    ✅ Healthy Profit Margin!
-                  </p>
-                  <p className="text-xs text-green-700 mt-1">
-                    Your pricing ensures good profitability
-                  </p>
+                  <span className="text-lg font-bold text-slate-900">K{costs.total.toFixed(2)}</span>
                 </div>
-              );
-            })()}
+                <p className="text-xs text-slate-500 mt-1">Break-even point (no profit)</p>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* SELLING PRICE - Most Prominent */}
+          <div className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border-2 border-primary/30">
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <DollarSign size={24} className="text-primary" />
+                <h3 className="text-lg font-bold text-primary uppercase tracking-wide">Selling Price</h3>
+              </div>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="text-center text-3xl font-bold h-16 border-2 border-primary/50 focus:border-primary"
+                  {...register("total_cost", {
+                    required: "Selling price is required",
+                    min: {
+                      value: costs.total,
+                      message: `Must be at least K${costs.total.toFixed(2)} (total costs)`,
+                    },
+                  })}
+                />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-primary">K</span>
+              </div>
+              {errors.total_cost && (
+                <p className="text-sm text-red-600 font-semibold">
+                  {errors.total_cost.message}
+                </p>
+              )}
+              <p className="text-sm text-slate-600 font-medium">
+                Total amount to charge customer
+              </p>
+
+            </div>
+          </div>
+
+          {/* Profit Analysis - Subtle */}
+          {costs.total > 0 && totalCost > 0 && (
+            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm font-semibold text-slate-700">📊 Profit Analysis</span>
+              </div>
+              {(() => {
+                const revenue = parseFloat(totalCost || 0);
+                const totalCosts = costs.total;
+                const profit = revenue - totalCosts;
+                // Use Markup formula: (Profit / Cost) * 100
+                const markupPercentage = totalCosts > 0 ? (profit / totalCosts) * 100 : 0;
+                const isLoss = profit < 0;
+                const isLowMarkup = markupPercentage < 20 && markupPercentage >= 0;
+
+                return (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Profit Amount</span>
+                      <span className={`font-bold ${isLoss ? 'text-red-600' : 'text-green-600'}`}>
+                        K{Math.abs(profit).toFixed(2)}
+                        {isLoss && <span className="text-xs ml-1">(LOSS)</span>}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Markup (Profit %)</span>
+                      <span className={`font-bold ${isLoss ? 'text-red-600' : isLowMarkup ? 'text-yellow-600' : 'text-green-600'}`}>
+                        {markupPercentage.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200">
+                      {isLoss ? (
+                        <div className="flex items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 px-3 py-2 rounded">
+                          <span>⚠️</span>
+                          <span>Warning: Selling below cost (losing money)</span>
+                        </div>
+                      ) : isLowMarkup ? (
+                        <div className="flex items-center gap-2 text-xs font-semibold text-yellow-700 bg-yellow-50 px-3 py-2 rounded">
+                          <span>⚡</span>
+                          <span>Low markup (below 20%)</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 px-3 py-2 rounded">
+                          <span>✅</span>
+                          <span>Healthy profit margin</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Deposit & Balance */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+            <div>
+              <Label className="mb-2 block font-semibold">Deposit (K)</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="pl-8"
+                  {...register("deposit", {
+                    min: { value: 0, message: "Must be 0 or greater" },
+                  })}
+                />
+                <DollarSign
+                  className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  size={16}
+                />
+              </div>
+              {errors.deposit && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.deposit.message}
+                </p>
+              )}
+              <p className="text-xs text-slate-500 mt-1">Initial payment from customer</p>
+            </div>
+
+            <div>
+              <Label className="mb-2 block font-semibold">Balance Due (K)</Label>
+              <div
+                className={`h-10 px-3 py-2 rounded-md border border-input bg-slate-100 font-bold flex items-center ${balance > 0 ? "text-orange-600" : "text-green-600"
+                  }`}
+              >
+                {balance.toFixed(2)}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">Remaining amount to collect</p>
+            </div>
+          </div>
+
+        </CardContent>
+      </Card>
+
+
 
       {/* Notes */}
       <div>
@@ -844,7 +854,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
           Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-            {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+          {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
           {order ? "Update Order" : "Create Order"}
         </Button>
       </div>

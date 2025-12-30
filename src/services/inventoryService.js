@@ -67,7 +67,7 @@ export const inventoryService = {
 
     const currentQuantity = parseFloat(material.stock_quantity);
     const currentCost = parseFloat(material.cost_per_unit);
-    
+
     const newQuantity =
       operation === "add"
         ? currentQuantity + parseFloat(quantity)

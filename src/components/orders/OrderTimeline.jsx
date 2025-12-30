@@ -20,11 +20,17 @@ export default function OrderTimeline({ timeline, currentStatus }) {
       {/* Timeline Line */}
       <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-muted"></div>
 
-      {/* Progress Line */}
+      {/* Progress Line - Fixed to extend to icon centers */}
       <motion.div
         initial={{ height: 0 }}
-        animate={{ height: `${(statusIndex / (STATUSES.length - 1)) * 100}%` }}
-        transition={{ duration: 0.5 }}
+        animate={{
+          height: statusIndex === 0
+            ? 0
+            : statusIndex === STATUSES.length - 1
+              ? '100%'
+              : `calc(${statusIndex * 100 / (STATUSES.length - 1)}% + ${statusIndex * 8}px)`
+        }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
         className="absolute left-4 top-0 w-0.5 bg-primary"
       ></motion.div>
 
@@ -45,11 +51,10 @@ export default function OrderTimeline({ timeline, currentStatus }) {
             >
               {/* Status Icon */}
               <div
-                className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 ${
-                  isCompleted
+                className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 ${isCompleted
                     ? "bg-primary border-primary shadow-sm"
                     : "bg-background border-muted-foreground/30"
-                }`}
+                  }`}
               >
                 {isCompleted ? (
                   <Check size={16} className="text-primary-foreground" />
@@ -74,9 +79,8 @@ export default function OrderTimeline({ timeline, currentStatus }) {
               {/* Status Content */}
               <div className="flex-1 pb-6">
                 <h3
-                  className={`font-semibold ${
-                    isCompleted ? "text-foreground" : "text-muted-foreground"
-                  }`}
+                  className={`font-semibold ${isCompleted ? "text-foreground" : "text-muted-foreground"
+                    }`}
                 >
                   {status.label}
                 </h3>

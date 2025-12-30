@@ -87,7 +87,7 @@ export default function MaterialSelector({ selectedMaterials = [], onChange }) {
             const isLowStock =
               material &&
               parseFloat(material.stock_quantity) <
-                parseFloat(item.quantity_used);
+              parseFloat(item.quantity_used);
 
             return (
               <div
@@ -109,11 +109,13 @@ export default function MaterialSelector({ selectedMaterials = [], onChange }) {
                       required
                     >
                       <option value="">Select material...</option>
-                      {materials.map((mat) => (
-                        <option key={mat.id} value={mat.id}>
-                          {mat.name} ({mat.stock_quantity} {mat.unit} available)
-                        </option>
-                      ))}
+                      {materials
+                        .filter(mat => mat.category !== 'finished_goods' && mat.material_type !== 'finished_product')
+                        .map((mat) => (
+                          <option key={mat.id} value={mat.id}>
+                            {mat.name} ({mat.stock_quantity} {mat.unit} available)
+                          </option>
+                        ))}
                     </select>
                   </div>
 

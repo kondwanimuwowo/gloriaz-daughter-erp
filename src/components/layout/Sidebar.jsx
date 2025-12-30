@@ -37,6 +37,12 @@ export default function Sidebar() {
       roles: ["admin", "manager", "employee"],
     },
     {
+      path: "/production",
+      icon: Scissors,
+      label: "Production",
+      roles: ["admin", "manager", "employee"],
+    },
+    {
       path: "/employees",
       icon: Users,
       label: "Employees",
@@ -76,9 +82,10 @@ export default function Sidebar() {
     <motion.aside
       initial={{ x: -300 }}
       animate={{ x: 0 }}
-      className="w-64 h-full bg-card border-r border-border flex flex-col"
+      className="w-64 h-screen bg-card border-r border-border flex flex-col"
     >
-      <div className="p-6 border-b border-border">
+      {/* Fixed Header - Logo Section */}
+      <div className="flex-shrink-0 p-6 border-b border-border bg-card">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
             <Scissors className="text-primary" size={24} />
@@ -90,7 +97,8 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 p-4">
+      {/* Scrollable Menu Section */}
+      <nav className="flex-1 overflow-y-auto p-4">
         <ul className="space-y-1">
           {filteredNavItems.map((item) => (
             <li key={item.path}>
@@ -106,8 +114,8 @@ export default function Sidebar() {
                 }
               >
                 <item.icon size={20} className={cn(
-                    "transition-colors",
-                    "text-primary" // Icons always in primary color as requested
+                  "transition-colors",
+                  "text-primary" // Icons always in primary color as requested
                 )} />
                 <span>{item.label}</span>
               </NavLink>
@@ -116,7 +124,8 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-border">
+      {/* Fixed Footer - User Info Section */}
+      <div className="flex-shrink-0 p-4 border-t border-border bg-card">
         <div className="bg-muted/30 rounded-lg p-3 mb-3 border border-border/50">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
             Access Level

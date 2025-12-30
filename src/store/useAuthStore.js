@@ -33,23 +33,23 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) throw error;
-      
+
       if (!session) {
         console.warn("No active session found");
         await get().signOut();
         return false;
       }
-      
+
       // Check if session is about to expire (within 5 minutes)
       const expiresAt = session.expires_at * 1000; // Convert to milliseconds
       const now = Date.now();
       const timeUntilExpiry = expiresAt - now;
-      
+
       if (timeUntilExpiry < 5 * 60 * 1000) {
         console.log("Session expiring soon, refreshing...");
         await get().refreshSession();
       }
-      
+
       return true;
     } catch (error) {
       console.error("Session validation error:", error);
@@ -59,10 +59,21 @@ export const useAuthStore = create((set, get) => ({
 
   // Initialize auth state
   initialize: async () => {
+    // Safety timeout to prevent permanent loading loop
+    const timeout = setTimeout(() => {
+      if (!get().initialized) {
+        console.warn("Auth initialization timed out, forcing ready state");
+        set({ loading: false, initialized: true });
+      }
+    }, 5000);
+
     try {
+      console.log("Starting auth initialization...");
       const session = await authService.getSession();
+      console.log("Session retrieved:", !!session);
 
       if (session?.user) {
+        console.log("User found, fetching profile...");
         const profile = await authService.getUserProfile(session.user.id);
         set({
           user: session.user,
@@ -71,14 +82,15 @@ export const useAuthStore = create((set, get) => ({
           loading: false,
           initialized: true,
         });
-        
+
         // Start periodic session refresh every 5 minutes
         const refreshInterval = setInterval(() => {
           get().validateSession();
         }, 5 * 60 * 1000);
-        
+
         set({ refreshInterval });
       } else {
+        console.log("No session found");
         set({
           user: null,
           profile: null,
@@ -91,7 +103,7 @@ export const useAuthStore = create((set, get) => ({
       // Listen for auth changes and store the subscription
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log("Auth state changed:", event);
-        
+
         if (event === "SIGNED_IN" && session?.user) {
           const profile = await authService.getUserProfile(session.user.id);
           set({ user: session.user, profile, session });
@@ -104,11 +116,13 @@ export const useAuthStore = create((set, get) => ({
           set({ session });
         }
       });
-      
+
       set({ authSubscription: subscription });
     } catch (error) {
       console.error("Auth initialization error:", error);
       set({ loading: false, initialized: true });
+    } finally {
+      clearTimeout(timeout);
     }
   },
 
@@ -127,14 +141,14 @@ export const useAuthStore = create((set, get) => ({
 
       set({ user, profile, session });
       toast.success("Welcome back!");
-      
+
       // Start session validation interval
       const refreshInterval = setInterval(() => {
         get().validateSession();
       }, 5 * 60 * 1000);
-      
+
       set({ refreshInterval });
-      
+
       return { user, profile };
     } catch (error) {
       toast.error(error.message || "Failed to sign in");
@@ -165,11 +179,11 @@ export const useAuthStore = create((set, get) => ({
       if (authSubscription) {
         authSubscription.unsubscribe();
       }
-      
+
       await authService.signOut();
-      set({ 
-        user: null, 
-        profile: null, 
+      set({
+        user: null,
+        profile: null,
         session: null,
         refreshInterval: null,
         authSubscription: null

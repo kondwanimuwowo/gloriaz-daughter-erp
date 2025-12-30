@@ -148,14 +148,14 @@ export default function Customers() {
         id: "measurements",
         header: "Measurements",
         cell: ({ row }) => {
-            const hasMeasurements = !!row.original.measurements;
-            return hasMeasurements ? (
-                <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50 border-green-200">
-                    <Ruler className="w-3 h-3 mr-1" /> Yes
-                </Badge>
-            ) : (
-                <span className="text-muted-foreground text-sm">-</span>
-            );
+          const hasMeasurements = !!row.original.measurements;
+          return hasMeasurements ? (
+            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50 border-green-200">
+              <Ruler className="w-3 h-3 mr-1" /> Yes
+            </Badge>
+          ) : (
+            <span className="text-muted-foreground text-sm">-</span>
+          );
         }
       },
       {
@@ -169,24 +169,24 @@ export default function Customers() {
       {
         id: "actions",
         cell: ({ row }) => {
-            const customer = row.original;
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleViewCustomer(customer)}>View Details</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>Edit</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive">Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )
+          const customer = row.original;
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleViewCustomer(customer)}>View Details</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>Edit</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive">Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
         }
       },
     ],
@@ -236,11 +236,12 @@ export default function Customers() {
       </div>
 
       <Card className="p-6">
-        <DataTable 
-            columns={columns} 
-            data={customers} 
-            filterColumn="name" 
-            searchPlaceholder="Filter customers..." 
+        <DataTable
+          columns={columns}
+          data={customers}
+          filterColumn="name"
+          searchPlaceholder="Filter customers..."
+          onRowClick={(row) => handleViewCustomer(row.original)}
         />
       </Card>
 
@@ -260,33 +261,33 @@ export default function Customers() {
       {/* Edit Customer Dialog */}
       <Dialog open={!!editingCustomer} onOpenChange={(open) => !open && setEditingCustomer(null)}>
         <DialogContent className="max-w-lg">
-            <DialogHeader>
-                <DialogTitle>Edit Customer</DialogTitle>
-            </DialogHeader>
-            <AddCustomerForm
-                customer={editingCustomer}
-                onSubmit={handleUpdateCustomer}
-                onCancel={() => setEditingCustomer(null)}
-            />
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+          </DialogHeader>
+          <AddCustomerForm
+            customer={editingCustomer}
+            onSubmit={handleUpdateCustomer}
+            onCancel={() => setEditingCustomer(null)}
+          />
         </DialogContent>
       </Dialog>
 
       {/* View Customer Dialog */}
       <Dialog open={!!viewingCustomer} onOpenChange={(open) => !open && setViewingCustomer(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-                <DialogTitle>Customer Details</DialogTitle>
-            </DialogHeader>
-            {loadingDetails ? (
-                <div className="flex justify-center p-8">Loading...</div>
-            ) : viewingCustomer ? (
-                <CustomerDetailsView
-                    customer={viewingCustomer}
-                    stats={customerStats}
-                    onEdit={handleEditCustomer}
-                    onUpdateMeasurements={handleUpdateMeasurements}
-                />
-            ) : null}
+          <DialogHeader>
+            <DialogTitle>Customer Details</DialogTitle>
+          </DialogHeader>
+          {loadingDetails ? (
+            <div className="flex justify-center p-8">Loading...</div>
+          ) : viewingCustomer ? (
+            <CustomerDetailsView
+              customer={viewingCustomer}
+              stats={customerStats}
+              onEdit={handleEditCustomer}
+              onUpdateMeasurements={handleUpdateMeasurements}
+            />
+          ) : null}
         </DialogContent>
       </Dialog>
     </div>

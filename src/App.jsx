@@ -21,7 +21,9 @@ import Profile from "./pages/Profile";
 import FirstTimeSetup from "./pages/FirstTimeSetup";
 import Finance from "./pages/Finance"; // NEW
 import Analytics from "./pages/Analytics"; // NEW
+import Production from "./pages/Production"; // NEW
 import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function App() {
   const { initialize, initialized, refreshSession } = useAuthStore();
@@ -56,7 +58,7 @@ function App() {
     });
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    
+
     return () => {
       clearTimeout(activityTimeout);
       events.forEach(event => {
@@ -80,90 +82,101 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <Router>
-        <Toaster position="top-right" />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/signup"
-            element={
-              <ProtectedRoute requiredRoles={["admin"]}>
-                <SignUp />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Protected Routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-
-            {/* All authenticated users */}
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="first-time-setup" element={<FirstTimeSetup />} />
-
-            {/* Admin and Manager only */}
+      <TooltipProvider delayDuration={300}>
+        <Router>
+          <Toaster position="top-right" />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
             <Route
-              path="inventory"
-              element={
-                <ProtectedRoute requiredRoles={["admin", "manager"]}>
-                  <Inventory />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="employees"
-              element={
-                <ProtectedRoute requiredRoles={["admin", "manager"]}>
-                  <Employees />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* NEW: Analytics - Admin and Manager only */}
-            <Route
-              path="analytics"
-              element={
-                <ProtectedRoute requiredRoles={["admin", "manager"]}>
-                  <Analytics />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Admin only */}
-            <Route
-              path="users"
+              path="/signup"
               element={
                 <ProtectedRoute requiredRoles={["admin"]}>
-                  <Users />
+                  <SignUp />
                 </ProtectedRoute>
               }
             />
 
+            {/* Protected Routes */}
             <Route
-              path="finance"
+              path="/"
               element={
-                <ProtectedRoute requiredRoles={["admin", "manager"]}>
-                  <Finance />
+                <ProtectedRoute>
+                  <Layout />
                 </ProtectedRoute>
               }
-            />
-          </Route>
+            >
+              <Route index element={<Navigate to="/dashboard" replace />} />
 
-          {/* Catch all - redirect to dashboard */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </Router>
+              {/* All authenticated users */}
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="orders" element={<Orders />} />
+              <Route path="customers" element={<Customers />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="first-time-setup" element={<FirstTimeSetup />} />
+
+              {/* Admin and Manager only */}
+              <Route
+                path="inventory"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                    <Inventory />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="employees"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                    <Employees />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* NEW: Analytics - Admin and Manager only */}
+              <Route
+                path="analytics"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                    <Analytics />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Admin only */}
+              <Route
+                path="users"
+                element={
+                  <ProtectedRoute requiredRoles={["admin"]}>
+                    <Users />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="finance"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                    <Finance />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="production"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                    <Production />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+
+            {/* Catch all - redirect to dashboard */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Router>
+      </TooltipProvider>
     </ThemeProvider>
   );
 }
