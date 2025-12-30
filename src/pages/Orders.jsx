@@ -21,6 +21,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -30,6 +31,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import CreateOrderForm from "../components/orders/CreateOrderForm";
 import OrderDetailsView from "../components/orders/OrderDetailsView";
@@ -204,24 +211,36 @@ export default function Orders() {
       {
         id: "actions",
         cell: ({ row }) => {
-            const order = row.original;
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleViewOrder(order)}>View Details</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditOrder(order)}>Edit</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)} className="text-destructive">Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )
+          const order = row.original;
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleViewOrder(order)}>
+                  <span className="flex items-center gap-2">
+                    📋 View full order details and timeline
+                  </span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleEditOrder(order)}>
+                  <span className="flex items-center gap-2">
+                    ✏️ Edit order information
+                  </span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)} className="text-destructive">
+                  <span className="flex items-center gap-2">
+                    🗑️ Permanently delete this order
+                  </span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
         }
       },
     ],
@@ -237,9 +256,18 @@ export default function Orders() {
             Manage customer orders and production workflow.
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Create Order
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => setShowCreateModal(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Create Order
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Start a new custom or pre-designed garment order</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {stats && (
@@ -272,12 +300,12 @@ export default function Orders() {
       )}
 
       <Card className="overflow-hidden border-border/60">
-        <DataTable 
-            columns={columns} 
-            data={orders} 
-            filterColumn="order_number" 
-            searchPlaceholder="Filter orders..." 
-            onRowClick={handleViewOrder}
+        <DataTable
+          columns={columns}
+          data={orders}
+          filterColumn="order_number"
+          searchPlaceholder="Filter orders..."
+          onRowClick={handleViewOrder}
         />
       </Card>
 
@@ -287,6 +315,9 @@ export default function Orders() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Order</DialogTitle>
+            <DialogDescription>
+              Create a new custom order or select a pre-designed garment from inventory.
+            </DialogDescription>
           </DialogHeader>
           <CreateOrderForm
             onSubmit={handleCreateOrder}
@@ -298,41 +329,44 @@ export default function Orders() {
       {/* View Order Dialog */}
       <Dialog open={!!viewingOrder} onOpenChange={(open) => !open && setViewingOrder(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-                <DialogTitle>Order Details</DialogTitle>
-            </DialogHeader>
-            {loadingOrderDetails ? (
-                <div className="flex justify-center p-8">Loading...</div>
-            ) : viewingOrder ? (
-                <OrderDetailsView
-                    order={viewingOrder}
-                    onEdit={handleEditOrder}
-                    onStatusChange={handleStatusChange}
-                />
-            ) : null}
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+            <DialogDescription>
+              View and manage order information, status, and timeline.
+            </DialogDescription>
+          </DialogHeader>
+          {loadingOrderDetails ? (
+            <div className="flex justify-center p-8">Loading...</div>
+          ) : viewingOrder ? (
+            <OrderDetailsView
+              order={viewingOrder}
+              onEdit={handleEditOrder}
+              onStatusChange={handleStatusChange}
+            />
+          ) : null}
         </DialogContent>
       </Dialog>
 
       {/* Edit Order Dialog */}
       <Dialog open={!!editingOrder} onOpenChange={(open) => !open && setEditingOrder(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-                <DialogTitle>Edit Order</DialogTitle>
-            </DialogHeader>
-            <CreateOrderForm
-                order={editingOrder}
-                onSubmit={async (data) => {
-                    try {
-                        await updateOrder(editingOrder.id, data);
-                        setEditingOrder(null);
-                        fetchOrders();
-                        fetchStats();
-                    } catch (error) {
-                        // error handled by store/toast
-                    }
-                }}
-                onCancel={() => setEditingOrder(null)}
-            />
+          <DialogHeader>
+            <DialogTitle>Edit Order</DialogTitle>
+          </DialogHeader>
+          <CreateOrderForm
+            order={editingOrder}
+            onSubmit={async (data) => {
+              try {
+                await updateOrder(editingOrder.id, data);
+                setEditingOrder(null);
+                fetchOrders();
+                fetchStats();
+              } catch (error) {
+                // error handled by store/toast
+              }
+            }}
+            onCancel={() => setEditingOrder(null)}
+          />
         </DialogContent>
       </Dialog>
     </div>

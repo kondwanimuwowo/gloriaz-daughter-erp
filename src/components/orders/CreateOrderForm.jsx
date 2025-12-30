@@ -37,6 +37,7 @@ import MaterialSelector from "./MaterialSelector";
 import AddCustomerForm from "../customers/AddCustomerForm";
 import { supabase } from "../../lib/supabase";
 import { useFinancialStore } from "../../store/useFinancialStore";
+import { motion } from "framer-motion";
 import { productService } from "../../services/productService";
 import toast from "react-hot-toast";
 
@@ -265,7 +266,20 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
       setValue("description", product.name + (product.description ? ` - ${product.description}` : ""));
 
       const price = parseFloat(product.base_price || 0);
+      const productionCost = parseFloat(product.production_cost || price * 0.7); // Estimate if not set
+
+      // Set costs for pre-designed items
+      setCosts({
+        material: 0,
+        labour: 0,
+        overhead: 0,
+        total: productionCost,
+        tax: 0,
+        recommendedPrice: price
+      });
+
       setValue("total_cost", price.toFixed(2), { shouldValidate: true, shouldDirty: true });
+      toast.success(`Selected: ${product.name} - K${price.toFixed(2)}`);
     }
   };
 
@@ -279,14 +293,21 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
   const watchTailor = watch("assigned_tailor_id");
 
   const handleFormSubmit = async (data) => {
-    if (selectedMaterials.length === 0) {
-      toast.error("Please add at least one material");
-      return;
-    }
-
-    if (!data.garment_type_id) {
-      toast.error("Please select a garment type");
-      return;
+    // Validation based on order type
+    if (orderType === "custom") {
+      if (selectedMaterials.length === 0) {
+        toast.error("Please add at least one material for custom orders");
+        return;
+      }
+      if (!data.garment_type_id) {
+        toast.error("Please select a garment type for custom orders");
+        return;
+      }
+    } else if (orderType === "standard") {
+      if (!data.product_id) {
+        toast.error("Please select a pre-designed garment");
+        return;
+      }
     }
 
     setLoading(true);
@@ -361,24 +382,58 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
         </CardContent>
       </Card>
 
-      {/* Product Selection (Standard Only) */}
+      {/* Product Selection (Pre-Designed Only) */}
       {orderType === "standard" && (
-        <div className="animate-in fade-in slide-in-from-top-2">
-          <Label className="mb-2 block">Select Garment / Product</Label>
-          <Select onValueChange={handleProductChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose a predesigned garment..." />
-            </SelectTrigger>
-            <SelectContent>
-              {products.map((product) => (
-                <SelectItem key={product.id} value={product.id}>
-                  {product.name} - K{parseFloat(product.base_price).toFixed(2)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <input type="hidden" {...register("product_id")} />
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Package size={18} className="text-primary" />
+                Select Pre-Designed Garment
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info size={14} className="text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Choose from ready-made garments in finished goods inventory
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select onValueChange={handleProductChange}>
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Choose a pre-designed garment..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {products.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      No pre-designed garments available
+                    </div>
+                  ) : (
+                    products.map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-medium">{product.name}</span>
+                          <span className="text-primary font-bold ml-4">K{parseFloat(product.base_price).toFixed(2)}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              <input type="hidden" {...register("product_id")} />
+              <p className="text-xs text-muted-foreground mt-2">
+                💡 Price includes all materials and production costs
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
       {/* Customer Selection */}
