@@ -49,6 +49,36 @@ const Production = () => {
         return matchesSearch && matchesStatus;
     });
 
+    const handleUpdateStatus = async (batchId, newStatus, batch) => {
+        try {
+            const { error } = await supabase
+                .from("production_batches")
+                .update({ status: newStatus })
+                .eq("id", batchId);
+
+            if (error) throw error;
+
+            setBatches(batches.map(b =>
+                b.id === batchId ? { ...b, status: newStatus } : b
+            ));
+
+            toast.success(`Batch status updated to ${newStatus}`);
+
+            // Notify if completed
+            if (newStatus === "completed") {
+                const { notificationService } = await import("../services/notificationService");
+                await notificationService.notifyProductionComplete(
+                    batch.batch_number,
+                    batch.product?.name || "Product",
+                    batch.quantity
+                );
+            }
+        } catch (error) {
+            console.error("Error updating batch:", error);
+            toast.error("Failed to update status");
+        }
+    };
+
     const getStatusColor = (status) => {
         switch (status) {
             case "completed": return "bg-green-100 text-green-800";
@@ -124,9 +154,17 @@ const Production = () => {
                                 <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">
                                     {batch.batch_number}
                                 </span>
-                                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(batch.status)}`}>
-                                    {batch.status.replace('_', ' ').toUpperCase()}
-                                </span>
+                                <select
+                                    value={batch.status}
+                                    onChange={(e) => handleUpdateStatus(batch.id, e.target.value, batch)}
+                                    className={`text-xs font-semibold px-2 py-1 rounded-full border-none focus:ring-0 focus:outline-none cursor-pointer appearance-none ${getStatusColor(batch.status)}`}
+                                >
+                                    <option value="cutting">✂️ Cutting</option>
+                                    <option value="stitching">🧵 Stitching</option>
+                                    <option value="finishing">✨ Finishing</option>
+                                    <option value="quality_check">🔍 Checking</option>
+                                    <option value="completed">✅ Done</option>
+                                </select>
                             </div>
 
                             <div className="flex items-center gap-3 mb-4">
@@ -178,12 +216,8 @@ const Production = () => {
                                     <Clock size={14} />
                                     <span>{new Date(batch.created_at).toLocaleDateString()}</span>
                                 </div>
-                                {/* <button className="text-primary hover:underline font-medium">
-                  Manage
-                </button> */}
                             </div>
                         </div>
-                        // <ProductionBatchCard key={batch.id} batch={batch} />
                     ))}
                 </div>
             ) : (

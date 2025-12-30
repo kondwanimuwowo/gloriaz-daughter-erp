@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 
 export default function Navbar({ onMenuClick }) {
@@ -31,7 +32,7 @@ export default function Navbar({ onMenuClick }) {
   });
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  
+
   const profileRef = useRef(null);
   const searchRef = useRef(null);
   const { profile, signOut } = useAuthStore();
@@ -327,10 +328,8 @@ export default function Navbar({ onMenuClick }) {
         {/* Right Side - Notifications & Profile */}
         <div className="flex items-center gap-2 md:gap-4">
           {/* Notifications */}
-          <button className="relative p-2 hover:bg-accent rounded-lg transition-colors">
-            <Bell size={20} className="text-muted-foreground" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
-          </button>
+          {/* Notifications */}
+          <NotificationBell />
 
           {/* User Profile Dropdown */}
           <div className="relative" ref={profileRef}>

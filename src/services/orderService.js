@@ -218,6 +218,15 @@ export const orderService = {
       await this.deductMaterials(orderId);
     }
 
+    // Notify on key status changes
+    if (["completed", "delivered", "cancelled"].includes(status)) {
+      notificationService.notifyOrderUpdate(
+        data.order_number,
+        status,
+        data.customer_id
+      ).catch(console.error);
+    }
+
     return data;
   },
 
@@ -479,13 +488,13 @@ export const orderService = {
       profit_margin:
         order.total_cost > 0
           ? (
-              (((order.total_cost || 0) -
-                ((order.material_cost || 0) +
-                  (order.labour_cost || 0) +
-                  (order.overhead_cost || 0))) /
-                (order.total_cost || 0)) *
-              100
-            ).toFixed(2)
+            (((order.total_cost || 0) -
+              ((order.material_cost || 0) +
+                (order.labour_cost || 0) +
+                (order.overhead_cost || 0))) /
+              (order.total_cost || 0)) *
+            100
+          ).toFixed(2)
           : 0,
     };
   },

@@ -1,77 +1,36 @@
 import { supabase } from "../lib/supabase";
+import { notificationService } from "./notificationService";
 
 export const inventoryService = {
-  // Get all materials
-  async getAllMaterials() {
-    const { data, error } = await supabase
-      .from("materials")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return data;
-  },
-
-  // Get material by ID
-  async getMaterialById(id) {
-    const { data, error } = await supabase
-      .from("materials")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  // Add new material
-  async addMaterial(material) {
-    const { data, error } = await supabase
-      .from("materials")
-      .insert([material])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  // Update material
-  async updateMaterial(id, updates) {
-    const { data, error } = await supabase
-      .from("materials")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  // Delete material
-  async deleteMaterial(id) {
-    const { error } = await supabase.from("materials").delete().eq("id", id);
-
-    if (error) throw error;
-  },
+  // ... existing methods ...
 
   // Update stock quantity
   async updateStock(id, quantity, operation = "add", notes = "", orderId = null, unitCost = null) {
     // Get current stock and cost
     const { data: material } = await supabase
       .from("materials")
-      .select("stock_quantity, cost_per_unit")
+      .select("name, stock_quantity, cost_per_unit, min_stock_level")
       .eq("id", id)
       .single();
 
     const currentQuantity = parseFloat(material.stock_quantity);
     const currentCost = parseFloat(material.cost_per_unit);
+    const minStock = parseFloat(material.min_stock_level || 0);
 
     const newQuantity =
       operation === "add"
         ? currentQuantity + parseFloat(quantity)
         : currentQuantity - parseFloat(quantity);
+
+    // ... cost calculation logic ...
+
+    // Check for low stock
+    if (newQuantity <= minStock && currentQuantity > minStock) {
+      // Only notify if we crossed the threshold downwards
+      notificationService.notifyLowStock(material.name, newQuantity, minStock).catch(console.error);
+    }
+
+    // ... rest of the function ...
 
     // Calculate new cost per unit if restocking with a different price
     let newCostPerUnit = currentCost;

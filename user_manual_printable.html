@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gloriaz Daughter ERP - User Manual (Printable)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #9333ea;
+            --primary-foreground: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --bg-muted: #f9fafb;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: white;
+        }
+
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+            .page-break { page-break-before: always; }
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+        }
+
+        h1 { font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem; }
+        h2 { font-size: 1.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top: 2.5rem; color: #111827; }
+        h3 { font-size: 1.25rem; margin-top: 1.5rem; color: #374151; }
+
+        .toc { background: var(--bg-muted); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 40px; }
+        .toc h2 { margin-top: 0; border: none; font-size: 1.25rem; }
+        .toc ul { list-style: none; padding-left: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .toc a { text-decoration: none; color: var(--primary); font-weight: 500; }
+        .toc a:hover { text-underline-offset: 4px; text-decoration: underline; }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid var(--border); padding: 12px; text-align: left; }
+        th { background: var(--bg-muted); font-weight: 600; }
+
+        .tip { background: #fdf2f8; border-left: 4px solid #db2777; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .warning { background: #fff7ed; border-left: 4px solid #ea580c; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        
+        pre { background: #111827; color: #f3f4f6; padding: 15px; border-radius: 8px; overflow-x: auto; font-size: 0.875rem; }
+        code { font-family: ui-monospace, monospace; }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+        .print-btn:hover { transform: scale(1.05); }
+
+        .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 0.875rem; }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">
+        🖨️ Export to PDF
+    </button>
+
+    <div class="header">
+        <h1>Gloriaz Daughter ERP</h1>
+        <p>Official User Manual - Road Test Edition</p>
+    </div>
+
+    <div class="toc no-print">
+        <h2>Contents</h2>
+        <ul>
+            <li><a href="#getting-started">Getting Started</a></li>
+            <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#orders">Order Management</a></li>
+            <li><a href="#customers">Customers</a></li>
+            <li><a href="#inventory">Inventory</a></li>
+            <li><a href="#production">Production</a></li>
+            <li><a href="#finance">Finance</a></li>
+            <li><a href="#settings">Settings</a></li>
+        </ul>
+    </div>
+
+    <section id="getting-started">
+        <h2>1. Getting Started</h2>
+        <h3>Logging In</h3>
+        <ol>
+            <li>Open your browser and navigate to the ERP URL.</li>
+            <li>Enter your email and password provided by the administrator.</li>
+            <li>Click <strong>Sign In</strong>.</li>
+        </ol>
+        <div class="tip">
+            <strong>💡 PRO TIP:</strong> Bookmark the URL in your browser for one-click access every morning.
+        </div>
+    </section>
+
+    <section id="dashboard" class="page-break">
+        <h2>2. Dashboard Overview</h2>
+        <p>The dashboard provides a real-time snapshot of your business operations.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Total Orders</strong></td>
+                    <td>Count of all active and pending orders.</td>
+                </tr>
+                <tr>
+                    <td><strong>Revenue</strong></td>
+                    <td>Total sales recorded in the current month.</td>
+                </tr>
+                <tr>
+                    <td><strong>Low Stock</strong></td>
+                    <td>Alerts for materials that need reordering.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="orders" class="page-break">
+        <h2>3. Order Management</h2>
+        <p>The system supports two types of orders: <strong>Custom</strong> (bespoke tailoring) and <strong>Pre-Designed</strong> (standard catalog items).</p>
+        
+        <h3>Creating a New Order</h3>
+        <ol>
+            <li>Click <strong>Orders</strong> → <strong>+ Create Order</strong>.</li>
+            <li>Select <strong>Custom</strong> or <strong>Standard</strong>.</li>
+            <li>Select a customer (or add a new one inline).</li>
+            <li>Add materials or products.</li>
+            <li>The system automatically calculates suggested pricing based on your settings.</li>
+            <li>Set the deposit and due date.</li>
+        </ol>
+
+        <div class="warning">
+            <strong>⚠️ IMPORTANT:</strong> Always record the deposit accurately to ensure financial reports remain correct.
+        </div>
+    </section>
+
+    <section id="customers" class="page-break">
+        <h2>4. Customer Management</h2>
+        <p>Track customer profiles, measurements, and order history in one place.</p>
+        <ul>
+            <li><strong>Profiles:</strong> Store phone numbers, emails, and notes.</li>
+            <li><strong>Measurements:</strong> Save detailed measurements for repeat clients.</li>
+            <li><strong>History:</strong> See every order a customer has placed.</li>
+        </ul>
+    </section>
+
+    <section id="inventory" class="page-break">
+        <h2>5. Inventory Management</h2>
+        <p>Manage your fabrics, trims, and finished goods.</p>
+        <ul>
+            <li><strong>Real-time Tracking:</strong> Stock levels update automatically as you use materials in orders.</li>
+            <li><strong>Restocking:</strong> Log new purchases to update your average cost per unit.</li>
+            <li><strong>Low Stock Alerts:</strong> Set thresholds to get notified before you run out.</li>
+        </ul>
+    </section>
+
+    <section id="production" class="page-break">
+        <h2>6. Production Workflow</h2>
+        <p>Track the journey of every garment from cutting to completion.</p>
+        <div class="tip">
+            <strong>Production Stages:</strong> Cutting ✂️ → Stitching 🧵 → Finishing ✨ → Quality Check 🔍 → Completed ✅
+        </div>
+        <p>When a batch is marked as <strong>Completed</strong>, the system automatically increases your finished goods inventory.</p>
+    </section>
+
+    <section id="finance" class="page-break">
+        <h2>7. Financial Reports</h2>
+        <p>Access professional reports to see how your business is performing.</p>
+        <ul>
+            <li><strong>Profit & Loss:</strong> See your gross revenue minus material, labour, and overhead costs.</li>
+            <li><strong>Revenue Trends:</strong> Track growth over weeks or months.</li>
+            <li><strong>Export:</strong> Download reports in Excel or PDF format for accounting.</li>
+        </ul>
+    </section>
+
+    <div class="footer">
+        <p>Gloriaz Daughter ERP - User Manual v1.0</p>
+        <p>&copy; 2025 Digital Solutions for Tailoring Pro</p>
+    </div>
+</body>
+</html>
