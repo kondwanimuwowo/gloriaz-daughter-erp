@@ -174,12 +174,17 @@ const Production = () => {
                                             src={batch.product.image_url}
                                             alt={batch.product.name}
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
                                         />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                            <Scissors size={20} />
-                                        </div>
-                                    )}
+                                    ) : null}
+                                    <div
+                                        className={`w-full h-full flex items-center justify-center text-gray-400 ${batch.product?.image_url ? 'hidden' : 'flex'}`}
+                                    >
+                                        <Scissors size={20} />
+                                    </div>
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-gray-900 line-clamp-1">{batch.product?.name || "Unknown Product"}</h3>

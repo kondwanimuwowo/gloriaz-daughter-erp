@@ -10,6 +10,7 @@ import {
   BarChart3,
   X,
   Scissors,
+  HelpCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -146,6 +147,22 @@ export default function MobileSidebar({ isOpen, onClose }) {
 
             {/* Footer */}
             <div className="p-4 border-t border-border">
+              <NavLink
+                to="/manual"
+                onClick={onClose}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md mb-4 transition-all text-xs font-semibold",
+                    isActive
+                      ? "bg-primary text-white"
+                      : "bg-primary/5 text-primary hover:bg-primary/10 border border-primary/20"
+                  )
+                }
+              >
+                <HelpCircle size={14} />
+                <span>HELP & MANUAL</span>
+              </NavLink>
+
               <div className="bg-muted/30 rounded-xl p-3 mb-3 border border-border/50">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
                   Access Level
