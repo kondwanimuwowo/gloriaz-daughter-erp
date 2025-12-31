@@ -40,13 +40,13 @@ export default function Login() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background p-4">
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ y: 30 }}
+        animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="w-full max-w-md relative"
       >
         <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full transform -translate-y-10" />
-        
+
         <div className="relative bg-card/80 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl overflow-hidden p-8 md:p-10">
           <div className="flex flex-col items-center mb-10">
             <div className="h-14 w-14 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 mb-6">
@@ -167,7 +167,7 @@ export default function Login() {
                 </span>
               </div>
             </div>
-            
+
             <p className="text-center text-xs text-muted-foreground/60">
               © 2024 Gloriaz Daughter. Protected by advanced encryption.
             </p>
@@ -177,4 +177,3 @@ export default function Login() {
     </div>
   );
 }
-

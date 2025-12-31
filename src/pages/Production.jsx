@@ -7,6 +7,7 @@ import CreateBatchModal from "../components/production/CreateBatchModal";
 import BatchDetailsModal from "../components/production/BatchDetailsModal";
 import { toast } from "react-hot-toast";
 import { notificationService } from "../services/notificationService";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Production = () => {
     const [batches, setBatches] = useState([]);
@@ -146,8 +147,26 @@ const Production = () => {
 
             {/* Production Batches List */}
             {loading ? (
-                <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="bg-white rounded-lg border border-gray-200 p-5 space-y-4">
+                            <div className="flex justify-between">
+                                <Skeleton className="h-5 w-16" />
+                                <Skeleton className="h-5 w-20 rounded-full" />
+                            </div>
+                            <div className="flex gap-3">
+                                <Skeleton className="w-12 h-12 rounded-lg" />
+                                <div className="space-y-2 flex-1">
+                                    <Skeleton className="h-5 w-3/4" />
+                                    <Skeleton className="h-4 w-1/4" />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Skeleton className="h-2 w-full" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             ) : filteredBatches.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

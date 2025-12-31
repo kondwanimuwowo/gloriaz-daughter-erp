@@ -56,11 +56,11 @@ export const financeService = {
     // If only one arg provided and it's a date object/string for month
     let start, end;
     if (arguments.length === 1 && !endDate) {
-       start = startOfMonth(new Date(startDate));
-       end = endOfMonth(new Date(startDate));
+      start = startOfMonth(new Date(startDate));
+      end = endOfMonth(new Date(startDate));
     } else {
-       start = new Date(startDate);
-       end = new Date(endDate);
+      start = new Date(startDate);
+      end = new Date(endDate);
     }
 
     const { data, error } = await supabase
@@ -242,14 +242,14 @@ export const financeService = {
     // Determine range
     let start, end;
     if (arguments.length === 1 && !endDate) {
-       // Support legacy call with single 'month' arg
-       start = startOfMonth(new Date(startDate));
-       end = endOfMonth(new Date(startDate));
+      // Support legacy call with single 'month' arg
+      start = startOfMonth(new Date(startDate));
+      end = endOfMonth(new Date(startDate));
     } else {
-       start = new Date(startDate);
-       end = new Date(endDate);
+      start = new Date(startDate);
+      end = new Date(endDate);
     }
-    
+
     const startStr = format(start, "yyyy-MM-dd");
     const endStr = format(end, "yyyy-MM-dd");
 
@@ -327,10 +327,10 @@ export const financeService = {
       avgOrderValue: orders?.length > 0 ? totalRevenue / orders.length : 0,
     };
   },
-  
+
   // Legacy alias for backward compatibility (though we'll update store)
   async getMonthlyFinancialSummary(month) {
-      return this.getFinancialSummary(month);
+    return this.getFinancialSummary(month);
   },
 
   async getOverheadPerOrder(month = new Date()) {
@@ -376,11 +376,11 @@ export const financeService = {
         profitMargin:
           parseFloat(order.total_cost || 0) > 0
             ? ((parseFloat(order.total_cost || 0) -
-                (parseFloat(order.material_cost || 0) +
-                  parseFloat(order.labour_cost || 0) +
-                  parseFloat(order.overhead_cost || 0))) /
-                parseFloat(order.total_cost || 0)) *
-              100
+              (parseFloat(order.material_cost || 0) +
+                parseFloat(order.labour_cost || 0) +
+                parseFloat(order.overhead_cost || 0))) /
+              parseFloat(order.total_cost || 0)) *
+            100
             : 0,
       })) || []
     );

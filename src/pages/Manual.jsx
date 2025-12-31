@@ -388,9 +388,9 @@ const Manual = () => {
                         <AnimatePresence mode="wait">
                             <motion.article
                                 key={activeSection}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
+                                initial={{ y: 20 }}
+                                animate={{ y: 0 }}
+                                exit={{ y: -20 }}
                                 transition={{ duration: 0.3 }}
                                 className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 lg:p-12 shadow-xl"
                             >
