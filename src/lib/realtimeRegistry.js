@@ -18,13 +18,19 @@ export function registerChannel(channel) {
 
     // Failure triggers a global App Epoch increment
     channel
-        .on('error', (err) => {
-            console.error('[RealtimeRegistry] Channel error:', err);
-            useSyncStore.getState().incrementEpoch('realtime:error');
+        // Recovery must occur ONLY on real failure.
+        // Connected is a healthy state, not a reason to reboot the app.
+        .on('state', (status) => {
+            if (status === 'error' || status === 'disconnected') {
+                console.warn(`[RealtimeRegistry] Channel state changed to ${status}. Triggering epoch increment.`);
+                useSyncStore.getState().safeIncrementEpoch(`realtime:${status}`);
+            } else {
+                console.log(`[RealtimeRegistry] Channel state changed to ${status}.`);
+            }
         })
         .on('close', () => {
             console.warn('[RealtimeRegistry] Channel closed');
-            useSyncStore.getState().incrementEpoch('realtime:closed');
+            useSyncStore.getState().safeIncrementEpoch('realtime:closed');
         });
 
     return channel;
@@ -45,9 +51,14 @@ export function teardownChannel(channel) {
  * Used during global recovery/epoch increments.
  */
 export function teardownAllChannels() {
+    if (channels.size === 0) return;
     console.log(`[RealtimeRegistry] Tearing down ${channels.size} channels`);
     channels.forEach((channel) => {
-        supabase.removeChannel(channel);
+        try {
+            supabase.removeChannel(channel);
+        } catch (err) {
+            console.warn('[RealtimeRegistry] Error removing channel:', err);
+        }
     });
     channels.clear();
 }

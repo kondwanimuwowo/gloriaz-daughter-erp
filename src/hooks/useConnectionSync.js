@@ -34,15 +34,15 @@ export function useConnectionSync() {
             console.log(`[ConnectionSync] Realtime status change: ${status}`);
             setRealtimeStatus(status);
 
-            // If we recovered a connection or experienced an error, 
-            // we must rebuild our world. 
-            if (status === 'connected' || status === 'error') {
-                incrementEpoch(`realtime:${status}`);
+            // Recovery must occur ONLY on real failure.
+            // Connected is a healthy state, not a reason to reboot the app.
+            if (status === 'error' || status === 'disconnected') {
+                useSyncStore.getState().safeIncrementEpoch(`realtime:${status}`);
             }
         };
 
         // 3. Manual sync trigger from window (for debug/recovery)
-        const handleManualSync = () => incrementEpoch('manual:trigger');
+        const handleManualSync = () => useSyncStore.getState().safeIncrementEpoch('manual:trigger');
 
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);

@@ -4,7 +4,9 @@ import { authService } from "../services/authService";
 import toast from "react-hot-toast";
 import { useSyncStore } from "./useSyncStore";
 
-let authSubscription;
+let authInitialized = false;
+let lastSessionId = null;
+let lastAuthEventAt = 0;
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -62,7 +64,8 @@ export const useAuthStore = create((set, get) => ({
 
   // Initialize auth state
   initialize: async () => {
-    if (get().initialized) return;
+    if (authInitialized) return;
+    authInitialized = true;
 
     // Safety timeout to prevent permanent loading loop
     const timeout = setTimeout(() => {
@@ -80,6 +83,11 @@ export const useAuthStore = create((set, get) => ({
       if (session?.user) {
         console.log("User found, fetching profile...");
         const profile = await authService.getUserProfile(session.user.id);
+
+        // Update last session tracking before setting state
+        lastSessionId = session.access_token;
+        lastAuthEventAt = Date.now();
+
         set({
           user: session.user,
           profile,
@@ -96,7 +104,7 @@ export const useAuthStore = create((set, get) => ({
         set({ refreshInterval });
 
         // Initial data sync on auth success
-        useSyncStore.getState().incrementEpoch('auth:init');
+        useSyncStore.getState().safeIncrementEpoch('auth:init');
       } else {
         console.log("No session found");
         set({
@@ -111,6 +119,8 @@ export const useAuthStore = create((set, get) => ({
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const token = session?.access_token;
+        const now = Date.now();
         console.log(`[Auth] Event: ${event}`);
 
         if (session) {
@@ -122,17 +132,32 @@ export const useAuthStore = create((set, get) => ({
           set({ session: null, user: null, profile: null });
         }
 
+        // Deduplication & Normalization
+        if (token && token === lastSessionId) {
+          // Suppression of redundant events for same session
+          return;
+        }
+
+        // Specifically suppress SIGNED_IN if it rapidly follows INITIAL_SESSION (normalization)
+        if (event === 'SIGNED_IN' && now - lastAuthEventAt < 1500) {
+          console.log('[Auth] Normalizing SIGNED_IN event (skipping redundant recovery)');
+          return;
+        }
+
+        lastSessionId = token;
+        lastAuthEventAt = now;
+
         // HARD RECOVERY TRIGGER: Treat these as authoritative state resets
         if (
           event === "SIGNED_IN" ||
           event === "TOKEN_REFRESHED" ||
           event === "INITIAL_SESSION"
         ) {
-          useSyncStore.getState().incrementEpoch(`auth:${event}`);
+          useSyncStore.getState().safeIncrementEpoch(`auth:${event}`);
         }
 
         if (event === "SIGNED_OUT") {
-          useSyncStore.getState().incrementEpoch("auth:SIGNED_OUT");
+          useSyncStore.getState().safeIncrementEpoch("auth:SIGNED_OUT");
         }
       });
 

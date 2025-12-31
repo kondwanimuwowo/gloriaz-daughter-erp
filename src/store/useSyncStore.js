@@ -1,17 +1,15 @@
 import { create } from 'zustand';
 
+let lastEpochAt = 0;
+
 /**
  * Global store for managing application-wide synchronization signals (App Epoch).
- * The appEpoch counter acts as an authoritative "version" for the entire system state.
- * When it increments, ALL active components (Data and Real-time) must reboot.
  */
-export const useSyncStore = create((set) => ({
+export const useSyncStore = create((set, get) => ({
     appEpoch: 0,
 
     /**
-     * Increments the global app epoch, triggering a full 
-     * data and real-time subscription refresh across the app.
-     * @param {string} reason - Mandatory reason for the recovery trigger.
+     * Internal increment logic.
      */
     incrementEpoch: (reason = 'unknown') => {
         set((state) => {
@@ -19,4 +17,18 @@ export const useSyncStore = create((set) => ({
             return { appEpoch: state.appEpoch + 1 };
         });
     },
+
+    /**
+     * Public, safe entry point for triggering recovery.
+     * Prevents "recovery storms" by debouncing calls within 1000ms.
+     */
+    safeIncrementEpoch: (reason) => {
+        const now = Date.now();
+        if (now - lastEpochAt < 1000) {
+            console.debug('[ERP RECOVERY] Debounced:', reason);
+            return;
+        }
+        lastEpochAt = now;
+        get().incrementEpoch(reason);
+    }
 }));
