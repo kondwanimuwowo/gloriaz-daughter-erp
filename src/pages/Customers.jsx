@@ -9,9 +9,12 @@ import {
   Ruler,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useCustomerStore } from "../store/useCustomerStore";
+import { useQuery } from "@tanstack/react-query";
 import { customerService } from "../services/customerService";
+import { useQueryRecovery } from "../hooks/useQueryRecovery";
+import { useCustomersRealtime } from "../hooks/useCustomersRealtime";
 
+import { useCustomerStore } from "../store/useCustomerStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/DataTable";
@@ -37,10 +40,21 @@ import CustomerDetailsView from "../components/customers/CustomerDetailsView";
 import toast from "react-hot-toast";
 
 export default function Customers() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 1. HARD RECOVERY ORCHESTRATION
+  useQueryRecovery();
+  useCustomersRealtime();
+
+  // 2. DATA QUERIES (Marked as erpCritical)
+  const { data: customers = [], isLoading: loading } = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => customerService.getAllCustomers(),
+    meta: { erpCritical: true },
+  });
+
   const {
-    customers,
-    loading,
-    fetchCustomers,
     addCustomer,
     updateCustomer,
     deleteCustomer,
@@ -52,13 +66,6 @@ export default function Customers() {
   const [viewingCustomer, setViewingCustomer] = useState(null);
   const [customerStats, setCustomerStats] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
 
   // Handle deep linking for specific customer
   useEffect(() => {

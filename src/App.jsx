@@ -36,38 +36,17 @@ function App() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && initialized) {
-        // App became visible, refresh session to ensure it's valid
-        refreshSession();
+        // App became visible
+        console.log('[App] Tab visible, session active');
       }
     };
-
-    // Track user activity to keep session alive
-    let activityTimeout;
-    const handleUserActivity = () => {
-      clearTimeout(activityTimeout);
-      activityTimeout = setTimeout(() => {
-        if (initialized) {
-          refreshSession();
-        }
-      }, 2 * 60 * 1000); // Refresh after 2 minutes of activity
-    };
-
-    // Listen for user activity
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-    events.forEach(event => {
-      document.addEventListener(event, handleUserActivity, { passive: true });
-    });
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      clearTimeout(activityTimeout);
-      events.forEach(event => {
-        document.removeEventListener(event, handleUserActivity);
-      });
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [refreshSession, initialized]);
+  }, [initialized]);
 
   // Show loading screen while initializing auth
   if (!initialized) {

@@ -19,7 +19,72 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { NotificationBell } from "../notifications/NotificationBell";
+import { useConnectionSync } from "../../hooks/useConnectionSync";
+import {
+  Wifi,
+  WifiOff,
+  RotateCw,
+  RefreshCw,
+  Database
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip";
 
+const RealtimeStatus = () => {
+  const { realtimeStatus, isOnline } = useConnectionSync();
+  const [syncing, setSyncing] = useState(false);
+
+  const handleManualSync = () => {
+    setSyncing(true);
+    window.dispatchEvent(new CustomEvent('force-app-sync'));
+    setTimeout(() => setSyncing(false), 1000);
+  };
+
+  const getStatusColor = () => {
+    if (!isOnline) return "text-destructive bg-destructive/10";
+    if (realtimeStatus === 'connected') return "text-emerald-500 bg-emerald-50";
+    if (realtimeStatus === 'error') return "text-orange-500 bg-orange-50";
+    return "text-muted-foreground bg-muted";
+  };
+
+  const getStatusLabel = () => {
+    if (!isOnline) return "Offline";
+    if (realtimeStatus === 'connected') return "Live";
+    if (realtimeStatus === 'error') return "Connection Error";
+    return "Connecting...";
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleManualSync}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all border border-transparent hover:border-current/20 ${getStatusColor()}`}
+            >
+              <div className={`w-1.5 h-1.5 rounded-full ${realtimeStatus === 'connected' ? 'animate-pulse bg-current' : 'bg-current'}`} />
+              <span className="hidden sm:inline">{getStatusLabel()}</span>
+              {syncing ? (
+                <RotateCw size={12} className="animate-spin ml-1" />
+              ) : (
+                <RefreshCw size={12} className="ml-1 opacity-50" />
+              )}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isOnline ? `Supabase Real-time: ${realtimeStatus}` : 'No internet connection'}</p>
+            <p className="text-[10px] opacity-70">Click to force data synchronization</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
 
 export default function Navbar({ onMenuClick }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -357,7 +422,9 @@ export default function Navbar({ onMenuClick }) {
 
         {/* Right Side - Notifications & Profile */}
         <div className="flex items-center gap-2 md:gap-4">
-          {/* Notifications */}
+          {/* Real-time Status Indicator */}
+          <RealtimeStatus />
+
           {/* Notifications */}
           <NotificationBell />
 

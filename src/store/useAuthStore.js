@@ -1,7 +1,10 @@
 import { create } from "zustand";
-import { authService } from "../services/authService";
 import { supabase } from "../lib/supabase";
+import { authService } from "../services/authService";
 import toast from "react-hot-toast";
+import { useSyncStore } from "./useSyncStore";
+
+let authSubscription;
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -59,6 +62,8 @@ export const useAuthStore = create((set, get) => ({
 
   // Initialize auth state
   initialize: async () => {
+    if (get().initialized) return;
+
     // Safety timeout to prevent permanent loading loop
     const timeout = setTimeout(() => {
       if (!get().initialized) {
@@ -89,6 +94,9 @@ export const useAuthStore = create((set, get) => ({
         }, 5 * 60 * 1000);
 
         set({ refreshInterval });
+
+        // Initial data sync on auth success
+        useSyncStore.getState().incrementEpoch('auth:init');
       } else {
         console.log("No session found");
         set({
@@ -100,24 +108,35 @@ export const useAuthStore = create((set, get) => ({
         });
       }
 
-      // Listen for auth changes and store the subscription
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log("Auth state changed:", event);
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log(`[Auth] Event: ${event}`);
 
-        if (event === "SIGNED_IN" && session?.user) {
-          const profile = await authService.getUserProfile(session.user.id);
-          set({ user: session.user, profile, session });
-        } else if (event === "SIGNED_OUT") {
-          set({ user: null, profile: null, session: null });
-        } else if (event === "TOKEN_REFRESHED" && session) {
-          console.log("Token refreshed automatically");
-          set({ session });
-        } else if (event === "USER_UPDATED" && session) {
-          set({ session });
+        if (session) {
+          set({ session, user: session.user });
+          if (!get().profile) {
+            await get().fetchProfile(session.user.id);
+          }
+        } else {
+          set({ session: null, user: null, profile: null });
+        }
+
+        // HARD RECOVERY TRIGGER: Treat these as authoritative state resets
+        if (
+          event === "SIGNED_IN" ||
+          event === "TOKEN_REFRESHED" ||
+          event === "INITIAL_SESSION"
+        ) {
+          useSyncStore.getState().incrementEpoch(`auth:${event}`);
+        }
+
+        if (event === "SIGNED_OUT") {
+          useSyncStore.getState().incrementEpoch("auth:SIGNED_OUT");
         }
       });
 
-      set({ authSubscription: subscription });
+      set({ authSubscription: subscription, initialized: true });
     } catch (error) {
       console.error("Auth initialization error:", error);
       set({ loading: false, initialized: true });
@@ -192,6 +211,18 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       toast.error("Failed to sign out");
       throw error;
+    }
+  },
+
+  // Fetch profile
+  fetchProfile: async (userId) => {
+    try {
+      const profile = await authService.getUserProfile(userId);
+      set({ profile });
+      return profile;
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      return null;
     }
   },
 

@@ -13,7 +13,11 @@ import {
   Eye
 } from "lucide-react";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInventoryStore } from "../store/useInventoryStore";
+import { inventoryService } from "../services/inventoryService";
+import { useQueryRecovery } from "../hooks/useQueryRecovery";
+import { useInventoryRealtime } from "../hooks/useInventoryRealtime";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DataTable } from "@/components/DataTable";
@@ -25,12 +29,24 @@ import { Separator } from "@/components/ui/separator";
 import AddMaterialForm from "../components/inventory/AddMaterialForm";
 import StockUpdateModal from "../components/inventory/StockUpdateModal";
 import StatsCard from "../components/dashboard/StatsCard";
+import { useConnectionSync } from "../hooks/useConnectionSync";
 
 export default function Inventory() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 1. HARD RECOVERY ORCHESTRATION
+  useQueryRecovery();
+  useInventoryRealtime();
+
+  // 2. DATA QUERIES (Marked as erpCritical)
+  const { data: materials = [], isLoading: loading } = useQuery({
+    queryKey: ['inventory'],
+    queryFn: () => inventoryService.getAllMaterials(),
+    meta: { erpCritical: true },
+  });
+
   const {
-    materials,
-    loading,
-    fetchMaterials,
     addMaterial,
     updateMaterial,
     deleteMaterial,
@@ -38,20 +54,13 @@ export default function Inventory() {
   } = useInventoryStore();
 
   const [showAddModal, setShowAddModal] = useState(false);
-  const [viewingMaterial, setViewingMaterial] = useState(null); // For read-only view
-  const [editingMaterial, setEditingMaterial] = useState(null); // For edit mode
+  const [viewingMaterial, setViewingMaterial] = useState(null);
+  const [editingMaterial, setEditingMaterial] = useState(null);
   const [stockUpdateModal, setStockUpdateModal] = useState({
     isOpen: false,
     material: null,
     operation: null,
   });
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchMaterials();
-  }, [fetchMaterials]);
 
   // Handle deep linking for specific material
   useEffect(() => {

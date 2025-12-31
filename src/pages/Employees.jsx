@@ -9,7 +9,11 @@ import {
   LogIn,
   LogOut
 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEmployeeStore } from "../store/useEmployeeStore";
+import { employeeService } from "../services/employeeService";
+import { useQueryRecovery } from "../hooks/useQueryRecovery";
+import { useEmployeesRealtime } from "../hooks/useEmployeesRealtime";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,33 +40,43 @@ import StatsCard from "../components/dashboard/StatsCard";
 import TimeClockMetric from "../components/employees/TimeClockMetric";
 import toast from "react-hot-toast";
 import { formatZambianTime } from "../utils/dateUtils";
+import { useConnectionSync } from "../hooks/useConnectionSync";
 
 export default function Employees() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+
+  // Local UI State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [viewingEmployee, setViewingEmployee] = useState(null);
+
+  // 1. HARD RECOVERY ORCHESTRATION
+  useQueryRecovery();
+  useEmployeesRealtime();
+
+  // 2. DATA QUERIES (Marked as erpCritical)
+  const { data: employees = [], isLoading: loadingEmployees } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => employeeService.getAllEmployees(),
+    meta: { erpCritical: true },
+  });
+
+  const { data: todayAttendance = [], isLoading: loadingAttendance } = useQuery({
+    queryKey: ['today-attendance'],
+    queryFn: () => employeeService.getTodayAttendance(),
+    meta: { erpCritical: true },
+    refetchInterval: 60000, // Still poll every minute as requested
+  });
+
   const {
-    employees,
-    todayAttendance,
-    loading,
-    fetchEmployees,
-    fetchTodayAttendance,
     addEmployee,
     updateEmployee,
     deleteEmployee,
   } = useEmployeeStore();
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState(null);
-  const [viewingEmployee, setViewingEmployee] = useState(null);
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchEmployees();
-    fetchTodayAttendance();
-    // Poll attendance every minute to keep statuses fresh
-    const interval = setInterval(fetchTodayAttendance, 60000);
-    return () => clearInterval(interval);
-  }, [fetchEmployees, fetchTodayAttendance]);
+  const loading = loadingEmployees || loadingAttendance;
 
   // Handle deep linking for specific employee
   useEffect(() => {
@@ -103,102 +117,102 @@ export default function Employees() {
   };
 
   const getRoleBadgeVariant = (role) => {
-      const variants = {
-          tailor: "default", 
-          cutter: "secondary",
-          designer: "secondary",
-          manager: "outline",
-          assistant: "secondary"
-      }
-      return variants[role.toLowerCase()] || "secondary";
+    const variants = {
+      tailor: "default",
+      cutter: "secondary",
+      designer: "secondary",
+      manager: "outline",
+      assistant: "secondary"
+    }
+    return variants[role.toLowerCase()] || "secondary";
   }
 
   const columns = useMemo(() => [
     {
-        accessorKey: "name",
-        header: "Name",
-        cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>,
     },
     {
-        accessorKey: "role",
-        header: "Role",
-        cell: ({ row }) => {
-            const role = row.getValue("role");
-            return <Badge variant={getRoleBadgeVariant(role)} className="capitalize">{role}</Badge>
-        }
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => {
+        const role = row.getValue("role");
+        return <Badge variant={getRoleBadgeVariant(role)} className="capitalize">{role}</Badge>
+      }
     },
     {
-        id: "attendance_status",
-        header: "Today's Status",
-        cell: ({ row }) => {
-            const today = todayAttendance.find(a => a.employee_id === row.original.id);
-            if (!today) return <Badge variant="outline" className="text-muted-foreground border-dashed">Absent</Badge>;
-            
-            if (today.clock_out) {
-                 return <Badge variant="secondary" className="bg-gray-100 text-gray-600">Clocked Out</Badge>;
-            }
-            return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Present</Badge>;
+      id: "attendance_status",
+      header: "Today's Status",
+      cell: ({ row }) => {
+        const today = todayAttendance.find(a => a.employee_id === row.original.id);
+        if (!today) return <Badge variant="outline" className="text-muted-foreground border-dashed">Absent</Badge>;
+
+        if (today.clock_out) {
+          return <Badge variant="secondary" className="bg-gray-100 text-gray-600">Clocked Out</Badge>;
         }
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Present</Badge>;
+      }
     },
     {
-        id: "clock_in",
-        header: "Clock In",
-        cell: ({ row }) => {
-            const today = todayAttendance.find(a => a.employee_id === row.original.id);
-            return today?.clock_in ? (
-                <div className="flex items-center gap-1 text-sm text-green-700">
-                    <LogIn size={14} />
-                    {formatZambianTime(today.clock_in)}
-                </div>
-            ) : <span className="text-muted-foreground text-xs text-center block">-</span>;
-        }
+      id: "clock_in",
+      header: "Clock In",
+      cell: ({ row }) => {
+        const today = todayAttendance.find(a => a.employee_id === row.original.id);
+        return today?.clock_in ? (
+          <div className="flex items-center gap-1 text-sm text-green-700">
+            <LogIn size={14} />
+            {formatZambianTime(today.clock_in)}
+          </div>
+        ) : <span className="text-muted-foreground text-xs text-center block">-</span>;
+      }
     },
     {
-        id: "clock_out",
-        header: "Clock Out",
-        cell: ({ row }) => {
-            const today = todayAttendance.find(a => a.employee_id === row.original.id);
-            return today?.clock_out ? (
-                <div className="flex items-center gap-1 text-sm text-red-600">
-                    <LogOut size={14} />
-                    {formatZambianTime(today.clock_out)}
-                </div>
-            ) : <span className="text-muted-foreground text-xs text-center block">-</span>;
-        }
+      id: "clock_out",
+      header: "Clock Out",
+      cell: ({ row }) => {
+        const today = todayAttendance.find(a => a.employee_id === row.original.id);
+        return today?.clock_out ? (
+          <div className="flex items-center gap-1 text-sm text-red-600">
+            <LogOut size={14} />
+            {formatZambianTime(today.clock_out)}
+          </div>
+        ) : <span className="text-muted-foreground text-xs text-center block">-</span>;
+      }
     },
     {
-        id: "actions",
-        cell: ({ row }) => {
-             const employee = row.original;
-             return (
-                 <DropdownMenu>
-                     <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" className="h-8 w-8 p-0">
-                             <MoreHorizontal className="h-4 w-4" />
-                         </Button>
-                     </DropdownMenuTrigger>
-                     <DropdownMenuContent align="end">
-                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                         <DropdownMenuItem onClick={() => setViewingEmployee(employee)}>
-                             <Clock className="mr-2 h-4 w-4" /> View & Clock In/Out
-                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => setEditingEmployee(employee)}>Edit Details</DropdownMenuItem>
-                         <DropdownMenuSeparator />
-                         {employee.active && (
-                             <DropdownMenuItem onClick={() => handleDeleteEmployee(employee.id)} className="text-destructive">
-                                 Deactivate
-                             </DropdownMenuItem>
-                         )}
-                     </DropdownMenuContent>
-                 </DropdownMenu>
-             )
-        }
+      id: "actions",
+      cell: ({ row }) => {
+        const employee = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setViewingEmployee(employee)}>
+                <Clock className="mr-2 h-4 w-4" /> View & Clock In/Out
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setEditingEmployee(employee)}>Edit Details</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {employee.active && (
+                <DropdownMenuItem onClick={() => handleDeleteEmployee(employee.id)} className="text-destructive">
+                  Deactivate
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      }
     }
   ], [todayAttendance]);
 
   // Handler for clock updates from modal
   const handleClockUpdate = () => {
-    fetchTodayAttendance();
+    queryClient.invalidateQueries({ queryKey: ['today-attendance'] });
   };
 
   return (
@@ -236,12 +250,12 @@ export default function Employees() {
       </div>
 
       <Card className="overflow-hidden border-border/60">
-        <DataTable 
-            columns={columns} 
-            data={employees} 
-            filterColumn="name" 
-            searchPlaceholder="Filter employees..." 
-            onRowClick={setViewingEmployee}
+        <DataTable
+          columns={columns}
+          data={employees}
+          filterColumn="name"
+          searchPlaceholder="Filter employees..."
+          onRowClick={setViewingEmployee}
         />
       </Card>
 
@@ -261,29 +275,29 @@ export default function Employees() {
       {/* Edit Employee Dialog */}
       <Dialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)}>
         <DialogContent className="max-w-lg">
-            <DialogHeader>
-                <DialogTitle>Edit Employee</DialogTitle>
-            </DialogHeader>
-            <AddEmployeeForm
-                employee={editingEmployee}
-                onSubmit={handleUpdateEmployee}
-                onCancel={() => setEditingEmployee(null)}
-            />
+          <DialogHeader>
+            <DialogTitle>Edit Employee</DialogTitle>
+          </DialogHeader>
+          <AddEmployeeForm
+            employee={editingEmployee}
+            onSubmit={handleUpdateEmployee}
+            onCancel={() => setEditingEmployee(null)}
+          />
         </DialogContent>
       </Dialog>
 
       {/* View Employee Details & Clock In/Out Dialog */}
       <Dialog open={!!viewingEmployee} onOpenChange={(open) => !open && setViewingEmployee(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-                <DialogTitle>Employee Management</DialogTitle>
-            </DialogHeader>
-            {viewingEmployee && (
-                <EmployeeDetailsView 
-                    employee={viewingEmployee} 
-                    onClockUpdate={handleClockUpdate}
-                />
-            )}
+          <DialogHeader>
+            <DialogTitle>Employee Management</DialogTitle>
+          </DialogHeader>
+          {viewingEmployee && (
+            <EmployeeDetailsView
+              employee={viewingEmployee}
+              onClockUpdate={handleClockUpdate}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

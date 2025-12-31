@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { useQueryRecovery } from "../hooks/useQueryRecovery";
+import { useFinanceRealtime } from "../hooks/useFinanceRealtime";
 
 import {
   DollarSign,
@@ -54,6 +57,13 @@ import StatsCard from "../components/dashboard/StatsCard";
 import { exportExpenses, exportPayments, exportFinancialSummary } from "../utils/excelExport";
 
 export default function Finance() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 1. HARD RECOVERY ORCHESTRATION
+  useQueryRecovery();
+  useFinanceRealtime();
+
   const [periodType, setPeriodType] = useState("monthly"); // monthly, quarterly, annual
   const [selectedDate, setSelectedDate] = useState(new Date()); // Base date to calculate range from
   const [activeTab, setActiveTab] = useState("profitloss");
@@ -61,8 +71,7 @@ export default function Finance() {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [completedOrders, setCompletedOrders] = useState([]);
 
-  const location = useLocation();
-  const navigate = useNavigate();
+
 
   // Calculate Date Range based on periodType and selectedDate
   const dateRange = useMemo(() => {
@@ -109,24 +118,37 @@ export default function Finance() {
     fetchOverheadCosts,
     addExpense,
     deleteExpense,
-    loading,
   } = useFinancialStore();
 
-  useEffect(() => {
-    loadData();
-  }, [dateRange]);
+  // 2. DATA QUERIES (Marked as erpCritical)
+  const { isLoading: loading } = useQuery({
+    queryKey: ['finance-data', periodType, format(dateRange.start, 'yyyy-MM-dd')],
+    queryFn: async () => {
+      const startDate = format(dateRange.start, "yyyy-MM-dd");
+      const endDate = format(dateRange.end, "yyyy-MM-dd");
 
-  const loadData = async () => {
+      await Promise.all([
+        fetchFinancialSummary(startDate, endDate),
+        fetchExpenses(startDate, endDate),
+        fetchPayments(startDate, endDate),
+        fetchOverheadCosts(startDate, endDate),
+        fetchCompletedOrders(startDate, endDate),
+      ]);
+      return true;
+    },
+    meta: { erpCritical: true },
+    enabled: !!dateRange.start,
+  });
+
+  const loadData = () => {
     const startDate = format(dateRange.start, "yyyy-MM-dd");
     const endDate = format(dateRange.end, "yyyy-MM-dd");
 
-    await Promise.all([
-      fetchFinancialSummary(startDate, endDate),
-      fetchExpenses(startDate, endDate),
-      fetchPayments(startDate, endDate),
-      fetchOverheadCosts(startDate, endDate),
-      fetchCompletedOrders(startDate, endDate),
-    ]);
+    fetchFinancialSummary(startDate, endDate);
+    fetchExpenses(startDate, endDate);
+    fetchPayments(startDate, endDate);
+    fetchOverheadCosts(startDate, endDate);
+    fetchCompletedOrders(startDate, endDate);
   };
 
   const fetchCompletedOrders = async (startDate, endDate) => {

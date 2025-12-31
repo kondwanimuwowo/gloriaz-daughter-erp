@@ -8,8 +8,11 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOrderStore } from "../store/useOrderStore";
 import { orderService } from "../services/orderService";
+import { useQueryRecovery } from "../hooks/useQueryRecovery";
+import { useOrdersRealtime } from "../hooks/useOrdersRealtime";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,31 +44,45 @@ import {
 import CreateOrderForm from "../components/orders/CreateOrderForm";
 import OrderDetailsView from "../components/orders/OrderDetailsView";
 import toast from "react-hot-toast";
+import { useConnectionSync } from "../hooks/useConnectionSync";
 
 export default function Orders() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 1. HARD RECOVERY ORCHESTRATION
+  useQueryRecovery();
+  useOrdersRealtime();
+
+  // 2. DATA QUERIES (Marked as erpCritical)
+  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => orderService.getAllOrders(),
+    meta: { erpCritical: true },
+  });
+
+  const { data: stats, isLoading: loadingStats } = useQuery({
+    queryKey: ['order-stats'],
+    queryFn: () => orderService.getOrderStats(),
+    meta: { erpCritical: true },
+  });
+
+  // Actions still use store for now if they are complex, or we can use mutations
+  // Actions still use store for now if they are complex
   const {
-    orders,
-    loading,
-    fetchOrders,
     createOrder,
-    updateOrderStatus,
     updateOrder,
-    deleteOrder,
+    updateOrderStatus,
+    deleteOrder
   } = useOrderStore();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [viewingOrder, setViewingOrder] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
-  const [stats, setStats] = useState(null);
   const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
 
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchOrders();
-    fetchStats();
-  }, [fetchOrders]);
+  const loading = loadingOrders || loadingStats;
 
   // Handle deep linking for specific order
   useEffect(() => {
@@ -79,7 +96,7 @@ export default function Orders() {
     }
   }, [location.state, orders]);
 
-  const fetchStats = async () => {
+  const fetchStatsLocal = async () => {
     try {
       const data = await orderService.getOrderStats();
       setStats(data);
@@ -106,8 +123,8 @@ export default function Orders() {
 
       setShowCreateModal(false);
       toast.success("Order created successfully!");
-      fetchOrders();
-      fetchStats();
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['order-stats'] });
     } catch (error) {
       toast.error("Failed to create order");
     }
@@ -143,8 +160,8 @@ export default function Orders() {
     await updateOrderStatus(orderId, newStatus, notes);
     const fullOrder = await orderService.getOrderById(orderId);
     setViewingOrder(fullOrder);
-    fetchOrders();
-    fetchStats();
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
+    queryClient.invalidateQueries({ queryKey: ['order-stats'] });
   };
 
   const getStatusBadgeVariant = (status) => {
@@ -359,8 +376,8 @@ export default function Orders() {
               try {
                 await updateOrder(editingOrder.id, data);
                 setEditingOrder(null);
-                fetchOrders();
-                fetchStats();
+                queryClient.invalidateQueries({ queryKey: ['orders'] });
+                queryClient.invalidateQueries({ queryKey: ['order-stats'] });
               } catch (error) {
                 // error handled by store/toast
               }
