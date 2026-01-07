@@ -29,7 +29,9 @@ CREATE TABLE IF NOT EXISTS products (
   base_price DECIMAL(10, 2) NOT NULL DEFAULT 0,
   category VARCHAR(100),
   image_url TEXT,
+  gallery_images TEXT[] DEFAULT '{}',
   estimated_days INTEGER DEFAULT 7,
+  labor_cost DECIMAL(10, 2) DEFAULT 0,
   active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
@@ -187,6 +189,12 @@ CREATE TABLE IF NOT EXISTS production_batches (
   started_at TIMESTAMP,
   completed_at TIMESTAMP,
   notes TEXT,
+  
+  -- Production V2: Costing columns
+  total_cost DECIMAL(10, 2) DEFAULT 0,
+  labor_cost DECIMAL(10, 2) DEFAULT 0,
+  material_cost DECIMAL(10, 2) DEFAULT 0,
+  
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -202,6 +210,10 @@ CREATE TABLE IF NOT EXISTS production_stages (
   completed_at TIMESTAMP,
   notes TEXT,
   quality_issues TEXT,
+  
+  -- Production V2: Stage-specific data (measurements, machine IDs, etc.)
+  input_data JSONB DEFAULT '{}',
+  
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -216,7 +228,18 @@ CREATE TABLE IF NOT EXISTS production_materials (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- 16. Notifications (NEW)
+-- 16. Production Logs (Audit Trail - Production V2)
+CREATE TABLE IF NOT EXISTS production_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  batch_id UUID REFERENCES production_batches(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL, -- e.g. 'status_change', 'material_added', 'stage_started', 'stage_completed'
+  details TEXT,
+  metadata JSONB DEFAULT '{}', -- Store extra data like old_status, new_status, material_name, quantity
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 17. Notifications (NEW)
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -255,6 +278,11 @@ CREATE INDEX IF NOT EXISTS idx_production_stages_batch ON production_stages(batc
 CREATE INDEX IF NOT EXISTS idx_production_stages_assigned ON production_stages(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_production_stages_status ON production_stages(status);
 CREATE INDEX IF NOT EXISTS idx_production_materials_batch ON production_materials(batch_id);
+
+-- Production V2 Indexes
+CREATE INDEX IF NOT EXISTS idx_production_logs_batch ON production_logs(batch_id);
+CREATE INDEX IF NOT EXISTS idx_production_logs_created ON production_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_production_logs_action ON production_logs(action);
 
 -- Notification Indexes
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);

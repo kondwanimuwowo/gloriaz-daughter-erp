@@ -38,7 +38,7 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
         try {
             const { data, error } = await supabase
                 .from("products")
-                .select("id, name, base_price")
+                .select("id, name, base_price, labor_cost")
                 .order("name");
 
             if (error) throw error;
@@ -88,12 +88,22 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
         setLoading(true);
 
         try {
+            // Calculate labor cost
+            let laborCost = 0;
+            if (productId) {
+                const product = products.find(p => p.id === productId);
+                if (product && product.labor_cost) {
+                    laborCost = parseFloat(product.labor_cost) * parseInt(formData.quantity);
+                }
+            }
+
             const batchData = {
                 product_id: productId,
                 quantity: parseInt(formData.quantity),
                 status: 'cutting',
                 started_at: new Date().toISOString(),
-                notes: formData.notes
+                notes: formData.notes,
+                labor_cost: laborCost
             };
 
             // Use productionService to create batch with materials
@@ -123,8 +133,8 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={onClose}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center p-6 border-b border-gray-100">
                     <h2 className="text-xl font-bold text-gray-900">New Production Batch</h2>
                     <button
@@ -135,7 +145,7 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[calc(90vh-80px)] overflow-y-auto">
                     <div>
                         <div className="flex items-center justify-between mb-2">
                             <label className="block text-sm font-medium text-gray-700">
@@ -207,6 +217,14 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                             required
                         />
+                        {/* Show estimated labor cost */}
+                        {formData.product_id && (
+                            <div className="mt-1 text-sm text-gray-500">
+                                Estimated Labor Cost: <span className="font-medium text-gray-900">
+                                    K{((products.find(p => p.id === formData.product_id)?.labor_cost || 0) * (parseInt(formData.quantity) || 0)).toFixed(2)}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     <div>

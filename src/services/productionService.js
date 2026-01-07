@@ -31,8 +31,27 @@ export const productionService = {
 
             if (batchError) throw batchError;
 
+            // Fetch current user for logging
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // Log batch creation
+            await supabase.from("production_logs").insert([{
+                batch_id: batch.id,
+                user_id: user?.id,
+                action: "batch_created",
+                details: `Production batch ${batch.batch_number} created`,
+                metadata: { quantity: batch.quantity, product_id: batch.product_id }
+            }]);
+
             // If materials provided, link them and reduce stock
             if (materials.length > 0) {
+                // Fetch material names for better logging
+                const materialIds = materials.map(m => m.material_id);
+                const { data: materialNames } = await supabase
+                    .from("materials")
+                    .select("id, name, unit")
+                    .in("id", materialIds);
+
                 // Insert production materials
                 const productionMaterials = materials.map((m) => ({
                     batch_id: batch.id,
@@ -46,6 +65,22 @@ export const productionService = {
                     .insert(productionMaterials);
 
                 if (materialsError) throw materialsError;
+
+                // Log material additions
+                const materialLogs = materials.map(m => {
+                    const matInfo = materialNames?.find(mn => mn.id === m.material_id);
+                    return {
+                        batch_id: batch.id,
+                        user_id: user?.id,
+                        action: "material_added",
+                        details: `Added ${m.quantity_used} ${matInfo?.unit || ''} of ${matInfo?.name || 'material'}`,
+                        metadata: { material_id: m.material_id, quantity: m.quantity_used, cost: m.cost }
+                    };
+                });
+
+                if (materialLogs.length > 0) {
+                    await supabase.from("production_logs").insert(materialLogs);
+                }
 
                 // Reduce inventory stock for each material
                 for (const material of materials) {

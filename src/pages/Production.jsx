@@ -64,7 +64,7 @@ const Production = () => {
             const updatedBatch = await productionService.updateBatchStatus(batchId, newStatus);
 
             setBatches(batches.map(b =>
-                b.id === batchId ? { ...b, status: newStatus } : b
+                b.id === batchId ? { ...b, ...updatedBatch } : b
             ));
 
             toast.success(`Batch status updated to ${newStatus}`);

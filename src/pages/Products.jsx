@@ -21,8 +21,10 @@ const Products = () => {
         category: "standard",
         description: "",
         base_price: 0,
+        labor_cost: 0,
         estimated_days: 7,
-        image_url: ""
+        image_url: "",
+        gallery_images: []
     });
 
     useEffect(() => {
@@ -55,8 +57,10 @@ const Products = () => {
                 category: product.category || "standard",
                 description: product.description || "",
                 base_price: product.base_price,
+                labor_cost: product.labor_cost || 0,
                 estimated_days: product.estimated_days || 7,
-                image_url: product.image_url || ""
+                image_url: product.image_url || "",
+                gallery_images: product.gallery_images || []
             });
         } else {
             setEditingProduct(null);
@@ -65,8 +69,10 @@ const Products = () => {
                 category: "standard",
                 description: "",
                 base_price: 0,
+                labor_cost: 0,
                 estimated_days: 7,
-                image_url: ""
+                image_url: "",
+                gallery_images: []
             });
         }
         setIsModalOpen(true);
@@ -183,6 +189,12 @@ const Products = () => {
                                 <span className="bg-white/90 px-3 py-1 rounded-full text-xs font-bold shadow-sm uppercase tracking-wide">
                                     {product.category}
                                 </span>
+                                {product.gallery_images && product.gallery_images.length > 0 && (
+                                    <span className="bg-black/70 text-white px-2 py-1 rounded-md text-xs font-medium ml-2 flex items-center gap-1 shadow-sm">
+                                        <ImageIcon size={10} />
+                                        +{product.gallery_images.length}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -199,9 +211,15 @@ const Products = () => {
                             </p>
 
                             <div className="pt-4 border-t flex items-center justify-between text-xs text-slate-400">
-                                <div className="flex items-center gap-1">
-                                    <Tag size={12} />
-                                    <span>Est. {product.estimated_days} days</span>
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-1" title="Estimated Days">
+                                        <Tag size={12} />
+                                        <span>{product.estimated_days} days</span>
+                                    </div>
+                                    <div className="flex items-center gap-1" title="Base Labor Cost">
+                                        <DollarSign size={12} />
+                                        <span>Labor: K{parseFloat(product.labor_cost || 0).toFixed(0)}</span>
+                                    </div>
                                 </div>
                                 <span>Updated {new Date(product.updated_at).toLocaleDateString()}</span>
                             </div>
@@ -258,6 +276,15 @@ const Products = () => {
                                     min="0"
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <Label>Base Labor Cost (K)</Label>
+                                <Input
+                                    type="number"
+                                    value={formData.labor_cost}
+                                    onChange={(e) => setFormData({ ...formData, labor_cost: e.target.value })}
+                                    min="0"
+                                />
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <Label>Description</Label>
@@ -275,6 +302,68 @@ const Products = () => {
                                 placeholder="https://..."
                             />
                         </div>
+                        <div className="space-y-4 border-t pt-4">
+                            <Label>Photo Gallery (Optional)</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    placeholder="Paste image URL (ends in .jpg/.png)"
+                                    id="gallery-input"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            const url = e.currentTarget.value;
+                                            if (url) {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    gallery_images: [...(prev.gallery_images || []), url]
+                                                }));
+                                                e.currentTarget.value = "";
+                                            }
+                                        }
+                                    }}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        const input = document.getElementById("gallery-input");
+                                        if (input && input.value) {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                gallery_images: [...(prev.gallery_images || []), input.value]
+                                            }));
+                                            input.value = "";
+                                        }
+                                    }}
+                                >
+                                    Add
+                                </Button>
+                            </div>
+
+                            {/* Gallery Preview Grid */}
+                            {formData.gallery_images && formData.gallery_images.length > 0 && (
+                                <div className="grid grid-cols-4 gap-2 mt-2">
+                                    {formData.gallery_images.map((url, index) => (
+                                        <div key={index} className="relative group aspect-square bg-slate-100 rounded-lg overflow-hidden border">
+                                            <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        gallery_images: prev.gallery_images.filter((_, i) => i !== index)
+                                                    }));
+                                                }}
+                                                className="absolute top-1 right-1 p-1 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         <div className="space-y-2">
                             <Label>Est. Production Days</Label>
                             <Input
