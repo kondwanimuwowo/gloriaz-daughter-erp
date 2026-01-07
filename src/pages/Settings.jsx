@@ -5,7 +5,7 @@ import {
     Shield,
     DollarSign,
     Scissors,
-    Building2,
+    Warehouse,
     Palette,
     Bell,
     Lock
@@ -37,7 +37,7 @@ export default function Settings() {
             <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:w-[600px]">
                     <TabsTrigger value="general" className="gap-2">
-                        <Building2 size={16} />
+                        <Warehouse size={16} />
                         General
                     </TabsTrigger>
                     <TabsTrigger value="financial" className="gap-2">

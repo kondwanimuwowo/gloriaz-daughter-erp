@@ -19,7 +19,9 @@ import {
     ShoppingCart,
     Menu,
     X,
+    User,
     Users,
+    Warehouse,
     BarChart3,
     Sliders,
     TrendingUp,
@@ -551,7 +553,7 @@ const Manual = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="p-6 bg-white border rounded-2xl shadow-sm">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
-                                    <Building2 size={20} className="text-cyan-600" />
+                                    <Warehouse size={20} className="text-cyan-600" />
                                     1. General Settings
                                 </h4>
                                 <p className="text-sm text-muted-foreground leading-relaxed">
