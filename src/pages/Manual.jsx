@@ -532,9 +532,9 @@ const Manual = () => {
         },
         {
             id: "settings",
-            title: "Settings & Customization",
-            subtitle: "Tailoring the system to your needs",
-            icon: <Sliders size={20} />,
+            title: "Settings Hub",
+            subtitle: "One place to manage everything",
+            icon: <Settings size={20} />,
             color: "text-cyan-500",
             bg: "bg-cyan-50",
             content: (
@@ -542,41 +542,47 @@ const Manual = () => {
                     <section>
                         <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                             <div className="h-9 w-1 bg-cyan-500 rounded-full" />
-                            Key Settings to Configure
+                            Everything in One Place
                         </h3>
-                        <div className="space-y-6">
-                            <div className="p-6 bg-white border rounded-2xl">
-                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
-                                    <DollarSign size={20} className="text-cyan-500" />
-                                    Profit Margin Settings
-                                </h4>
-                                <p className="text-muted-foreground mb-3">
-                                    Set your default profit margin percentage. The system will use this to suggest selling prices.
-                                </p>
-                                <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
-                                    <p className="text-sm text-cyan-900">
-                                        <strong>Example:</strong> If you set 40% profit margin and costs are K100, the system will suggest K140 as the selling price.
-                                    </p>
-                                </div>
-                            </div>
+                        <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                            The new <strong>Settings Hub</strong> brings all your workshop configurations into one simple dashboard. You no longer need to look for settings in different pages.
+                        </p>
 
-                            <div className="p-6 bg-white border rounded-2xl">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
-                                    <Clock size={20} className="text-cyan-500" />
-                                    Labour Rates
+                                    <Building2 size={20} className="text-cyan-600" />
+                                    1. General Settings
                                 </h4>
-                                <p className="text-muted-foreground mb-3">
-                                    Set hourly rates for different types of work (e.g., simple stitching vs. complex embroidery).
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    Update your business name and manage system preferences. This is where you'll soon be able to change your workshop's logo and contact details.
                                 </p>
                             </div>
-
-                            <div className="p-6 bg-white border rounded-2xl">
+                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
-                                    <Bell size={20} className="text-cyan-500" />
-                                    Notification Preferences
+                                    <DollarSign size={20} className="text-amber-600" />
+                                    2. Financial Rules
                                 </h4>
-                                <p className="text-muted-foreground">
-                                    Choose which events trigger notifications (low stock, order updates, production completion, etc.).
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    Control your <strong>Profit Margins</strong> and <strong>Tax Rates</strong>. This affects how the system suggests prices for your customers.
+                                </p>
+                            </div>
+                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <Scissors size={20} className="text-primary" />
+                                    3. Workshop & Labour
+                                </h4>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    Manage your <strong>Garment Types</strong> and <strong>Labour Rates</strong>. Adding new types here makes them available when creating orders.
+                                </p>
+                            </div>
+                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <User size={20} className="text-blue-600" />
+                                    4. Account & Security
+                                </h4>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    Update your personal profile, change your password, and manage your account status.
                                 </p>
                             </div>
                         </div>
@@ -584,11 +590,11 @@ const Manual = () => {
 
                     <div className="bg-cyan-50 p-6 rounded-2xl border border-cyan-200">
                         <h4 className="font-bold text-cyan-900 mb-3 text-lg flex items-center gap-2">
-                            <Settings size={20} />
-                            User Account Management
+                            <Lightbulb size={20} />
+                            Efficient Workshop Pro Tip
                         </h4>
                         <p className="text-cyan-800 leading-relaxed">
-                            Admin users can add team members, assign roles (Admin, Tailor, Sales), and control what each person can see and do in the system.
+                            Review your <strong>Labour Rates</strong> every few months. If fabric prices or electricity costs go up, adjusting your rates in Settings will immediately help protect your profit margins!
                         </p>
                     </div>
                 </div>

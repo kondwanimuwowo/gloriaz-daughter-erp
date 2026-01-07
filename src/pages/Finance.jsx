@@ -478,9 +478,6 @@ export default function Finance() {
                     <Button variant="outline" onClick={handleExportSummary}>
                         <Download className="mr-2 h-4 w-4" /> Export Summary
                     </Button>
-                    <Button variant="outline" onClick={() => setShowSettings(true)}>
-                        <SettingsIcon className="mr-2 h-4 w-4" /> Settings
-                    </Button>
                 </div>
             </div>
 

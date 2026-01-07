@@ -25,6 +25,7 @@ import Production from "./pages/Production"; // NEW
 import Manual from "./pages/Manual"; // NEW
 import Products from "./pages/Products"; // NEW
 import Notifications from "./pages/Notifications"; // NEW
+import Settings from "./pages/Settings"; // NEW
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -156,6 +157,14 @@ function App() {
               <Route path="manual" element={<Manual />} />
               <Route path="products" element={<Products />} />
               <Route path="notifications" element={<Notifications />} />
+              <Route
+                path="settings"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
 
             {/* Catch all - redirect to dashboard */}

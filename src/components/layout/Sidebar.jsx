@@ -11,6 +11,7 @@ import {
   BarChart3,
   HelpCircle,
   Shirt,
+  Settings,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -79,6 +80,12 @@ export default function Sidebar() {
       icon: Shield,
       label: "User Management",
       roles: ["admin"],
+    },
+    {
+      path: "/settings",
+      icon: Settings,
+      label: "Settings",
+      roles: ["admin", "manager"],
     },
   ];
 
