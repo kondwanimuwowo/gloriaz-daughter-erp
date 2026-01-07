@@ -31,6 +31,7 @@ import AddMaterialForm from "../components/inventory/AddMaterialForm";
 import StockUpdateModal from "../components/inventory/StockUpdateModal";
 import StatsCard from "../components/dashboard/StatsCard";
 import { useConnectionSync } from "../hooks/useConnectionSync";
+import { analyticsService } from "../services/analyticsService";
 
 export default function Inventory() {
     const navigate = useNavigate();
@@ -62,6 +63,20 @@ export default function Inventory() {
         material: null,
         operation: null,
     });
+    const [forecasting, setForecasting] = useState([]);
+
+    useEffect(() => {
+        fetchForecasting();
+    }, [materials]);
+
+    const fetchForecasting = async () => {
+        try {
+            const data = await analyticsService.getStockForecasting();
+            setForecasting(data);
+        } catch (error) {
+            console.error("Error fetching forecasting:", error);
+        }
+    };
 
     // Handle deep linking for specific material
     useEffect(() => {
@@ -219,16 +234,27 @@ export default function Inventory() {
         },
         {
             accessorKey: "stock_quantity",
-            header: "Stock",
+            header: "Stock Status",
             cell: ({ row }) => {
-                const stock = parseFloat(row.getValue("stock_quantity"));
-                const minStock = parseFloat(row.original.min_stock_level);
+                const material = row.original;
+                const stock = parseFloat(material.stock_quantity);
+                const minStock = parseFloat(material.min_stock_level);
+                const forecast = forecasting.find(f => f.id === material.id);
+
                 return (
-                    <div className="flex items-center gap-2">
-                        <span className={`font-semibold ${stock <= minStock ? "text-red-500" : ""}`}>
-                            {stock} {row.original.unit}
-                        </span>
-                        {stock <= minStock && <AlertCircle className="h-4 w-4 text-red-500" />}
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                            <span className={`font-semibold ${stock <= minStock ? "text-red-500" : ""}`}>
+                                {stock} {material.unit}
+                            </span>
+                            {stock <= minStock && <AlertCircle className="h-4 w-4 text-red-500" />}
+                        </div>
+                        {forecast && forecast.booked > 0 && (
+                            <div className="text-[10px] uppercase font-bold text-slate-400">
+                                Booked: <span className="text-orange-500">{forecast.booked}</span> |
+                                Est: <span className={forecast.at_risk ? "text-red-500" : "text-green-600"}>{forecast.forecasted}</span>
+                            </div>
+                        )}
                     </div>
                 )
             }
@@ -343,6 +369,24 @@ export default function Inventory() {
                     color="blue"
                 />
             </div>
+
+            {/* Smart Forecasting Alerts */}
+            {forecasting.filter(f => f.at_risk).length > 0 && (
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex flex-col gap-3">
+                    <div className="flex items-center gap-2 text-orange-800 font-bold text-sm">
+                        <TrendingUp size={18} />
+                        <span>Smart Stock Predictions: Shortages Detected</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {forecasting.filter(f => f.at_risk).map(m => (
+                            <Badge key={m.id} variant="outline" className="bg-white text-orange-800 border-orange-200 py-1 px-3">
+                                {m.name}: Will drop to {m.forecasted} {m.unit} (Min: {m.min_stock_level})
+                            </Badge>
+                        ))}
+                    </div>
+                    <p className="text-xs text-orange-600">Based on active production batches currently in progress.</p>
+                </div>
+            )}
 
             {/* Tabs */}
             <div className="flex border-b border-border mb-6">

@@ -199,7 +199,7 @@ export const analyticsService = {
 
   // ... (rest of the functions would follow, but I'll only restore what I can confirm from previous view)
   // Actually I saw the whole file earlier. Let me restore the rest.
-  
+
   async getOrderTrendAnalysis(startDate, endDate) {
     const { data: orders } = await supabase
       .from("orders")
@@ -449,4 +449,140 @@ export const analyticsService = {
 
     return result;
   },
+
+  /**
+   * Calculate average duration for each production stage
+   */
+  async getAverageStageDurations() {
+    try {
+      const { data, error } = await supabase
+        .from("production_stages")
+        .select("stage_name, started_at, completed_at")
+        .eq("status", "completed")
+        .not("started_at", "is", null)
+        .not("completed_at", "is", null);
+
+      if (error) throw error;
+
+      const durations = {};
+      const counts = {};
+
+      data.forEach((stage) => {
+        const start = new Date(stage.started_at);
+        const end = new Date(stage.completed_at);
+        const durationHrs = (end - start) / (1000 * 60 * 60);
+
+        if (!durations[stage.stage_name]) {
+          durations[stage.stage_name] = 0;
+          counts[stage.stage_name] = 0;
+        }
+
+        durations[stage.stage_name] += durationHrs;
+        counts[stage.stage_name] += 1;
+      });
+
+      const averages = {};
+      Object.keys(durations).forEach((stage) => {
+        averages[stage] = durations[stage] / counts[stage];
+      });
+
+      return averages;
+    } catch (error) {
+      console.error("Error calculating average durations:", error);
+      return {};
+    }
+  },
+
+  /**
+   * Identify batches that are taking longer than average for their current stage
+   */
+  async getBottlenecks() {
+    try {
+      const averages = await this.getAverageStageDurations();
+
+      const { data: activeStages, error } = await supabase
+        .from("production_stages")
+        .select(`
+            id,
+            stage_name,
+            started_at,
+            batch_id,
+            production_batches!inner (batch_number, status)
+          `)
+        .eq("status", "in_progress")
+        .not("started_at", "is", null);
+
+      if (error) throw error;
+
+      const now = new Date();
+      return activeStages
+        .map((stage) => {
+          const startedAt = new Date(stage.started_at);
+          const currentDuration = (now - startedAt) / (1000 * 60 * 60);
+          const avgDuration = averages[stage.stage_name] || 0;
+
+          // Mark as bottleneck if it takes 50% longer than average (min 24h threshold if no avg)
+          const threshold = avgDuration > 0 ? avgDuration * 1.5 : 24;
+
+          return {
+            ...stage,
+            current_duration: parseFloat(currentDuration.toFixed(1)),
+            average_duration: parseFloat(avgDuration.toFixed(1)),
+            is_delayed: currentDuration > threshold,
+            delay_ratio: avgDuration > 0 ? currentDuration / avgDuration : 1,
+            batch_number: stage.production_batches?.batch_number,
+          };
+        })
+        .filter((s) => s.is_delayed);
+    } catch (error) {
+      console.error("Error fetching bottlenecks:", error);
+      return [];
+    }
+  },
+
+  /**
+   * Forecast material stock based on active production requirements
+   */
+  async getStockForecasting() {
+    try {
+      // 1. Get current stock
+      const { data: materials } = await supabase
+        .from("materials")
+        .select("id, name, stock_quantity, min_stock_level, unit");
+
+      // 2. Get requirements from active production batches
+      const { data: requirements } = await supabase
+        .from("production_materials")
+        .select(`
+            quantity_used,
+            material_id,
+            production_batches!inner (status)
+          `)
+        .neq("production_batches.status", "completed");
+
+      const bookings = {};
+      requirements?.forEach((req) => {
+        bookings[req.material_id] =
+          (bookings[req.material_id] || 0) + parseFloat(req.quantity_used || 0);
+      });
+
+      // 3. Compare and forecast
+      return (materials || [])
+        .map((m) => {
+          const booked = bookings[m.id] || 0;
+          const forecasted = parseFloat(m.stock_quantity || 0) - booked;
+          return {
+            ...m,
+            booked,
+            forecasted: parseFloat(forecasted.toFixed(2)),
+            at_risk: forecasted <= parseFloat(m.min_stock_level || 0),
+          };
+        })
+        .filter((m) => m.at_risk || m.booked > 0);
+    } catch (error) {
+      console.error("Error calculating stock forecasting:", error);
+      return [];
+    }
+  },
 };
+

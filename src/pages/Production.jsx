@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { calculateProgress } from "../utils/productionUtils";
 import { productionService } from "../services/productionService";
+import { analyticsService } from "../services/analyticsService";
+import { Badge } from "@/components/ui/badge";
 
 const Production = () => {
     const [batches, setBatches] = useState([]);
@@ -20,11 +22,27 @@ const Production = () => {
     const [selectedBatch, setSelectedBatch] = useState(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [deleteConfirmBatch, setDeleteConfirmBatch] = useState(null);
+    const [bottlenecks, setBottlenecks] = useState([]);
+    const [averages, setAverages] = useState({});
     const { profile } = useAuthStore();
 
     useEffect(() => {
         fetchBatches();
+        fetchAnalytics();
     }, []);
+
+    const fetchAnalytics = async () => {
+        try {
+            const [bottleneckData, averageData] = await Promise.all([
+                analyticsService.getBottlenecks(),
+                analyticsService.getAverageStageDurations()
+            ]);
+            setBottlenecks(bottleneckData);
+            setAverages(averageData);
+        } catch (error) {
+            console.error("Error fetching analytics:", error);
+        }
+    };
 
     const fetchBatches = async () => {
         try {
@@ -132,6 +150,67 @@ const Production = () => {
                     <span>New Batch</span>
                 </button>
             </div>
+
+            {/* Efficiency Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white p-4 rounded-xl border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <Clock className="text-blue-500" size={20} />
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Avg. Stitching</span>
+                    </div>
+                    <div className="text-2xl font-bold text-slate-900">
+                        {averages['stitching'] ? `${averages['stitching'].toFixed(1)}h` : "N/A"}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Based on completed work</p>
+                </div>
+                <div className="bg-white p-4 rounded-xl border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <Scissors className="text-orange-500" size={20} />
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Avg. Cutting</span>
+                    </div>
+                    <div className="text-2xl font-bold text-slate-900">
+                        {averages['cutting'] ? `${averages['cutting'].toFixed(1)}h` : "N/A"}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Efficiency baseline</p>
+                </div>
+                <div className="bg-white p-4 rounded-xl border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <CheckCircle className="text-green-500" size={20} />
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Weekly Output</span>
+                    </div>
+                    <div className="text-2xl font-bold text-slate-900">
+                        {batches.filter(b => b.status === 'completed' && new Date(b.updated_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Completed this week</p>
+                </div>
+                <div className="bg-white p-4 rounded-xl border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <AlertCircle className={bottlenecks.length > 0 ? "text-red-500" : "text-slate-300"} size={20} />
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Bottlenecks</span>
+                    </div>
+                    <div className={`text-2xl font-bold ${bottlenecks.length > 0 ? "text-red-600" : "text-slate-900"}`}>
+                        {bottlenecks.length}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Active delays flagged</p>
+                </div>
+            </div>
+
+            {/* Bottleneck Alerts */}
+            {bottlenecks.length > 0 && (
+                <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex flex-col gap-3">
+                    <div className="flex items-center gap-2 text-red-800 font-bold text-sm">
+                        <AlertCircle size={18} />
+                        <span>Workshop Bottlenecks Detected</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {bottlenecks.map(b => (
+                            <Badge key={b.id} variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200 py-1 px-3">
+                                Batch {b.batch_number}: {b.stage_name} ({b.current_duration}h vs avg {b.average_duration || '??'}h)
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Filters and Search */}
             <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">

@@ -876,7 +876,8 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
           {costs.total > 0 && totalCost > 0 && (
             <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-sm font-semibold text-slate-700">📊 Profit Analysis</span>
+                <TrendingUp size={16} className="text-primary" />
+                <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Real-time Profitability Guard</span>
               </div>
               {(() => {
                 const revenue = parseFloat(totalCost || 0);
@@ -915,8 +916,8 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 px-3 py-2 rounded">
-                          <span>✅</span>
-                          <span>Healthy profit margin</span>
+                          <span>✨</span>
+                          <span>Healthy profit margin - Good for business growth</span>
                         </div>
                       )}
                     </div>

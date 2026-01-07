@@ -52,6 +52,7 @@ export default function Dashboard() {
                 allOrders,
                 lowStockMaterials,
                 todayAttendance,
+                forecasting,
             ] = await Promise.all([
                 analyticsService.getDashboardStats(),
                 analyticsService.getRevenueData(),
@@ -61,6 +62,7 @@ export default function Dashboard() {
                 orderService.getAllOrders(),
                 inventoryService.getLowStockMaterials(),
                 employeeService.getTodayAttendance(),
+                analyticsService.getStockForecasting(),
             ]);
 
             return {
@@ -72,6 +74,7 @@ export default function Dashboard() {
                 recentOrders: allOrders.slice(0, 5),
                 lowStock: lowStockMaterials,
                 todayAttendance,
+                forecasting: forecasting.filter(f => f.at_risk),
             };
         },
         meta: { erpCritical: true },
@@ -104,7 +107,7 @@ export default function Dashboard() {
         );
     }
 
-    const { stats, todayAttendance, recentOrders, lowStock } = dashboardData;
+    const { stats, todayAttendance, recentOrders, lowStock, forecasting } = dashboardData;
     const clockedInToday = todayAttendance.filter((a) => !a.clock_out).length;
 
     return (
@@ -247,6 +250,42 @@ export default function Dashboard() {
                             )}
                         </CardContent>
                     </Card>
+
+                    {forecasting && forecasting.length > 0 && (
+                        <Card className="border-orange-200 bg-orange-50/30">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <div className="flex items-center gap-2 text-orange-700">
+                                    <TrendingUp className="h-5 w-5" />
+                                    <CardTitle>Forecast Alerts</CardTitle>
+                                </div>
+                                <Link to="/inventory">
+                                    <Button variant="link" size="sm" className="text-orange-700">Manage →</Button>
+                                </Link>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    {forecasting.slice(0, 3).map((m, index) => (
+                                        <div key={m.id} className="flex items-center justify-between p-3 bg-white/80 rounded-lg border border-orange-100">
+                                            <div>
+                                                <p className="font-semibold text-sm">{m.name}</p>
+                                                <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">
+                                                    Will drop to {m.forecasted} {m.unit}
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <Badge variant="outline" className="text-[10px] border-orange-200 text-orange-700">
+                                                    {m.booked} {m.unit} booked
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <p className="text-[10px] text-center text-orange-400 mt-2 font-medium">
+                                        Predicted based on active production batches
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">

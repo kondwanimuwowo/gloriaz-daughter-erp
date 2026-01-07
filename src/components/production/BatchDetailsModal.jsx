@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
+import { analyticsService } from "../../services/analyticsService";
+import { Badge } from "@/components/ui/badge";
 
 const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
     const { user } = useAuthStore();
@@ -23,14 +25,45 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
     const [stageComment, setStageComment] = useState("");
     const [isEditingLabor, setIsEditingLabor] = useState(false);
     const [tempLaborCost, setTempLaborCost] = useState("");
+    const [efficiency, setEfficiency] = useState(null);
 
     useEffect(() => {
         if (isOpen && batch) {
             fetchLogs();
             fetchMaterials();
             fetchAvailableMaterials();
+            fetchEfficiency();
         }
     }, [isOpen, batch]);
+
+    const fetchEfficiency = async () => {
+        if (!batch || batch.status === "completed") return;
+
+        try {
+            const averages = await analyticsService.getAverageStageDurations();
+            const avg = averages[batch.status];
+
+            // Find the current stage start time
+            const { data: stageData } = await supabase
+                .from("production_stages")
+                .select("started_at")
+                .eq("batch_id", batch.id)
+                .eq("stage_name", batch.status)
+                .single();
+
+            if (stageData?.started_at) {
+                const start = new Date(stageData.started_at);
+                const hrs = (new Date() - start) / (1000 * 60 * 60);
+                setEfficiency({
+                    current: hrs,
+                    average: avg,
+                    status: !avg ? "neutral" : hrs > avg * 1.5 ? "delayed" : hrs > avg ? "slow" : "on-track"
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching efficiency:", error);
+        }
+    };
 
     const fetchLogs = async () => {
         try {
@@ -428,6 +461,23 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                 Batch #{batch.batch_number} • Quantity: {batch.quantity}
                             </DialogDescription>
                         </div>
+                        {efficiency && batch.status !== "completed" && (
+                            <div className="flex flex-col items-end gap-1">
+                                <Badge className={`
+                                    ${efficiency.status === 'delayed' ? 'bg-red-100 text-red-700 hover:bg-red-100 border-red-200' :
+                                        efficiency.status === 'slow' ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200' :
+                                            'bg-green-100 text-green-700 hover:bg-green-100 border-green-200'}
+                                    flex items-center gap-1.5 py-1 px-3
+                                `}>
+                                    <Clock size={14} />
+                                    {efficiency.status === 'delayed' ? 'Severely Delayed' :
+                                        efficiency.status === 'slow' ? 'Running Slow' : 'On Track'}
+                                </Badge>
+                                <span className="text-[10px] text-slate-400 font-mono uppercase tracking-tighter">
+                                    {efficiency.current.toFixed(1)}h / {efficiency.average ? `${efficiency.average.toFixed(1)}h avg` : '--'}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Stage Progression Indicator */}
@@ -675,9 +725,21 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                                        <span>Total Production Cost:</span>
-                                        <span className="text-primary">K{totalCost.toFixed(2)}</span>
+                                    <div className="border-t pt-2 flex justify-between items-end">
+                                        <div>
+                                            <span className="text-gray-600 text-sm">Profit Margin:</span>
+                                            <div className={`text-xl font-bold ${(1 - (totalCost / (batch.product?.base_price || totalCost))) > 0.3 ? "text-green-600" :
+                                                    (1 - (totalCost / (batch.product?.base_price || totalCost))) > 0.1 ? "text-yellow-600" : "text-red-600"
+                                                }`}>
+                                                {batch.product?.base_price
+                                                    ? `${((1 - (totalCost / batch.product.base_price)) * 100).toFixed(1)}%`
+                                                    : "N/A"}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-gray-600 text-sm font-bold">Total Production Cost:</span>
+                                            <div className="text-2xl font-bold text-primary">K{totalCost.toFixed(2)}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
