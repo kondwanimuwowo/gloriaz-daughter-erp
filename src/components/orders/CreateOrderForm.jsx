@@ -74,6 +74,8 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
     watch,
     setValue,
     reset,
+    trigger,
+    getValues,
   } = useForm({
     defaultValues: order || {
       customer_id: "",
@@ -122,6 +124,25 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
       });
     }
   }, [order, reset]);
+
+  // Re-validate total_cost when costs change to prevent stale validation errors
+  useEffect(() => {
+    if (costs.total > 0) {
+      // Trigger validation to ensure UI reflects current cost state vs price
+      // This prevents "must be at least X" errors when reducing quantity
+      const currentVal = watch("total_cost");
+      if (currentVal && parseFloat(currentVal) > 0) {
+        trigger("total_cost");
+      }
+    }
+  }, [costs.total, trigger, watch]);
+
+  // Better approach: Use useEffect to simply trigger validation when cost changes
+  useEffect(() => {
+    if (getValues("total_cost")) {
+      trigger("total_cost");
+    }
+  }, [costs.total, trigger, getValues]);
 
   const fetchCustomers = async () => {
     const { data, error } = await supabase
@@ -237,7 +258,9 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
         const expectedOrders = settings?.expected_monthly_orders || 40;
         const overheadPerOrder = expectedOrders > 0 ? totalOverhead / expectedOrders : 0;
 
-        recalculatePricing(costs.material, labourCost, overheadPerOrder);
+        // Scale per-unit costs by quantity
+        const currentQty = quantity; // access state directly
+        recalculatePricing(costs.material, labourCost * currentQty, overheadPerOrder * currentQty);
 
         if (overheadPerOrder > 0) {
           toast.success("Labour and overhead costs updated based on settings.");
@@ -256,7 +279,8 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
       0
     );
 
-    recalculatePricing(materialCost, costs.labour, costs.overhead);
+    // Scale material cost (unit sum) by quantity
+    recalculatePricing(materialCost * quantity, costs.labour, costs.overhead);
   };
 
   const handleProductChange = (productId) => {
@@ -268,18 +292,19 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
       const price = parseFloat(product.base_price || 0);
       const productionCost = parseFloat(product.production_cost || price * 0.7); // Estimate if not set
 
-      // Set costs for pre-designed items
+      // Set costs for pre-designed items, scaling by quantity
+      const currentQty = quantity;
       setCosts({
         material: 0,
         labour: 0,
         overhead: 0,
-        total: productionCost,
+        total: productionCost * currentQty,
         tax: 0,
-        recommendedPrice: price
+        recommendedPrice: price * currentQty
       });
 
-      setValue("total_cost", price.toFixed(2), { shouldValidate: true, shouldDirty: true });
-      toast.success(`Selected: ${product.name} - K${price.toFixed(2)}`);
+      setValue("total_cost", (price * currentQty).toFixed(2), { shouldValidate: true, shouldDirty: true });
+      toast.success(`Selected: ${product.name} - K${(price * currentQty).toFixed(2)}`);
     }
   };
 
@@ -680,12 +705,66 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
             <Input
               type="number"
               min="1"
+              inputMode="numeric"
               value={quantity}
               onChange={(e) => {
-                const newQty = parseInt(e.target.value) || 1;
+                const val = e.target.value;
+                // Allow empty string to let user backspace the "1"
+                if (val === "") {
+                  setQuantity("");
+                  return;
+                }
+
+                const newQty = parseInt(val);
+                if (isNaN(newQty)) return;
+
+                // Track current valid quantity for consistent scaling
+                // If current quantity is empty/invalid, treat as 1 for scaling base
+                const currentQty = (quantity === "" || quantity < 1) ? 1 : quantity;
+
                 setQuantity(newQty);
-                // Recalculate pricing with new quantity
-                recalculatePricing(costs.material / (order?.quantity || 1) * newQty, costs.labour / (order?.quantity || 1) * newQty, costs.overhead / (order?.quantity || 1) * newQty);
+
+                if (orderType === "standard") {
+                  const productId = watch("product_id");
+                  const product = products.find(p => p.id === productId);
+                  if (product) {
+                    const price = parseFloat(product.base_price || 0);
+                    const productionCost = parseFloat(product.production_cost || price * 0.7);
+
+                    setCosts({
+                      material: 0,
+                      labour: 0,
+                      overhead: 0,
+                      total: productionCost * newQty,
+                      tax: 0,
+                      recommendedPrice: price * newQty
+                    });
+                    setValue("total_cost", (price * newQty).toFixed(2), { shouldValidate: true, shouldDirty: true });
+                  }
+                } else {
+                  // Recalculate pricing scaling from unit cost derived from current total and current quantity
+                  recalculatePricing(
+                    (costs.material / currentQty) * newQty,
+                    (costs.labour / currentQty) * newQty,
+                    (costs.overhead / currentQty) * newQty
+                  );
+                }
+              }}
+              onBlur={() => {
+                if (quantity === "" || quantity < 1) {
+                  setQuantity(1);
+                  // Trigger recalculation for default 1 if needed, 
+                  // though usually the last valid keypress handled it or it will be handled by next user action.
+                  // Ideally we ensure pricing is for 1 unit here if it was 0/nan
+                  if (orderType === "standard") {
+                    // Standard logic usually safe as last keystroke handled it or existing logic covers it
+                  } else {
+                    // Custom logic: if we forced it back to 1 from 0/empty, we might need to reset costs to unit costs?
+                    // Actually, the complexity of restoring 'unit costs' from 0 state is tricky. 
+                    // Simplest UX: Just reset numeric display to 1.
+                    // The user will likely type a number. If they leave it empty, we default to 1.
+                  }
+                }
               }}
               className="max-w-[150px] text-lg font-semibold"
             />
@@ -694,65 +773,69 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
             </p>
           </div>
 
-          {/* Cost Breakdown */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-3">
-              <DollarSign size={18} className="text-slate-600" />
-              <h3 className="font-semibold text-slate-900">Cost Breakdown</h3>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info size={14} className="text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-sm">
-                  <p className="font-semibold mb-1">Production Costs:</p>
-                  <p className="text-xs">• Materials: Fabrics & accessories</p>
-                  <p className="text-xs">• Labour: Tailor's time</p>
-                  <p className="text-xs">• Overhead: Business expenses</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
 
-            <div className="bg-slate-50 rounded-lg p-4 space-y-2 border border-slate-200">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Materials</span>
-                <span className="font-semibold text-slate-900">
-                  K{costs.material.toFixed(2)}
-                  {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.material / quantity).toFixed(2)} × {quantity})</span>}
-                </span>
+          {/* Cost Breakdown - Only show for custom orders */}
+          {orderType === "custom" && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign size={18} className="text-slate-600" />
+                <h3 className="font-semibold text-slate-900">Cost Breakdown</h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info size={14} className="text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-sm">
+                    <p className="font-semibold mb-1">Production Costs:</p>
+                    <p className="text-xs">• Materials: Fabrics & accessories</p>
+                    <p className="text-xs">• Labour: Tailor's time</p>
+                    <p className="text-xs">• Overhead: Business expenses</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Labour</span>
-                <span className="font-semibold text-slate-900">
-                  K{costs.labour.toFixed(2)}
-                  {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.labour / quantity).toFixed(2)} × {quantity})</span>}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">Overhead</span>
-                <span className="font-semibold text-slate-900">
-                  K{costs.overhead.toFixed(2)}
-                  {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.overhead / quantity).toFixed(2)} × {quantity})</span>}
-                </span>
-              </div>
-              <div className="pt-2 mt-2 border-t border-slate-300">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="font-bold text-slate-900">Total Cost</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info size={12} className="inline-block ml-1 text-muted-foreground cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        Break-even point (no profit)
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <span className="text-lg font-bold text-slate-900">K{costs.total.toFixed(2)}</span>
+
+              <div className="bg-slate-50 rounded-lg p-4 space-y-2 border border-slate-200">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Materials</span>
+                  <span className="font-semibold text-slate-900">
+                    K{costs.material.toFixed(2)}
+                    {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.material / quantity).toFixed(2)} × {quantity})</span>}
+                  </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Break-even point (no profit)</p>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Labour</span>
+                  <span className="font-semibold text-slate-900">
+                    K{costs.labour.toFixed(2)}
+                    {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.labour / quantity).toFixed(2)} × {quantity})</span>}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Overhead</span>
+                  <span className="font-semibold text-slate-900">
+                    K{costs.overhead.toFixed(2)}
+                    {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.overhead / quantity).toFixed(2)} × {quantity})</span>}
+                  </span>
+                </div>
+                <div className="pt-2 mt-2 border-t border-slate-300">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="font-bold text-slate-900">Total Cost</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info size={12} className="inline-block ml-1 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Break-even point (no profit)
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <span className="text-lg font-bold text-slate-900">K{costs.total.toFixed(2)}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">Break-even point (no profit)</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
 
           {/* SELLING PRICE - Most Prominent */}
           <div className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border-2 border-primary/30">

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { format, subMonths, addMonths, startOfMonth } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useQueryRecovery } from "../hooks/useQueryRecovery";
 import { useFinanceRealtime } from "../hooks/useFinanceRealtime";
 
@@ -56,10 +56,12 @@ import FinancialSettings from "../components/finance/FinancialSettings";
 import { useForm } from "react-hook-form";
 import StatsCard from "../components/dashboard/StatsCard";
 import { exportExpenses, exportPayments, exportFinancialSummary } from "../utils/excelExport";
+import { financeService } from "../services/financeService";
 
 export default function Finance() {
     const navigate = useNavigate();
     const location = useLocation();
+    const queryClient = useQueryClient();
 
     // 1. HARD RECOVERY ORCHESTRATION
     useQueryRecovery();
@@ -70,7 +72,6 @@ export default function Finance() {
     const [activeTab, setActiveTab] = useState("profitloss");
     const [showSettings, setShowSettings] = useState(false);
     const [showAddExpense, setShowAddExpense] = useState(false);
-    const [completedOrders, setCompletedOrders] = useState([]);
 
 
 
@@ -109,10 +110,6 @@ export default function Finance() {
     };
 
     const {
-        monthlyFinancialSummary,
-        expenses,
-        payments,
-        overheadCosts,
         fetchFinancialSummary,
         fetchExpenses,
         fetchPayments,
@@ -122,63 +119,41 @@ export default function Finance() {
     } = useFinancialStore();
 
     // 2. DATA QUERIES (Marked as erpCritical)
-    const { isLoading: loading } = useQuery({
+    const { data: financeData, isLoading: queryLoading, isFetching } = useQuery({
         queryKey: ['finance-data', periodType, format(dateRange.start, 'yyyy-MM-dd')],
         queryFn: async () => {
             const startDate = format(dateRange.start, "yyyy-MM-dd");
             const endDate = format(dateRange.end, "yyyy-MM-dd");
 
-            await Promise.all([
-                fetchFinancialSummary(startDate, endDate),
-                fetchExpenses(startDate, endDate),
-                fetchPayments(startDate, endDate),
-                fetchOverheadCosts(startDate, endDate),
-                fetchCompletedOrders(startDate, endDate),
+            const [summary, expenses, payments, overheads, orders] = await Promise.all([
+                financeService.getFinancialSummary(startDate, endDate),
+                financeService.getAllExpenses(startDate, endDate),
+                financeService.getPayments(startDate, endDate),
+                financeService.getOverheadCosts(startDate, endDate),
+                financeService.getCompletedOrders(startDate, endDate),
             ]);
-            return true;
+
+            // Sync with store for components that still use it (like managers)
+            // But we primarily use the returned data for rendering
+            return { summary, expenses, payments, overheads, orders };
         },
         meta: { erpCritical: true },
         enabled: !!dateRange.start,
     });
 
+    // Extract data from query results
+    const monthlyFinancialSummary = financeData?.summary;
+    const expenses = financeData?.expenses || [];
+    const payments = financeData?.payments || [];
+    const overheadCosts = financeData?.overheads || [];
+    const completedOrders = financeData?.orders || [];
+
+    const loading = queryLoading || (isFetching && !financeData);
+
     const loadData = () => {
-        const startDate = format(dateRange.start, "yyyy-MM-dd");
-        const endDate = format(dateRange.end, "yyyy-MM-dd");
-
-        fetchFinancialSummary(startDate, endDate);
-        fetchExpenses(startDate, endDate);
-        fetchPayments(startDate, endDate);
-        fetchOverheadCosts(startDate, endDate);
-        fetchCompletedOrders(startDate, endDate);
-    };
-
-    const fetchCompletedOrders = async (startDate, endDate) => {
-        try {
-            const { data, error } = await supabase
-                .from("orders")
-                .select(`
-          id,
-          order_number,
-          customer_id,
-          customers(name),
-          total_cost,
-          material_cost,
-          labour_cost,
-          overhead_cost,
-          created_at,
-          updated_at
-        `)
-                .in("status", ["completed", "delivered"])
-                .gte("updated_at", startDate)
-                .lte("updated_at", endDate)
-                .order("updated_at", { ascending: false });
-
-            if (error) throw error;
-            setCompletedOrders(data || []);
-        } catch (error) {
-            console.error("Error fetching completed orders:", error);
-            toast.error("Failed to load P&L data");
-        }
+        // Trigger a refetch of the query
+        // This is used by child components when they update data
+        queryClient.invalidateQueries({ queryKey: ['finance-data'] });
     };
 
     const handlePeriodChange = (direction) => {
@@ -449,6 +424,26 @@ export default function Finance() {
         },
     ], []);
 
+    // Calculate P&L totals
+    const plTotals = useMemo(() => {
+        const totalRevenue = completedOrders.reduce((sum, order) => sum + parseFloat(order.total_cost || 0), 0);
+        const totalCost = completedOrders.reduce((sum, order) => {
+            return sum + parseFloat(order.material_cost || 0) +
+                parseFloat(order.labour_cost || 0) +
+                parseFloat(order.overhead_cost || 0);
+        }, 0);
+        const totalProfit = totalRevenue - totalCost;
+        const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
+        return {
+            revenue: totalRevenue,
+            cost: totalCost,
+            profit: totalProfit,
+            margin: avgMargin,
+            count: completedOrders.length
+        };
+    }, [completedOrders]);
+
     if (loading) {
         return (
             <div className="space-y-6">
@@ -471,26 +466,6 @@ export default function Finance() {
             </div>
         );
     }
-
-    // Calculate P&L totals
-    const plTotals = useMemo(() => {
-        const totalRevenue = completedOrders.reduce((sum, order) => sum + parseFloat(order.total_cost || 0), 0);
-        const totalCost = completedOrders.reduce((sum, order) => {
-            return sum + parseFloat(order.material_cost || 0) +
-                parseFloat(order.labour_cost || 0) +
-                parseFloat(order.overhead_cost || 0);
-        }, 0);
-        const totalProfit = totalRevenue - totalCost;
-        const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
-
-        return {
-            revenue: totalRevenue,
-            cost: totalCost,
-            profit: totalProfit,
-            margin: avgMargin,
-            count: completedOrders.length
-        };
-    }, [completedOrders]);
 
     return (
         <div className="space-y-6">
@@ -638,7 +613,7 @@ export default function Finance() {
                                 <StatsCard
                                     title="Revenue"
                                     value={`K${monthlyFinancialSummary.totalRevenue.toLocaleString()}`}
-                                    subtitle={`${monthlyFinancialSummary.totalOrders} orders`}
+                                    subtitle={`${monthlyFinancialSummary.completedOrders} completed`}
                                     icon={DollarSign}
                                     color="green"
                                 />
@@ -715,7 +690,7 @@ export default function Finance() {
                                                 <span className="font-bold">{monthlyFinancialSummary.pendingOrders}</span>
                                             </div>
                                             <div className="flex items-center justify-between border-t pt-2">
-                                                <span className="font-medium">Total Orders</span>
+                                                <span className="font-medium">New Orders (this Month)</span>
                                                 <span className="font-bold">{monthlyFinancialSummary.totalOrders}</span>
                                             </div>
                                         </div>

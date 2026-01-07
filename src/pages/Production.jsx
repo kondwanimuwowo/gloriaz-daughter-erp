@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Search, Filter, RefreshCw, Scissors, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { Plus, Search, Filter, RefreshCw, Scissors, CheckCircle, AlertCircle, Clock, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import Layout from "../components/layout/Layout";
-// import ProductionBatchCard from "../components/production/ProductionBatchCard";
 import CreateBatchModal from "../components/production/CreateBatchModal";
 import BatchDetailsModal from "../components/production/BatchDetailsModal";
 import { toast } from "react-hot-toast";
 import { notificationService } from "../services/notificationService";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuthStore } from "../store/useAuthStore";
+import { calculateProgress } from "../utils/productionUtils";
+import { productionService } from "../services/productionService";
 
 const Production = () => {
     const [batches, setBatches] = useState([]);
@@ -17,6 +19,8 @@ const Production = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedBatch, setSelectedBatch] = useState(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [deleteConfirmBatch, setDeleteConfirmBatch] = useState(null);
+    const { profile } = useAuthStore();
 
     useEffect(() => {
         fetchBatches();
@@ -56,12 +60,8 @@ const Production = () => {
 
     const handleUpdateStatus = async (batchId, newStatus, batch) => {
         try {
-            const { error } = await supabase
-                .from("production_batches")
-                .update({ status: newStatus })
-                .eq("id", batchId);
-
-            if (error) throw error;
+            // Use service to update status and handle inventory automation
+            const updatedBatch = await productionService.updateBatchStatus(batchId, newStatus);
 
             setBatches(batches.map(b =>
                 b.id === batchId ? { ...b, status: newStatus } : b
@@ -76,10 +76,33 @@ const Production = () => {
                     batch.product?.name || "Product",
                     batch.quantity
                 );
+
+                toast.success(`${batch.quantity} ${batch.product?.name || 'items'} added to finished goods inventory!`, {
+                    icon: '📦',
+                    duration: 5000
+                });
             }
         } catch (error) {
             console.error("Error updating batch:", error);
             toast.error("Failed to update status");
+        }
+    };
+
+    const handleDeleteBatch = async (batchId) => {
+        try {
+            const { error } = await supabase
+                .from("production_batches")
+                .delete()
+                .eq("id", batchId);
+
+            if (error) throw error;
+
+            setBatches(batches.filter(b => b.id !== batchId));
+            setDeleteConfirmBatch(null);
+            toast.success("Production batch deleted successfully");
+        } catch (error) {
+            console.error("Error deleting batch:", error);
+            toast.error("Failed to delete batch");
         }
     };
 
@@ -183,18 +206,32 @@ const Production = () => {
                                 <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">
                                     {batch.batch_number}
                                 </span>
-                                <select
-                                    value={batch.status}
-                                    onClick={(e) => e.stopPropagation()}
-                                    onChange={(e) => handleUpdateStatus(batch.id, e.target.value, batch)}
-                                    className={`text-xs font-semibold px-2 py-1 rounded-full border-none focus:ring-0 focus:outline-none cursor-pointer appearance-none ${getStatusColor(batch.status)}`}
-                                >
-                                    <option value="cutting">✂️ Cutting</option>
-                                    <option value="stitching">🧵 Stitching</option>
-                                    <option value="finishing">✨ Finishing</option>
-                                    <option value="quality_check">🔍 Checking</option>
-                                    <option value="completed">✅ Done</option>
-                                </select>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={batch.status}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onChange={(e) => handleUpdateStatus(batch.id, e.target.value, batch)}
+                                        className={`text-xs font-semibold px-2 py-1 rounded-full border-none focus:ring-0 focus:outline-none cursor-pointer appearance-none ${getStatusColor(batch.status)}`}
+                                    >
+                                        <option value="cutting">✂️ Cutting</option>
+                                        <option value="stitching">🧵 Stitching</option>
+                                        <option value="finishing">✨ Finishing</option>
+                                        <option value="quality_check">🔍 Checking</option>
+                                        <option value="completed">✅ Done</option>
+                                    </select>
+                                    {profile?.role === "admin" && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setDeleteConfirmBatch(batch);
+                                            }}
+                                            className="p-1.5 hover:bg-red-50 rounded-lg text-red-600 hover:text-red-700 transition-colors"
+                                            title="Delete batch"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-3 mb-4">
@@ -226,22 +263,12 @@ const Production = () => {
                             <div className="space-y-1 mb-4">
                                 <div className="flex justify-between text-xs text-gray-500">
                                     <span>Progress</span>
-                                    <span>
-                                        {batch.status === 'completed' ? '100%' :
-                                            batch.status === 'quality_check' ? '80%' :
-                                                batch.status === 'finishing' ? '60%' :
-                                                    batch.status === 'stitching' ? '40%' : '20%'}
-                                    </span>
+                                    <span>{calculateProgress(batch.status)}%</span>
                                 </div>
                                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-primary transition-all duration-500"
-                                        style={{
-                                            width: batch.status === 'completed' ? '100%' :
-                                                batch.status === 'quality_check' ? '80%' :
-                                                    batch.status === 'finishing' ? '60%' :
-                                                        batch.status === 'stitching' ? '40%' : '20%'
-                                        }}
+                                        style={{ width: `${calculateProgress(batch.status)}%` }}
                                     />
                                 </div>
                             </div>
@@ -280,6 +307,43 @@ const Production = () => {
                     fetchBatches();
                 }}
             />
+
+            {/* Delete Confirmation Dialog */}
+            {deleteConfirmBatch && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-in fade-in zoom-in duration-200">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                    <AlertCircle className="text-red-600" size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Delete Production Batch?</h3>
+                                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                                </div>
+                            </div>
+                            <p className="text-gray-700 mb-6">
+                                Are you sure you want to delete batch <strong>{deleteConfirmBatch.batch_number}</strong> ({deleteConfirmBatch.product?.name})?
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteConfirmBatch(null)}
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteBatch(deleteConfirmBatch.id)}
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 size={18} />
+                                    Delete Batch
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <BatchDetailsModal
                 isOpen={isViewModalOpen}

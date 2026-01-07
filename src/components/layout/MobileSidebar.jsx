@@ -11,6 +11,7 @@ import {
   X,
   Scissors,
   HelpCircle,
+  Shirt,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -30,6 +31,12 @@ export default function MobileSidebar({ isOpen, onClose }) {
       path: "/inventory",
       icon: Package,
       label: "Inventory",
+      roles: ["admin", "manager"],
+    },
+    {
+      path: "/products",
+      icon: Shirt,
+      label: "Products",
       roles: ["admin", "manager"],
     },
     {

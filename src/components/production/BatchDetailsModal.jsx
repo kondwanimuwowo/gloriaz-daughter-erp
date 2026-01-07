@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +12,16 @@ import {
     Circle,
     Clock,
     AlertCircle,
-    ArrowRight
+    ArrowRight,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PRODUCTION_STAGES, calculateProgress, getNextStage } from "../../utils/productionUtils";
+import { productionService } from "../../services/productionService";
 
-const STAGES = [
+// Extended stages with UI specific properties
+const STAGES_UI = [
     { id: "cutting", label: "Cutting", icon: Scissors, color: "text-orange-600", bg: "bg-orange-100" },
     { id: "stitching", label: "Stitching", icon: Circle, color: "text-yellow-600", bg: "bg-yellow-100" },
     { id: "finishing", label: "Finishing", icon: CheckCircle2, color: "text-blue-600", bg: "bg-blue-100" },
@@ -25,20 +30,37 @@ const STAGES = [
 ];
 
 const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
-    if (!batch) return null;
+    const [materials, setMaterials] = useState([]);
+    const [loadingMaterials, setLoadingMaterials] = useState(false);
+    const [showMaterials, setShowMaterials] = useState(false);
 
-    const currentStageIndex = STAGES.findIndex(s => s.id === batch.status);
-    const progress = Math.max(0, (currentStageIndex / (STAGES.length - 1)) * 100);
-
-    const getNextStatus = () => {
-        if (currentStageIndex < STAGES.length - 1) {
-            return STAGES[currentStageIndex + 1].id;
+    useEffect(() => {
+        if (batch && isOpen) {
+            fetchMaterials();
         }
-        return null;
+    }, [batch, isOpen]);
+
+    const fetchMaterials = async () => {
+        if (!batch) return;
+        setLoadingMaterials(true);
+        try {
+            const data = await productionService.getBatchMaterials(batch.id);
+            setMaterials(data);
+        } catch (error) {
+            console.error("Error fetching materials:", error);
+        } finally {
+            setLoadingMaterials(false);
+        }
     };
 
-    const nextStatusId = getNextStatus();
-    const nextStage = nextStatusId ? STAGES.find(s => s.id === nextStatusId) : null;
+    if (!batch) return null;
+
+    const progress = calculateProgress(batch.status);
+    const currentStageIndex = STAGES_UI.findIndex(s => s.id === batch.status);
+    const nextStage = getNextStage(batch.status);
+    const nextStageUI = nextStage ? STAGES_UI.find(s => s.id === nextStage.id) : null;
+
+    const totalMaterialCost = materials.reduce((sum, m) => sum + parseFloat(m.cost || 0), 0);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -85,10 +107,10 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
 
                         <Badge className={cn(
                             "px-3 py-1 capitalize",
-                            STAGES.find(s => s.id === batch.status)?.bg,
-                            STAGES.find(s => s.id === batch.status)?.color
+                            STAGES_UI.find(s => s.id === batch.status)?.bg,
+                            STAGES_UI.find(s => s.id === batch.status)?.color
                         )}>
-                            {STAGES.find(s => s.id === batch.status)?.label || batch.status}
+                            {STAGES_UI.find(s => s.id === batch.status)?.label || batch.status}
                         </Badge>
                     </div>
                 </DialogHeader>
@@ -114,7 +136,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                     <div className="relative">
                         <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-100" />
                         <div className="space-y-6 relative">
-                            {STAGES.map((stage, index) => {
+                            {STAGES_UI.map((stage, index) => {
                                 const isCompleted = index <= currentStageIndex;
                                 const isCurrent = index === currentStageIndex;
 
@@ -166,18 +188,79 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Materials Used Section */}
+                    {materials.length > 0 && (
+                        <div className="mt-6">
+                            <button
+                                onClick={() => setShowMaterials(!showMaterials)}
+                                className="w-full flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Package size={20} className="text-primary" />
+                                    <div className="text-left">
+                                        <h4 className="font-bold text-slate-900">Materials Used</h4>
+                                        <p className="text-xs text-slate-500">
+                                            {materials.length} material(s) • Total: K{totalMaterialCost.toFixed(2)}
+                                        </p>
+                                    </div>
+                                </div>
+                                {showMaterials ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            </button>
+
+                            {showMaterials && (
+                                <div className="mt-3 border border-slate-200 rounded-xl overflow-hidden">
+                                    <table className="w-full">
+                                        <thead className="bg-slate-50 border-b border-slate-200">
+                                            <tr>
+                                                <th className="text-left p-3 text-xs font-semibold text-slate-600">Material</th>
+                                                <th className="text-right p-3 text-xs font-semibold text-slate-600">Quantity</th>
+                                                <th className="text-right p-3 text-xs font-semibold text-slate-600">Cost</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {materials.map((item, index) => (
+                                                <tr key={index} className="border-b border-slate-100 last:border-0">
+                                                    <td className="p-3">
+                                                        <div>
+                                                            <p className="font-medium text-sm text-slate-900">{item.material?.name}</p>
+                                                            <p className="text-xs text-slate-500">{item.material?.category}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3 text-right text-sm text-slate-700">
+                                                        {parseFloat(item.quantity_used).toFixed(2)} {item.material?.unit}
+                                                    </td>
+                                                    <td className="p-3 text-right font-semibold text-sm text-slate-900">
+                                                        K{parseFloat(item.cost).toFixed(2)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                        <tfoot className="bg-primary/5 border-t-2 border-primary/20">
+                                            <tr>
+                                                <td colSpan="2" className="p-3 text-right font-bold text-slate-900">Total Material Cost:</td>
+                                                <td className="p-3 text-right font-bold text-primary text-lg">
+                                                    K{totalMaterialCost.toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <DialogFooter className="p-6 pt-2 border-t mt-auto">
                     <Button variant="outline" onClick={onClose}>
                         Close
                     </Button>
-                    {nextStage && (
+                    {nextStageUI && (
                         <Button
-                            onClick={() => onStatusUpdate(batch.id, nextStage.id, batch)}
+                            onClick={() => onStatusUpdate(batch.id, nextStageUI.id, batch)}
                             className="bg-primary hover:bg-primary/90 gap-2"
                         >
-                            Move to {nextStage.label}
+                            Move to {nextStageUI.label}
                             <ArrowRight size={16} />
                         </Button>
                     )}

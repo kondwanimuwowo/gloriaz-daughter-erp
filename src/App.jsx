@@ -23,6 +23,7 @@ import Finance from "./pages/Finance"; // NEW
 import Analytics from "./pages/Analytics"; // NEW
 import Production from "./pages/Production"; // NEW
 import Manual from "./pages/Manual"; // NEW
+import Products from "./pages/Products"; // NEW
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -37,7 +38,7 @@ function App() {
     const handleVisibilityChange = () => {
       if (!document.hidden && initialized) {
         // App became visible
-        console.log('[App] Tab visible, session active');
+        // App became visible
       }
     };
 
@@ -152,6 +153,7 @@ function App() {
               />
 
               <Route path="manual" element={<Manual />} />
+              <Route path="products" element={<Products />} />
             </Route>
 
             {/* Catch all - redirect to dashboard */}

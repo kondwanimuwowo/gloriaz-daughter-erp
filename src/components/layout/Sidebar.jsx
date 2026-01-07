@@ -10,6 +10,7 @@ import {
   DollarSign,
   BarChart3,
   HelpCircle,
+  Shirt,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -29,6 +30,12 @@ export default function Sidebar() {
       path: "/inventory",
       icon: Package,
       label: "Inventory",
+      roles: ["admin", "manager"],
+    },
+    {
+      path: "/products",
+      icon: Shirt,
+      label: "Products",
       roles: ["admin", "manager"],
     },
     {

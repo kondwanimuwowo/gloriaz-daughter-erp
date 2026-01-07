@@ -35,7 +35,10 @@ export const useNotificationStore = create((set, get) => ({
     // Mark notification as read
     markAsRead: async (notificationId) => {
         try {
+            // Update in database first
             await notificationService.markAsRead(notificationId);
+
+            // Only update local state after successful database update
             set((state) => ({
                 notifications: state.notifications.map((n) =>
                     n.id === notificationId ? { ...n, read: true } : n
@@ -45,6 +48,7 @@ export const useNotificationStore = create((set, get) => ({
         } catch (error) {
             console.error("Failed to mark notification as read:", error);
             toast.error("Failed to mark as read");
+            throw error; // Re-throw to allow caller to handle
         }
     },
 

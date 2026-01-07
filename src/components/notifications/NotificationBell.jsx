@@ -35,13 +35,27 @@ export function NotificationBell() {
     }, []);
 
     const handleNotificationClick = async (notification) => {
-        if (!notification.read) {
-            await markAsRead(notification.id);
+        try {
+            // Mark as read first if unread
+            if (!notification.read) {
+                await markAsRead(notification.id);
+            }
+
+            // Close the popover
+            setOpen(false);
+
+            // Navigate after marking as read (if link exists)
+            if (notification.link) {
+                navigate(notification.link);
+            }
+        } catch (error) {
+            console.error("Failed to handle notification click:", error);
+            // Still navigate even if mark as read fails
+            setOpen(false);
+            if (notification.link) {
+                navigate(notification.link);
+            }
         }
-        if (notification.link) {
-            navigate(notification.link);
-        }
-        setOpen(false);
     };
 
     const recentNotifications = notifications.slice(0, 5);

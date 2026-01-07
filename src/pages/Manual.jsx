@@ -19,6 +19,14 @@ import {
     ShoppingCart,
     Menu,
     X,
+    Users,
+    BarChart3,
+    Sliders,
+    TrendingUp,
+    Bell,
+    Wallet,
+    Target,
+    Zap
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -98,7 +106,7 @@ const Manual = () => {
                         </h3>
                         <div className="space-y-6">
                             {[
-                                { title: "Start", text: "Click 'Create Order' and choose 'Custom' for bespoke items or 'Standard' for items you already have in stock." },
+                                { title: "Start", text: "Click 'Create Order' and choose 'Custom' for bespoke items or 'Pre-designed Garment' for items you already have in stock." },
                                 { title: "Customer", text: "Select an existing customer or click '+ Add New' to quickly save their name and phone number." },
                                 { title: "Requirements", text: "Select the garment type (e.g., Chitenge Dress) and describe what the customer wants." },
                                 { title: "Materials", text: "Choose the fabrics and trims needed. The system will automatically calculate the cost for you." },
@@ -133,6 +141,38 @@ const Manual = () => {
                             ))}
                         </div>
                     </div>
+
+                    <section>
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="h-9 w-1 bg-purple-500 rounded-full" />
+                            Handling Payments & Balances
+                        </h3>
+                        <div className="space-y-4">
+                            <p className="text-base text-muted-foreground leading-relaxed">
+                                The system automatically tracks deposits and balances. When a customer pays:
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-5 bg-green-50 rounded-xl border border-green-200">
+                                    <h5 className="font-bold text-green-900 mb-2 flex items-center gap-2">
+                                        <Wallet size={18} />
+                                        Recording Deposits
+                                    </h5>
+                                    <p className="text-sm text-green-800">
+                                        Enter the deposit amount when creating the order. The system will calculate the remaining balance automatically.
+                                    </p>
+                                </div>
+                                <div className="p-5 bg-amber-50 rounded-xl border border-amber-200">
+                                    <h5 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
+                                        <TrendingUp size={18} />
+                                        Final Payment
+                                    </h5>
+                                    <p className="text-sm text-amber-800">
+                                        When the customer collects their order, record the final payment. The balance will update to zero.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             )
         },
@@ -176,6 +216,40 @@ const Manual = () => {
                         </div>
                     </div>
 
+                    <section>
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="h-9 w-1 bg-emerald-500 rounded-full" />
+                            Production with Materials
+                        </h3>
+                        <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
+                            <h4 className="font-bold text-emerald-900 mb-4 text-lg flex items-center gap-2">
+                                <Zap size={20} />
+                                NEW: Material Tracking
+                            </h4>
+                            <p className="text-base text-emerald-800 leading-relaxed mb-4">
+                                When creating a production batch, you can now select which materials you'll use. The system will:
+                            </p>
+                            <ul className="space-y-2 text-emerald-800">
+                                <li className="flex gap-3">
+                                    <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0" />
+                                    <span>Automatically reduce inventory stock levels</span>
+                                </li>
+                                <li className="flex gap-3">
+                                    <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0" />
+                                    <span>Calculate total material cost for the batch</span>
+                                </li>
+                                <li className="flex gap-3">
+                                    <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0" />
+                                    <span>Warn you if there's not enough stock</span>
+                                </li>
+                                <li className="flex gap-3">
+                                    <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0" />
+                                    <span>Track material usage history</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+
                     <div className="bg-emerald-50 p-8 rounded-2xl border border-emerald-100 flex gap-5">
                         <Clock className="text-emerald-600 flex-shrink-0" size={32} />
                         <div>
@@ -183,6 +257,12 @@ const Manual = () => {
                             <p className="text-base text-emerald-700 leading-relaxed">
                                 When you set a Production Batch to <strong>Completed</strong>, the system automatically adds those finished pieces to your inventory so they can be sold!
                             </p>
+                            <div className="mt-4 pt-4 border-t border-emerald-200">
+                                <h5 className="font-bold text-emerald-800 mb-1">Deleting Batches</h5>
+                                <p className="text-sm text-emerald-700">
+                                    Admin users can delete batches using the trash icon (🗑️) on the batch card. This action cannot be undone.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,6 +310,48 @@ const Manual = () => {
                         </CardContent>
                     </Card>
 
+                    <section>
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="h-9 w-1 bg-amber-500 rounded-full" />
+                            Reading the Finance Dashboard
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="p-5 bg-white border rounded-xl">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="p-2 bg-green-100 rounded-lg">
+                                        <TrendingUp size={20} className="text-green-600" />
+                                    </div>
+                                    <h5 className="font-bold">Revenue Card</h5>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    Shows total sales for the selected period. Green means you're making sales!
+                                </p>
+                            </div>
+                            <div className="p-5 bg-white border rounded-xl">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="p-2 bg-red-100 rounded-lg">
+                                        <Package size={20} className="text-red-600" />
+                                    </div>
+                                    <h5 className="font-bold">Costs Card</h5>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    Shows how much you spent on materials and labor. Keep this lower than revenue!
+                                </p>
+                            </div>
+                            <div className="p-5 bg-white border rounded-xl">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="p-2 bg-primary/10 rounded-lg">
+                                        <Target size={20} className="text-primary" />
+                                    </div>
+                                    <h5 className="font-bold">Profit Card</h5>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    The most important number! This is what you actually earned after all costs.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
                     <div className="flex gap-5 p-6 bg-white border rounded-2xl shadow-sm">
                         <div className="p-4 bg-amber-50 text-amber-600 rounded-xl h-fit">
                             <Download size={28} />
@@ -240,6 +362,234 @@ const Manual = () => {
                                 Use the <strong>Export</strong> button on the Finance page to download an Excel file you can send to your accountant or bank.
                             </p>
                         </div>
+                    </div>
+                </div>
+            )
+        },
+        {
+            id: "customers",
+            title: "Customer Management",
+            subtitle: "Building lasting relationships",
+            icon: <Users size={20} />,
+            color: "text-pink-500",
+            bg: "bg-pink-50",
+            content: (
+                <div className="space-y-8">
+                    <section>
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="h-9 w-1 bg-pink-500 rounded-full" />
+                            Managing Your Customer Database
+                        </h3>
+                        <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                            Every customer is valuable. The system helps you remember their preferences, track their orders, and build loyalty.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3">Adding New Customers</h4>
+                                <ul className="space-y-2 text-muted-foreground">
+                                    <li className="flex gap-2">
+                                        <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-pink-500" />
+                                        <span>Save name and phone number (minimum required)</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-pink-500" />
+                                        <span>Add email for automatic notifications</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-pink-500" />
+                                        <span>Record measurements for repeat orders</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3">Customer History</h4>
+                                <p className="text-muted-foreground mb-3">
+                                    Click on any customer to see:
+                                </p>
+                                <ul className="space-y-2 text-muted-foreground">
+                                    <li className="flex gap-2">
+                                        <ArrowRight size={18} className="mt-0.5 flex-shrink-0 text-pink-500" />
+                                        <span>All previous orders</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <ArrowRight size={18} className="mt-0.5 flex-shrink-0 text-pink-500" />
+                                        <span>Total amount spent</span>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <ArrowRight size={18} className="mt-0.5 flex-shrink-0 text-pink-500" />
+                                        <span>Favorite garment styles</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div className="bg-pink-50 p-6 rounded-2xl border border-pink-200">
+                        <h4 className="font-bold text-pink-900 mb-3 text-lg flex items-center gap-2">
+                            <Bell size={20} />
+                            Customer Notifications
+                        </h4>
+                        <p className="text-pink-800 leading-relaxed">
+                            When you update an order status, customers with email addresses will receive automatic notifications. This keeps them informed without you having to make phone calls!
+                        </p>
+                    </div>
+                </div>
+            )
+        },
+        {
+            id: "reports",
+            title: "Reports & Analytics",
+            subtitle: "Understanding your business trends",
+            icon: <BarChart3 size={20} />,
+            color: "text-indigo-500",
+            bg: "bg-indigo-50",
+            content: (
+                <div className="space-y-8">
+                    <section>
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="h-9 w-1 bg-indigo-500 rounded-full" />
+                            Available Reports
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <DollarSign size={20} className="text-indigo-500" />
+                                    Financial Reports
+                                </h4>
+                                <ul className="space-y-2 text-muted-foreground">
+                                    <li>• Revenue by month/year</li>
+                                    <li>• Profit margins</li>
+                                    <li>• Cost breakdowns</li>
+                                    <li>• Outstanding payments</li>
+                                </ul>
+                            </div>
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <Package size={20} className="text-indigo-500" />
+                                    Inventory Reports
+                                </h4>
+                                <ul className="space-y-2 text-muted-foreground">
+                                    <li>• Stock levels by material</li>
+                                    <li>• Low stock alerts</li>
+                                    <li>• Material usage trends</li>
+                                    <li>• Inventory value</li>
+                                </ul>
+                            </div>
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <Scissors size={20} className="text-indigo-500" />
+                                    Production Reports
+                                </h4>
+                                <ul className="space-y-2 text-muted-foreground">
+                                    <li>• Batches by status</li>
+                                    <li>• Average completion time</li>
+                                    <li>• Material costs per batch</li>
+                                    <li>• Production efficiency</li>
+                                </ul>
+                            </div>
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <Users size={20} className="text-indigo-500" />
+                                    Customer Reports
+                                </h4>
+                                <ul className="space-y-2 text-muted-foreground">
+                                    <li>• Top customers by revenue</li>
+                                    <li>• Customer retention rate</li>
+                                    <li>• Popular garment types</li>
+                                    <li>• Average order value</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="h-9 w-1 bg-indigo-500 rounded-full" />
+                            Understanding Trends
+                        </h3>
+                        <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-200">
+                            <p className="text-indigo-900 leading-relaxed mb-4">
+                                The dashboard shows charts and graphs to help you spot patterns:
+                            </p>
+                            <ul className="space-y-3 text-indigo-800">
+                                <li className="flex gap-3">
+                                    <TrendingUp size={18} className="mt-0.5 flex-shrink-0" />
+                                    <span><strong>Upward trends</strong> mean your business is growing</span>
+                                </li>
+                                <li className="flex gap-3">
+                                    <AlertCircle size={18} className="mt-0.5 flex-shrink-0" />
+                                    <span><strong>Sudden drops</strong> might mean you need to market more</span>
+                                </li>
+                                <li className="flex gap-3">
+                                    <Target size={18} className="mt-0.5 flex-shrink-0" />
+                                    <span><strong>Seasonal patterns</strong> help you plan inventory purchases</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+            )
+        },
+        {
+            id: "settings",
+            title: "Settings & Customization",
+            subtitle: "Tailoring the system to your needs",
+            icon: <Sliders size={20} />,
+            color: "text-cyan-500",
+            bg: "bg-cyan-50",
+            content: (
+                <div className="space-y-8">
+                    <section>
+                        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                            <div className="h-9 w-1 bg-cyan-500 rounded-full" />
+                            Key Settings to Configure
+                        </h3>
+                        <div className="space-y-6">
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <DollarSign size={20} className="text-cyan-500" />
+                                    Profit Margin Settings
+                                </h4>
+                                <p className="text-muted-foreground mb-3">
+                                    Set your default profit margin percentage. The system will use this to suggest selling prices.
+                                </p>
+                                <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                                    <p className="text-sm text-cyan-900">
+                                        <strong>Example:</strong> If you set 40% profit margin and costs are K100, the system will suggest K140 as the selling price.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <Clock size={20} className="text-cyan-500" />
+                                    Labour Rates
+                                </h4>
+                                <p className="text-muted-foreground mb-3">
+                                    Set hourly rates for different types of work (e.g., simple stitching vs. complex embroidery).
+                                </p>
+                            </div>
+
+                            <div className="p-6 bg-white border rounded-2xl">
+                                <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                    <Bell size={20} className="text-cyan-500" />
+                                    Notification Preferences
+                                </h4>
+                                <p className="text-muted-foreground">
+                                    Choose which events trigger notifications (low stock, order updates, production completion, etc.).
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div className="bg-cyan-50 p-6 rounded-2xl border border-cyan-200">
+                        <h4 className="font-bold text-cyan-900 mb-3 text-lg flex items-center gap-2">
+                            <Settings size={20} />
+                            User Account Management
+                        </h4>
+                        <p className="text-cyan-800 leading-relaxed">
+                            Admin users can add team members, assign roles (Admin, Tailor, Sales), and control what each person can see and do in the system.
+                        </p>
                     </div>
                 </div>
             )
@@ -268,12 +618,20 @@ const Manual = () => {
                                 <p className="font-bold text-lg mb-2 text-primary">"I can't find a material in the list."</p>
                                 <p className="text-base text-muted-foreground leading-relaxed">You must add the material to the <strong>Inventory</strong> page first before you can use it in an order.</p>
                             </div>
+                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                                <p className="font-bold text-lg mb-2 text-primary">"The system is running slow."</p>
+                                <p className="text-base text-muted-foreground leading-relaxed">Try refreshing your browser (press F5). If using mobile data, switch to WiFi for better performance. Close other browser tabs you're not using.</p>
+                            </div>
+                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                                <p className="font-bold text-lg mb-2 text-primary">"I accidentally deleted something."</p>
+                                <p className="text-base text-muted-foreground leading-relaxed">Contact support immediately. Some deletions can be recovered if reported quickly. This is why we recommend only admins have delete permissions.</p>
+                            </div>
                         </div>
                     </section>
 
                     <div className="p-8 bg-primary rounded-3xl text-white text-center shadow-2xl">
                         <h4 className="text-2xl font-bold mb-3">Still Need Help?</h4>
-                        <p className="text-base opacity-90 mb-8 max-w-md mx-auto">Our support team is available during business hours via WhatsApp.</p>
+                        <p className="text-base opacity-90 mb-8 max-w-md mx-auto">Our support team is available during business hours via WhatsApp or email.</p>
                         <div className="flex flex-col gap-4 max-w-sm mx-auto">
                             <a href="tel:[SUPPORT-NUMBER]" className="bg-white/20 hover:bg-white/30 transition px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 text-lg">
                                 <HelpCircle size={24} />
@@ -302,15 +660,15 @@ const Manual = () => {
                             <div className="p-3 bg-primary rounded-2xl text-white">
                                 <BookOpen size={32} />
                             </div>
-                            <span>How to use Gloria's Daughter ERP</span>
+                            <span>User Manual</span>
                         </h1>
-                        <p className="text-muted-foreground mt-2 text-lg font-medium">A step-by-step guide for non-technical users</p>
+                        <p className="text-muted-foreground mt-2 text-lg font-medium">A complete guide to Gloria's Daughter ERP</p>
                     </div>
                     <Button
                         onClick={() => window.print()}
                         variant="outline"
                         size="lg"
-                        className="no-print border-primary text-primary hover:bg-primary/5 font-bold px-8 rounded-2xl flex items-center gap-3 h-14 text-lg"
+                        className="border-primary text-primary hover:bg-primary/5 font-bold px-8 rounded-2xl flex items-center gap-3 h-14 text-lg"
                     >
                         <Download size={24} />
                         Export to PDF
@@ -318,7 +676,7 @@ const Manual = () => {
                 </div>
 
                 {/* Mobile Menu Toggle */}
-                <div className="lg:hidden mb-6 no-print">
+                <div className="lg:hidden mb-6">
                     <Button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         variant="outline"
@@ -335,12 +693,12 @@ const Manual = () => {
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Mobile: Collapsible, Desktop: Fixed */}
+                    {/* Sidebar */}
                     <aside className={cn(
-                        "no-print flex-shrink-0 w-full lg:w-80",
+                        "flex-shrink-0 w-full lg:w-80",
                         mobileMenuOpen ? "block" : "hidden lg:block"
                     )}>
-                        <nav className="bg-white border rounded-3xl p-4 shadow-lg">
+                        <nav className="bg-white border rounded-3xl p-4 shadow-lg sticky top-6">
                             <div className="space-y-2">
                                 {sections.map((section) => (
                                     <button
@@ -384,13 +742,13 @@ const Manual = () => {
                     </aside>
 
                     {/* Main Content */}
-                    <main className="flex-1 min-w-0 no-print">
+                    <main className="flex-1 min-w-0">
                         <AnimatePresence mode="wait">
                             <motion.article
                                 key={activeSection}
-                                initial={{ y: 20 }}
-                                animate={{ y: 0 }}
-                                exit={{ y: -20 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.3 }}
                                 className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 lg:p-12 shadow-xl"
                             >
@@ -411,30 +769,7 @@ const Manual = () => {
                         </AnimatePresence>
                     </main>
                 </div>
-
-                {/* Print Version */}
-                <div className="hidden print:block print:p-8">
-                    {sections.map(section => (
-                        <div key={section.id} className="mb-16 page-break-after">
-                            <h2 className="text-3xl font-bold border-b-4 border-primary pb-4 mb-8">{section.title}</h2>
-                            <div className="prose prose-lg max-w-none">
-                                {section.content}
-                            </div>
-                        </div>
-                    ))}
-                </div>
             </div>
-
-            {/* Print Styles */}
-            <style jsx>{`
-                @media print {
-                    .no-print { display: none !important; }
-                    body { background: white !important; }
-                }
-                @media (max-width: 1023px) {
-                    .custom-scrollbar::-webkit-scrollbar { display: none; }
-                }
-            `}</style>
         </div>
     );
 };

@@ -253,18 +253,27 @@ export const financeService = {
     const startStr = format(start, "yyyy-MM-dd");
     const endStr = format(end, "yyyy-MM-dd");
 
-    // Get all data in parallel
+    // Fetch data in parallel
     const [
-      { data: orders },
+      { data: newOrders },
+      { data: completedOrdersData },
       { data: overhead },
       { data: expenses },
       { data: payments },
     ] = await Promise.all([
+      // Orders PLACED in this period (for volume stats)
       supabase
         .from("orders")
         .select("*")
         .gte("order_date", start.toISOString())
         .lte("order_date", end.toISOString()),
+      // Orders COMPLETED in this period (for recognized revenue/production costs)
+      supabase
+        .from("orders")
+        .select("*")
+        .in("status", ["completed", "delivered"])
+        .gte("updated_at", start.toISOString())
+        .lte("updated_at", end.toISOString()),
       supabase
         .from("overhead_costs")
         .select("amount")
@@ -282,21 +291,28 @@ export const financeService = {
         .lte("payment_date", endStr),
     ]);
 
+    // Recognized Revenue & Production Costs (Accrual basis)
     const totalRevenue =
-      orders?.reduce((s, o) => s + parseFloat(o.total_cost || 0), 0) || 0;
+      completedOrdersData?.reduce((s, o) => s + parseFloat(o.total_cost || 0), 0) || 0;
     const totalMaterial =
-      orders?.reduce((s, o) => s + parseFloat(o.material_cost || 0), 0) || 0;
+      completedOrdersData?.reduce((s, o) => s + parseFloat(o.material_cost || 0), 0) || 0;
     const totalLabour =
-      orders?.reduce((s, o) => s + parseFloat(o.labour_cost || 0), 0) || 0;
+      completedOrdersData?.reduce((s, o) => s + parseFloat(o.labour_cost || 0), 0) || 0;
+
+    // Fixed Overheads for the business (Rent, Utilities, etc.)
     const totalOverhead =
       overhead?.reduce((s, o) => s + parseFloat(o.amount || 0), 0) || 0;
+
+    // Other miscellaneous expenses
     const totalExpenses =
       expenses?.reduce((s, e) => s + parseFloat(e.amount || 0), 0) || 0;
+
+    // Total Payments received in period (Cash basis)
     const totalPayments =
       payments?.reduce((s, p) => s + parseFloat(p.amount || 0), 0) || 0;
 
-    const totalCosts =
-      totalMaterial + totalLabour + totalOverhead + totalExpenses;
+    const totalProductionCosts = totalMaterial + totalLabour;
+    const totalCosts = totalProductionCosts + totalOverhead + totalExpenses;
     const netProfit = totalRevenue - totalCosts;
     const profitMargin =
       totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
@@ -304,16 +320,14 @@ export const financeService = {
     return {
       periodStart: startStr,
       periodEnd: endStr,
-      totalOrders: orders?.length || 0,
-      completedOrders:
-        orders?.filter((o) => ["completed", "delivered"].includes(o.status))
-          .length || 0,
+      totalOrders: newOrders?.length || 0,
+      completedOrders: completedOrdersData?.length || 0,
       pendingOrders:
-        orders?.filter(
+        newOrders?.filter(
           (o) => !["completed", "delivered", "cancelled"].includes(o.status)
         ).length || 0,
       cancelledOrders:
-        orders?.filter((o) => o.status === "cancelled").length || 0,
+        newOrders?.filter((o) => o.status === "cancelled").length || 0,
       totalRevenue: parseFloat(totalRevenue.toFixed(2)),
       totalMaterial: parseFloat(totalMaterial.toFixed(2)),
       totalLabour: parseFloat(totalLabour.toFixed(2)),
@@ -324,7 +338,7 @@ export const financeService = {
       netProfit: parseFloat(netProfit.toFixed(2)),
       profitMargin: parseFloat(profitMargin.toFixed(2)),
       cashFlow: parseFloat((totalPayments - totalCosts).toFixed(2)),
-      avgOrderValue: orders?.length > 0 ? totalRevenue / orders.length : 0,
+      avgOrderValue: newOrders?.length > 0 ? totalRevenue / newOrders.length : 0,
     };
   },
 
@@ -384,5 +398,29 @@ export const financeService = {
             : 0,
       })) || []
     );
+  },
+
+  async getCompletedOrders(startDate, endDate) {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        id,
+        order_number,
+        customer_id,
+        customers(name),
+        total_cost,
+        material_cost,
+        labour_cost,
+        overhead_cost,
+        created_at,
+        updated_at
+      `)
+      .in("status", ["completed", "delivered"])
+      .gte("updated_at", startDate)
+      .lte("updated_at", endDate)
+      .order("updated_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   },
 };

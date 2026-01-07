@@ -60,15 +60,20 @@ export const notificationService = {
 
     // Mark a notification as read
     async markAsRead(notificationId) {
-        const { data, error } = await supabase
-            .from("notifications")
-            .update({ read: true })
-            .eq("id", notificationId)
-            .select()
-            .single();
+        try {
+            const { data, error } = await supabase
+                .from("notifications")
+                .update({ read: true, read_at: new Date().toISOString() })
+                .eq("id", notificationId)
+                .select()
+                .single();
 
-        if (error) throw error;
-        return data;
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
+            throw error;
+        }
     },
 
     // Mark all notifications as read
