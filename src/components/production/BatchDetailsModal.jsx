@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -66,6 +66,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0">
                 <DialogHeader className="p-6 pb-2">
+                    <DialogDescription className="hidden">Batch details and status management</DialogDescription>
                     <div className="flex items-start justify-between">
                         <div className="flex gap-4">
                             {/* Product Image */}

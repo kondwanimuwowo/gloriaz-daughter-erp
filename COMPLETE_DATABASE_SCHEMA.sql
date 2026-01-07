@@ -407,72 +407,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function: Create Finished Product from Batch
-CREATE OR REPLACE FUNCTION create_finished_product_from_batch(
-  p_batch_id UUID,
-  p_unit_cost DECIMAL(10, 2)
-)
-RETURNS UUID AS $$
-DECLARE
-  v_product_id UUID;
-  v_product_name VARCHAR(255);
-  v_quantity INTEGER;
-  v_sku VARCHAR(100);
-  v_material_id UUID;
-BEGIN
-  SELECT pb.product_id, pb.quantity, p.name
-  INTO v_product_id, v_quantity, v_product_name
-  FROM production_batches pb
-  JOIN products p ON pb.product_id = p.id
-  WHERE pb.id = p_batch_id;
-  
-  v_sku := 'FP-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || SUBSTRING(v_product_id::TEXT, 1, 8);
-  
-  SELECT id INTO v_material_id
-  FROM materials
-  WHERE product_id = v_product_id 
-    AND material_type = 'finished_product'
-  LIMIT 1;
-  
-  IF v_material_id IS NULL THEN
-    INSERT INTO materials (
-      name, category, unit, stock_quantity, min_stock_level, cost_per_unit,
-      material_type, finished_product_sku, production_cost, product_id, reorder_level
-    ) VALUES (
-      v_product_name || ' (Finished)', 'finished_goods', 'pieces', v_quantity, 5, p_unit_cost,
-      'finished_product', v_sku, p_unit_cost, v_product_id, 5
-    )
-    RETURNING id INTO v_material_id;
-  ELSE
-    UPDATE materials
-    SET stock_quantity = stock_quantity + v_quantity,
-        production_cost = p_unit_cost,
-        cost_per_unit = p_unit_cost,
-        updated_at = NOW()
-    WHERE id = v_material_id;
-  END IF;
-  
-  RETURN v_material_id;
-END;
-$$ LANGUAGE plpgsql;
-
--- Function: Auto Create Finished Goods Trigger Logic
-CREATE OR REPLACE FUNCTION auto_create_finished_goods()
-RETURNS TRIGGER AS $$
-DECLARE
-  v_avg_cost DECIMAL(10, 2);
-BEGIN
-  IF NEW.status = 'completed' AND OLD.status != 'completed' THEN
-    SELECT COALESCE(SUM(cost) / NEW.quantity, 0)
-    INTO v_avg_cost
-    FROM production_materials
-    WHERE batch_id = NEW.id;
-    
-    PERFORM create_finished_product_from_batch(NEW.id, v_avg_cost);
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- (Logic moved to Application Layer: productionService.js)
 
 -- Notification Helper Functions
 CREATE OR REPLACE FUNCTION create_notification(
@@ -544,13 +479,7 @@ FOR EACH ROW
 WHEN (OLD.status IS DISTINCT FROM NEW.status)
 EXECUTE FUNCTION update_batch_status();
 
--- Auto Create Finished Goods
-DROP TRIGGER IF EXISTS trigger_auto_create_finished_goods ON production_batches;
-CREATE TRIGGER trigger_auto_create_finished_goods
-AFTER UPDATE ON production_batches
-FOR EACH ROW
-WHEN (NEW.status = 'completed')
-EXECUTE FUNCTION auto_create_finished_goods();
+-- (Logic moved to Application Layer: productionService.js)
 
 -- Updated At Triggers
 DROP TRIGGER IF EXISTS update_materials_updated_at ON materials;
@@ -603,7 +532,7 @@ USING (auth.uid() = user_id OR user_id IS NULL);
 DROP POLICY IF EXISTS "Users can update their own notifications" ON notifications;
 CREATE POLICY "Users can update their own notifications"
 ON notifications FOR UPDATE
-USING (auth.uid() = user_id);
+USING (auth.uid() = user_id OR user_id IS NULL);
 
 DROP POLICY IF EXISTS "Users can delete their own notifications" ON notifications;
 CREATE POLICY "Users can delete their own notifications"

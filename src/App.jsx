@@ -24,6 +24,7 @@ import Analytics from "./pages/Analytics"; // NEW
 import Production from "./pages/Production"; // NEW
 import Manual from "./pages/Manual"; // NEW
 import Products from "./pages/Products"; // NEW
+import Notifications from "./pages/Notifications"; // NEW
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -154,6 +155,7 @@ function App() {
 
               <Route path="manual" element={<Manual />} />
               <Route path="products" element={<Products />} />
+              <Route path="notifications" element={<Notifications />} />
             </Route>
 
             {/* Catch all - redirect to dashboard */}

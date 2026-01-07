@@ -63,13 +63,14 @@ export const notificationService = {
         try {
             const { data, error } = await supabase
                 .from("notifications")
-                .update({ read: true, read_at: new Date().toISOString() })
+                .update({ read: true })
                 .eq("id", notificationId)
-                .select()
-                .single();
+                .select();
 
             if (error) throw error;
-            return data;
+            return data?.[0];
+
+
         } catch (error) {
             console.error("Error marking notification as read:", error);
             throw error;
