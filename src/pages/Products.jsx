@@ -14,6 +14,7 @@ const Products = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [isViewMode, setIsViewMode] = useState(true);
     const [deleteId, setDeleteId] = useState(null);
 
     const [formData, setFormData] = useState({
@@ -49,7 +50,8 @@ const Products = () => {
         }
     };
 
-    const handleOpenModal = (product = null) => {
+    const handleOpenModal = (product = null, viewMode = true) => {
+        setIsViewMode(viewMode);
         if (product) {
             setEditingProduct(product);
             setFormData({
@@ -132,7 +134,7 @@ const Products = () => {
                     <h1 className="text-3xl font-bold tracking-tight text-slate-900">Products Catalog</h1>
                     <p className="text-slate-500 mt-1">Manage standard garment designs and offerings</p>
                 </div>
-                <Button onClick={() => handleOpenModal()} className="bg-primary hover:bg-primary/90 gap-2">
+                <Button onClick={() => handleOpenModal(null, false)} className="bg-primary hover:bg-primary/90 gap-2">
                     <Plus size={20} />
                     Add Product
                 </Button>
@@ -154,7 +156,7 @@ const Products = () => {
                 {filteredProducts.map((product) => (
                     <div
                         key={product.id}
-                        onClick={() => handleOpenModal(product)}
+                        onClick={() => handleOpenModal(product, true)}
                         className="bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full cursor-pointer hover:border-primary/50"
                     >
                         <div className="aspect-video bg-slate-100 relative overflow-hidden">
@@ -172,13 +174,19 @@ const Products = () => {
 
                             <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
-                                    onClick={() => handleOpenModal(product)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenModal(product, false);
+                                    }}
                                     className="p-2 bg-white/90 text-slate-700 rounded-lg hover:text-primary shadow-sm"
                                 >
                                     <Edit2 size={16} />
                                 </button>
                                 <button
-                                    onClick={() => setDeleteId(product.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeleteId(product.id);
+                                    }}
                                     className="p-2 bg-white/90 text-red-600 rounded-lg hover:bg-red-50 shadow-sm"
                                 >
                                     <Trash2 size={16} />
@@ -236,148 +244,224 @@ const Products = () => {
                 </div>
             )}
 
-            {/* Create/Edit Modal */}
+            {/* Create/Edit/View Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{editingProduct ? "Edit Product" : "Create New Product"}</DialogTitle>
+                <DialogContent className={isViewMode ? "max-w-2xl px-0 overflow-hidden" : ""}>
+                    <DialogHeader className={isViewMode ? "px-6" : ""}>
+                        <DialogTitle>
+                            {isViewMode ? "Product Details" : editingProduct ? "Edit Product" : "Create New Product"}
+                        </DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleSave} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Product Name</Label>
-                            <Input
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                                placeholder="e.g. Summer Chitenge Dress"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Category</Label>
-                                <select
-                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                >
-                                    <option value="standard">Standard</option>
-                                    <option value="custom">Custom</option>
-                                    <option value="premium">Premium</option>
-                                    <option value="uniform">Uniform</option>
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Base Price (K)</Label>
-                                <Input
-                                    type="number"
-                                    value={formData.base_price}
-                                    onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
-                                    required
-                                    min="0"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Base Labor Cost (K)</Label>
-                                <Input
-                                    type="number"
-                                    value={formData.labor_cost}
-                                    onChange={(e) => setFormData({ ...formData, labor_cost: e.target.value })}
-                                    min="0"
-                                />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Description</Label>
-                            <Textarea
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Details about materials, sizing, etc."
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Image URL (Optional)</Label>
-                            <Input
-                                value={formData.image_url}
-                                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                placeholder="https://..."
-                            />
-                        </div>
-                        <div className="space-y-4 border-t pt-4">
-                            <Label>Photo Gallery (Optional)</Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder="Paste image URL (ends in .jpg/.png)"
-                                    id="gallery-input"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            const url = e.currentTarget.value;
-                                            if (url) {
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    gallery_images: [...(prev.gallery_images || []), url]
-                                                }));
-                                                e.currentTarget.value = "";
-                                            }
-                                        }
-                                    }}
-                                />
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={() => {
-                                        const input = document.getElementById("gallery-input");
-                                        if (input && input.value) {
-                                            setFormData(prev => ({
-                                                ...prev,
-                                                gallery_images: [...(prev.gallery_images || []), input.value]
-                                            }));
-                                            input.value = "";
-                                        }
-                                    }}
-                                >
-                                    Add
-                                </Button>
+
+                    {isViewMode ? (
+                        <div className="flex flex-col max-h-[85vh] overflow-hidden">
+                            <div className="overflow-y-auto px-6 space-y-6 pb-6">
+                                {/* Product Header/Image View */}
+                                <div className="aspect-video bg-slate-100 rounded-xl overflow-hidden relative border shadow-inner">
+                                    {formData.image_url ? (
+                                        <img src={formData.image_url} alt={formData.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                            <ImageIcon size={64} />
+                                        </div>
+                                    )}
+                                    <div className="absolute top-4 left-4">
+                                        <span className="bg-white/95 backdrop-blur px-3 py-1 rounded-full text-xs font-bold shadow-sm uppercase tracking-wider text-primary border border-primary/20">
+                                            {formData.category}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <h2 className="text-2xl font-bold text-slate-900">{formData.name}</h2>
+                                        <div className="text-2xl font-bold text-primary">K{parseFloat(formData.base_price).toFixed(2)}</div>
+                                    </div>
+
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center justify-around text-center">
+                                        <div>
+                                            <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Labor Cost</p>
+                                            <p className="font-bold text-slate-700">K{parseFloat(formData.labor_cost).toFixed(2)}</p>
+                                        </div>
+                                        <div className="w-px h-8 bg-slate-200" />
+                                        <div>
+                                            <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Est. Time</p>
+                                            <p className="font-bold text-slate-700">{formData.estimated_days} Days</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label className="text-slate-400 uppercase text-[10px] tracking-widest">Description</Label>
+                                        <p className="text-slate-600 leading-relaxed">
+                                            {formData.description || "No description provided for this product."}
+                                        </p>
+                                    </div>
+
+                                    {/* View Gallery */}
+                                    {formData.gallery_images && formData.gallery_images.length > 0 && (
+                                        <div className="space-y-3 pt-2">
+                                            <Label className="text-slate-400 uppercase text-[10px] tracking-widest">Photo Gallery</Label>
+                                            <div className="grid grid-cols-4 gap-3">
+                                                {formData.gallery_images.map((url, index) => (
+                                                    <div key={index} className="aspect-square bg-slate-50 rounded-lg overflow-hidden border cursor-zoom-in hover:border-primary transition-colors">
+                                                        <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Gallery Preview Grid */}
-                            {formData.gallery_images && formData.gallery_images.length > 0 && (
-                                <div className="grid grid-cols-4 gap-2 mt-2">
-                                    {formData.gallery_images.map((url, index) => (
-                                        <div key={index} className="relative group aspect-square bg-slate-100 rounded-lg overflow-hidden border">
-                                            <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
+                            <DialogFooter className="px-6 py-4 bg-slate-50 border-t mt-auto">
+                                <Button variant="outline" onClick={() => setIsModalOpen(false)}>Close</Button>
+                                <Button onClick={() => setIsViewMode(false)} className="gap-2">
+                                    <Edit2 size={16} />
+                                    Edit Product
+                                </Button>
+                            </DialogFooter>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSave} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Product Name</Label>
+                                <Input
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    required
+                                    placeholder="e.g. Summer Chitenge Dress"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Category</Label>
+                                    <select
+                                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                    >
+                                        <option value="standard">Standard</option>
+                                        <option value="custom">Custom</option>
+                                        <option value="premium">Premium</option>
+                                        <option value="uniform">Uniform</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Base Price (K)</Label>
+                                    <Input
+                                        type="number"
+                                        value={formData.base_price}
+                                        onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
+                                        required
+                                        min="0"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Base Labor Cost (K)</Label>
+                                    <Input
+                                        type="number"
+                                        value={formData.labor_cost}
+                                        onChange={(e) => setFormData({ ...formData, labor_cost: e.target.value })}
+                                        min="0"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Est. Production Days</Label>
+                                    <Input
+                                        type="number"
+                                        value={formData.estimated_days}
+                                        onChange={(e) => setFormData({ ...formData, estimated_days: e.target.value })}
+                                        min="1"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Description</Label>
+                                <Textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Details about materials, sizing, etc."
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Main Image URL (Optional)</Label>
+                                <Input
+                                    value={formData.image_url}
+                                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                    placeholder="https://..."
+                                />
+                            </div>
+                            <div className="space-y-4 border-t pt-4">
+                                <Label>Photo Gallery (Optional)</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        placeholder="Paste image URL (ends in .jpg/.png)"
+                                        id="gallery-input"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const url = e.currentTarget.value;
+                                                if (url) {
                                                     setFormData(prev => ({
                                                         ...prev,
-                                                        gallery_images: prev.gallery_images.filter((_, i) => i !== index)
+                                                        gallery_images: [...(prev.gallery_images || []), url]
                                                     }));
-                                                }}
-                                                className="absolute top-1 right-1 p-1 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                                            >
-                                                <Trash2 size={12} />
-                                            </button>
-                                        </div>
-                                    ))}
+                                                    e.currentTarget.value = "";
+                                                }
+                                            }
+                                        }}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => {
+                                            const input = document.getElementById("gallery-input");
+                                            if (input && input.value) {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    gallery_images: [...(prev.gallery_images || []), input.value]
+                                                }));
+                                                input.value = "";
+                                            }
+                                        }}
+                                    >
+                                        Add
+                                    </Button>
                                 </div>
-                            )}
-                        </div>
 
-                        <div className="space-y-2">
-                            <Label>Est. Production Days</Label>
-                            <Input
-                                type="number"
-                                value={formData.estimated_days}
-                                onChange={(e) => setFormData({ ...formData, estimated_days: e.target.value })}
-                                min="1"
-                            />
-                        </div>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                            <Button type="submit">Save Product</Button>
-                        </DialogFooter>
-                    </form>
+                                {/* Gallery Preview Grid */}
+                                {formData.gallery_images && formData.gallery_images.length > 0 && (
+                                    <div className="grid grid-cols-4 gap-2 mt-2">
+                                        {formData.gallery_images.map((url, index) => (
+                                            <div key={index} className="relative group aspect-square bg-slate-100 rounded-lg overflow-hidden border">
+                                                <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            gallery_images: prev.gallery_images.filter((_, i) => i !== index)
+                                                        }));
+                                                    }}
+                                                    className="absolute top-1 right-1 p-1 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <DialogFooter>
+                                {editingProduct && (
+                                    <Button type="button" variant="outline" onClick={() => setIsViewMode(true)}>Back to View</Button>
+                                )}
+                                <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                                <Button type="submit">Save Product</Button>
+                            </DialogFooter>
+                        </form>
+                    )}
                 </DialogContent>
             </Dialog>
 

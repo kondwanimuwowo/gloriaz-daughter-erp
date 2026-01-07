@@ -233,9 +233,9 @@ CREATE TABLE IF NOT EXISTS production_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   batch_id UUID REFERENCES production_batches(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  action TEXT NOT NULL, -- e.g. 'status_change', 'material_added', 'stage_started', 'stage_completed'
+  action TEXT NOT NULL, -- e.g. 'batch_created', 'status_change', 'material_added', 'material_removed', 'cost_updated', 'comment_added'
   details TEXT,
-  metadata JSONB DEFAULT '{}', -- Store extra data like old_status, new_status, material_name, quantity
+  metadata JSONB DEFAULT '{}', -- Store extra data like old_status, new_status, material_name, quantity, labor_cost
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
