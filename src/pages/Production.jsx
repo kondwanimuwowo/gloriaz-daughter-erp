@@ -398,7 +398,7 @@ const Production = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-gray-900">Delete Production Batch?</h3>
-                                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                                    <p className="text-sm text-gray-500">Item will be moved to recycle bin</p>
                                 </div>
                             </div>
                             <p className="text-gray-700 mb-6">

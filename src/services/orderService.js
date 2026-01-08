@@ -23,7 +23,8 @@ export const orderService = {
         )
       `
       )
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .is("deleted_at", null);
 
     if (error) throw error;
     return data;
@@ -263,7 +264,20 @@ export const orderService = {
 
   // Delete order
   async deleteOrder(id) {
-    const { error } = await supabase.from("orders").delete().eq("id", id);
+    const { error } = await supabase
+      .from("orders")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) throw error;
+  },
+
+  // Restore order
+  async restoreOrder(id) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ deleted_at: null })
+      .eq("id", id);
 
     if (error) throw error;
   },
@@ -283,6 +297,7 @@ export const orderService = {
       `
       )
       .eq("status", status)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -295,6 +310,7 @@ export const orderService = {
       .from("orders")
       .select("*")
       .eq("customer_id", customerId)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -318,6 +334,7 @@ export const orderService = {
       .or(
         `order_number.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`
       )
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -548,6 +565,7 @@ export const orderService = {
       .not("due_date", "is", null)
       .lte("due_date", futureString)
       .gte("due_date", todayString)
+      .is("deleted_at", null)
       .in("status", ["production", "fitting"])
       .order("due_date", { ascending: true });
 
@@ -567,9 +585,15 @@ export const orderService = {
       )
       .gt("balance", 0)
       .not("status", "in", "('cancelled')")
+      .is("deleted_at", null)
       .order("due_date", { ascending: true });
 
     if (error) throw error;
     return data;
+  },
+  // Permanent Delete (Hard Delete)
+  async permanentDeleteOrder(id) {
+    const { error } = await supabase.from("orders").delete().eq("id", id);
+    if (error) throw error;
   },
 };

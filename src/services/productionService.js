@@ -226,6 +226,7 @@ export const productionService = {
           materials:production_materials(count)
         `
                 )
+                .is("deleted_at", null)
                 .order("created_at", { ascending: false });
 
             if (error) throw error;
@@ -358,5 +359,28 @@ export const productionService = {
         } catch (error) {
             console.error("Error adding finished goods to inventory:", error);
         }
+    },
+
+    // Soft Delete Batch
+    async deleteBatch(id) {
+        const { error } = await supabase
+            .from("production_batches")
+            .update({ deleted_at: new Date().toISOString() })
+            .eq("id", id);
+        if (error) throw error;
+    },
+
+    // Restore Batch
+    async restoreBatch(id) {
+        const { error } = await supabase
+            .from("production_batches")
+            .update({ deleted_at: null })
+            .eq("id", id);
+        if (error) throw error;
+    },
+    // Permanent Delete (Hard Delete)
+    async permanentDeleteBatch(id) {
+        const { error } = await supabase.from("production_batches").delete().eq("id", id);
+        if (error) throw error;
     },
 };

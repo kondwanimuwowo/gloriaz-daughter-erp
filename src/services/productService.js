@@ -7,6 +7,7 @@ export const productService = {
       .from("products")
       .select("*")
       .eq("active", true)
+      .is("deleted_at", null)
       .order("name");
 
     if (error) throw error;
@@ -22,6 +23,32 @@ export const productService = {
       .single();
 
     if (error) throw error;
+    if (error) throw error;
     return data;
+  },
+
+  // Soft delete product
+  async deleteProduct(id) {
+    const { error } = await supabase
+      .from("products")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) throw error;
+  },
+
+  // Restore product
+  async restoreProduct(id) {
+    const { error } = await supabase
+      .from("products")
+      .update({ deleted_at: null })
+      .eq("id", id);
+
+    if (error) throw error;
+  },
+  // Permanent Delete (Hard Delete)
+  async permanentDeleteProduct(id) {
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) throw error;
   },
 };

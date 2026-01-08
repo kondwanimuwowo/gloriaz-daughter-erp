@@ -12,6 +12,7 @@ import {
   HelpCircle,
   Shirt,
   Settings,
+  Trash2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -85,6 +86,12 @@ export default function Sidebar() {
       path: "/settings",
       icon: Settings,
       label: "Settings",
+      roles: ["admin", "manager"],
+    },
+    {
+      path: "/recycle-bin",
+      icon: Trash2,
+      label: "Recycle Bin",
       roles: ["admin", "manager"],
     },
   ];

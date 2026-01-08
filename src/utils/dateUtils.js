@@ -4,13 +4,19 @@
  */
 
 export const getZambianDate = (date = new Date()) => {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+
+  // Validate date is valid
+  if (isNaN(d.getTime())) return "Invalid Date";
+
   // Zambia is GMT+2 (Central Africa Time)
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Africa/Harare",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).formatToParts(date);
+  }).formatToParts(d);
 
   const part = (type) => parts.find((p) => p.type === type).value;
   return `${part("year")}-${part("month")}-${part("day")}`;

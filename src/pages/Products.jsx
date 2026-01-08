@@ -472,7 +472,7 @@ const Products = () => {
                         <DialogTitle>Delete Product?</DialogTitle>
                     </DialogHeader>
                     <p className="text-slate-600">
-                        Are you sure you want to delete this product? This action cannot be undone.
+                        Are you sure you want to delete this product? It will be moved to the recycle bin.
                     </p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>

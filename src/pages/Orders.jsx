@@ -253,7 +253,7 @@ export default function Orders() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)} className="text-destructive">
                   <span className="flex items-center gap-2">
-                    🗑️ Permanently delete this order
+                    🗑️ Delete this order
                   </span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

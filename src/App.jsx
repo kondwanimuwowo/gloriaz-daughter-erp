@@ -26,6 +26,7 @@ import Manual from "./pages/Manual"; // NEW
 import Products from "./pages/Products"; // NEW
 import Notifications from "./pages/Notifications"; // NEW
 import Settings from "./pages/Settings"; // NEW
+import RecycleBin from "./pages/RecycleBin"; // NEW
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -162,6 +163,14 @@ function App() {
                 element={
                   <ProtectedRoute requiredRoles={["admin", "manager"]}>
                     <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="recycle-bin"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "manager"]}>
+                    <RecycleBin />
                   </ProtectedRoute>
                 }
               />

@@ -6,7 +6,8 @@ export const customerService = {
     const { data, error } = await supabase
       .from("customers")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .is("deleted_at", null);
 
     if (error) throw error;
     return data;
@@ -75,7 +76,20 @@ export const customerService = {
 
   // Delete customer
   async deleteCustomer(id) {
-    const { error } = await supabase.from("customers").delete().eq("id", id);
+    const { error } = await supabase
+      .from("customers")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) throw error;
+  },
+
+  // Restore customer
+  async restoreCustomer(id) {
+    const { error } = await supabase
+      .from("customers")
+      .update({ deleted_at: null })
+      .eq("id", id);
 
     if (error) throw error;
   },
@@ -101,6 +115,7 @@ export const customerService = {
       .or(
         `name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`
       )
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -129,5 +144,10 @@ export const customerService = {
     };
 
     return stats;
+  },
+  // Permanent Delete (Hard Delete)
+  async permanentDeleteCustomer(id) {
+    const { error } = await supabase.from("customers").delete().eq("id", id);
+    if (error) throw error;
   },
 };
