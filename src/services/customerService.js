@@ -116,7 +116,7 @@ export const customerService = {
   async getCustomerStats(customerId) {
     const { data: orders } = await supabase
       .from("orders")
-      .select("total_amount, status, created_at")
+      .select("total_cost, status, created_at")
       .eq("customer_id", customerId);
 
     if (!orders) return null;
@@ -124,7 +124,7 @@ export const customerService = {
     const stats = {
       totalOrders: orders.length,
       totalSpent: orders.reduce(
-        (sum, o) => sum + parseFloat(o.total_amount || 0),
+        (sum, o) => sum + parseFloat(o.total_cost || 0),
         0
       ),
       completedOrders: orders.filter((o) => o.status === "delivered").length,
