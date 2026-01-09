@@ -117,7 +117,8 @@ export default function Customers() {
       setViewingCustomer(fullCustomer);
       setCustomerStats(stats);
     } catch (error) {
-      toast.error("Failed to load customer details");
+      console.error("Error loading customer details:", error);
+      toast.error(`Failed to load customer details: ${error.message}`);
     } finally {
       setLoadingDetails(false);
     }
@@ -269,7 +270,7 @@ export default function Customers() {
           data={customers}
           filterColumn="name"
           searchPlaceholder="Filter customers..."
-          onRowClick={(row) => handleViewCustomer(row.original)}
+          onRowClick={(customer) => handleViewCustomer(customer)}
         />
       </Card>
 

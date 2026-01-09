@@ -32,7 +32,10 @@ export const customerService = {
       .eq("id", id)
       .single();
 
-    if (customerError) throw customerError;
+    if (customerError) {
+      console.error('Error fetching customer profile:', customerError);
+      throw customerError;
+    }
 
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
@@ -40,7 +43,10 @@ export const customerService = {
       .eq("customer_id", id)
       .order("created_at", { ascending: false });
 
-    if (ordersError) throw ordersError;
+    if (ordersError) {
+      console.error('Error fetching customer orders:', ordersError);
+      throw ordersError;
+    }
 
     return {
       ...customer,
