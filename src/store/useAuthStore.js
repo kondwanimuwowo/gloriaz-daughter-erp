@@ -20,16 +20,18 @@ export const useAuthStore = create((set, get) => ({
   // Refresh session
   refreshSession: async () => {
     try {
+      console.log("[Auth] Manually refreshing session...");
       const { data, error } = await supabase.auth.refreshSession();
       if (error) throw error;
       if (data.session) {
         set({ session: data.session });
-        console.log("Session refreshed successfully");
+        console.log("[Auth] Session refreshed successfully");
+      } else {
+        console.warn("[Auth] refreshSession returned no session");
       }
     } catch (error) {
-      console.error("Session refresh error:", error);
-      // If refresh fails, sign out
-      await get().signOut();
+      console.error("[Auth] Session refresh error:", error);
+      // DO NOT call signOut() here immediately; let onAuthStateChange handle it if it's a real failure
     }
   },
 
@@ -37,27 +39,37 @@ export const useAuthStore = create((set, get) => ({
   validateSession: async () => {
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) throw error;
+      if (error) {
+        console.error("[Auth] getSession error in validateSession:", error);
+        return false;
+      }
 
       if (!session) {
-        console.warn("No active session found");
-        await get().signOut();
+        console.warn("[Auth] No active session found during validation check");
+        // Check if we already have a user; if so, maybe it's clearing?
+        if (get().user) {
+          console.warn("[Auth] Session disappeared unexpectedly!");
+          // We don't call signOut() immediately to avoid kicking users on transient nulls
+          // The onAuthStateChange listener will handle real sign-outs
+        }
         return false;
       }
 
       // Check if session is about to expire (within 5 minutes)
-      const expiresAt = session.expires_at * 1000; // Convert to milliseconds
+      const expiresAt = session.expires_at * 1000;
       const now = Date.now();
       const timeUntilExpiry = expiresAt - now;
+      
+      console.log(`[Auth] Session valid. Expires in ${Math.round(timeUntilExpiry / 1000 / 60)} mins`);
 
       if (timeUntilExpiry < 5 * 60 * 1000) {
-        console.log("Session expiring soon, refreshing...");
+        console.log("[Auth] Session expiring soon, triggering refresh...");
         await get().refreshSession();
       }
 
       return true;
     } catch (error) {
-      console.error("Session validation error:", error);
+      console.error("[Auth] Session validation error:", error);
       return false;
     }
   },
@@ -97,6 +109,7 @@ export const useAuthStore = create((set, get) => ({
         });
 
         // Start periodic session refresh every 5 minutes
+        if (get().refreshInterval) clearInterval(get().refreshInterval);
         const refreshInterval = setInterval(() => {
           get().validateSession();
         }, 5 * 60 * 1000);
@@ -187,6 +200,7 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Welcome back!");
 
       // Start session validation interval
+      if (get().refreshInterval) clearInterval(get().refreshInterval);
       const refreshInterval = setInterval(() => {
         get().validateSession();
       }, 5 * 60 * 1000);
