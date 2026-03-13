@@ -1,9 +1,10 @@
 import { supabase } from "../lib/supabase";
 import { inventoryService } from "./inventoryService";
+import { notificationService } from "./notificationService";
 import { getZambianDate } from "../utils/dateUtils";
 
 export const orderService = {
-  // Get all orders
+  // Get all orders (excludes soft-deleted)
   async getAllOrders() {
     const { data, error } = await supabase
       .from("orders")
@@ -23,6 +24,7 @@ export const orderService = {
         )
       `
       )
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -261,9 +263,12 @@ export const orderService = {
     return data;
   },
 
-  // Delete order
+  // Soft-delete order
   async deleteOrder(id) {
-    const { error } = await supabase.from("orders").delete().eq("id", id);
+    const { error } = await supabase
+      .from("orders")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
 
     if (error) throw error;
   },
@@ -282,6 +287,7 @@ export const orderService = {
         )
       `
       )
+      .is("deleted_at", null)
       .eq("status", status)
       .order("created_at", { ascending: false });
 
@@ -294,6 +300,7 @@ export const orderService = {
     const { data, error } = await supabase
       .from("orders")
       .select("*")
+      .is("deleted_at", null)
       .eq("customer_id", customerId)
       .order("created_at", { ascending: false });
 
@@ -315,6 +322,7 @@ export const orderService = {
         )
       `
       )
+      .is("deleted_at", null)
       .or(
         `order_number.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`
       )
@@ -328,7 +336,8 @@ export const orderService = {
   async getOrderStats() {
     const { data: orders } = await supabase
       .from("orders")
-      .select("status, total_cost, created_at");
+      .select("status, total_cost, created_at")
+      .is("deleted_at", null);
 
     if (!orders) return null;
 
@@ -368,7 +377,7 @@ export const orderService = {
       *,
       customers (id, name, phone),
       employees:assigned_tailor_id (id, name, role)
-    `);
+    `).is("deleted_at", null);
 
     if (filters.startDate) {
       query = query.gte("order_date", filters.startDate);

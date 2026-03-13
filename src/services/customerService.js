@@ -1,11 +1,12 @@
 import { supabase } from "../lib/supabase";
 
 export const customerService = {
-  // Get all customers
+  // Get all customers (excludes soft-deleted)
   async getAllCustomers() {
     const { data, error } = await supabase
       .from("customers")
       .select("*")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -79,9 +80,12 @@ export const customerService = {
     return data;
   },
 
-  // Delete customer
+  // Soft-delete customer
   async deleteCustomer(id) {
-    const { error } = await supabase.from("customers").delete().eq("id", id);
+    const { error } = await supabase
+      .from("customers")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
 
     if (error) throw error;
   },
@@ -104,6 +108,7 @@ export const customerService = {
     const { data, error } = await supabase
       .from("customers")
       .select("*")
+      .is("deleted_at", null)
       .or(
         `name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`
       )

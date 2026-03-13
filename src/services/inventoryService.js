@@ -2,11 +2,12 @@ import { supabase } from "../lib/supabase";
 import { notificationService } from "./notificationService";
 
 export const inventoryService = {
-  // Get all materials
+  // Get all materials (excludes soft-deleted)
   async getAllMaterials() {
     const { data, error } = await supabase
       .from("materials")
       .select("*")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -38,11 +39,11 @@ export const inventoryService = {
     return data;
   },
 
-  // Delete a material
+  // Soft-delete a material
   async deleteMaterial(id) {
     const { error } = await supabase
       .from("materials")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id);
 
     if (error) throw error;
@@ -132,6 +133,7 @@ export const inventoryService = {
     const { data: materials, error } = await supabase
       .from("materials")
       .select("*")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -149,6 +151,7 @@ export const inventoryService = {
     const { data, error } = await supabase
       .from("materials")
       .select("*")
+      .is("deleted_at", null)
       .or(
         `name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,supplier.ilike.%${searchTerm}%`
       )
@@ -163,6 +166,7 @@ export const inventoryService = {
     const { data, error } = await supabase
       .from("materials")
       .select("*")
+      .is("deleted_at", null)
       .eq("category", category)
       .order("name");
 
