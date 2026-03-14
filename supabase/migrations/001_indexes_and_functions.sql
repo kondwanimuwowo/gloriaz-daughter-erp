@@ -310,13 +310,17 @@ EXECUTE FUNCTION auto_create_finished_goods();
 -- VIEWS
 -- ============================================
 
--- Raw materials view
-CREATE OR REPLACE VIEW raw_materials AS
+-- Raw materials view (SECURITY INVOKER = respects caller's RLS)
+CREATE OR REPLACE VIEW raw_materials
+WITH (security_invoker = true)
+AS
 SELECT * FROM materials
 WHERE material_type = 'raw_material' AND deleted_at IS NULL;
 
--- Finished products view
-CREATE OR REPLACE VIEW finished_products AS
+-- Finished products view (SECURITY INVOKER = respects caller's RLS)
+CREATE OR REPLACE VIEW finished_products
+WITH (security_invoker = true)
+AS
 SELECT
   m.*,
   p.name AS product_name,
