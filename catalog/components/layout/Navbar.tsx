@@ -5,11 +5,14 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { Modal } from "@/components/ui/Modal";
+import { FittingBookingForm } from "@/components/inquiry/FittingBookingForm";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const [isFittingModalOpen, setIsFittingModalOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -69,16 +72,12 @@ export function Navbar() {
               )}
             </Link>
           ))}
-          <Link
-            href="/catalog"
-            onClick={() => handleNavClick("/catalog")}
+          <button
+            onClick={() => setIsFittingModalOpen(true)}
             className="ml-2 text-[11px] font-bold uppercase tracking-[0.2em] bg-foreground text-background px-8 py-3 hover:bg-foreground/90 transition-all duration-300 flex items-center gap-2"
           >
             Book Fitting
-            {navigatingTo === "/catalog" && (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            )}
-          </Link>
+          </button>
         </nav>
 
         {/* Mobile Toggle */}
@@ -119,20 +118,30 @@ export function Navbar() {
                   )}
                 </Link>
               ))}
-              <Link
-                href="/catalog"
+              <button
                 onClick={() => {
                   setIsOpen(false);
-                  handleNavClick("/catalog");
+                  setIsFittingModalOpen(true);
                 }}
                 className="mt-2 text-sm font-medium uppercase tracking-[0.15em] border border-foreground px-8 py-3 text-foreground hover:bg-foreground hover:text-background transition-all duration-300"
               >
                 Book Fitting
-              </Link>
+              </button>
             </nav>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Fitting Booking Modal */}
+      <Modal
+        isOpen={isFittingModalOpen}
+        onClose={() => setIsFittingModalOpen(false)}
+        title="Book a Fitting Appointment"
+      >
+        <FittingBookingForm
+          onSuccess={() => setIsFittingModalOpen(false)}
+        />
+      </Modal>
     </header>
   );
 }

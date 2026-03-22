@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { ProductCard } from "./ProductCard";
 import { Input } from "@/components/ui/Input";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Sliders } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface CatalogViewProps {
@@ -17,6 +17,7 @@ export function CatalogView({ products, finishedGoods, categories }: CatalogView
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [activeType, setActiveType] = useState<"all" | "custom" | "rtw">("all");
   const [sortBy, setSortBy] = useState<"newest" | "price-asc" | "price-desc">("newest");
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
     let items: any[] = [];
@@ -72,43 +73,94 @@ export function CatalogView({ products, finishedGoods, categories }: CatalogView
     </button>
   );
 
+  const filterContent = (
+    <div className="space-y-10">
+      <div className="space-y-4">
+        <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground">Search</h3>
+        <div className="relative">
+          <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search products..."
+            className="pl-6 text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground">Collection</h3>
+        <div className="flex flex-col gap-1">
+          {filterButton("All Collections", activeType === "all", () => setActiveType("all"))}
+          {filterButton("Bespoke / Custom", activeType === "custom", () => setActiveType("custom"))}
+          {filterButton("Ready to Wear", activeType === "rtw", () => setActiveType("rtw"))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground">Category</h3>
+        <div className="flex flex-col gap-1">
+          {filterButton("All Categories", activeCategory === "All", () => setActiveCategory("All"))}
+          {categories.map(category => (
+            <span key={category}>
+              {filterButton(category, activeCategory === category, () => setActiveCategory(category))}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col md:flex-row gap-12">
-      {/* Sidebar Filters */}
-      <aside className="w-full md:w-56 shrink-0 md:sticky md:top-32 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar space-y-10 pr-2">
-        <div className="space-y-4">
-          <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground">Search</h3>
-          <div className="relative">
-            <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Search products..."
-              className="pl-6 text-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
+      {/* Mobile Filter Button */}
+      <button
+        onClick={() => setIsMobileFilterOpen(true)}
+        className="md:hidden flex items-center gap-2 text-sm font-medium uppercase tracking-[0.15em] border border-foreground px-4 py-3 text-foreground hover:bg-foreground hover:text-background transition-all duration-300 w-fit"
+      >
+        <Sliders className="h-4 w-4" />
+        Filters
+      </button>
 
-        <div className="space-y-3">
-          <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground">Collection</h3>
-          <div className="flex flex-col gap-1">
-            {filterButton("All Collections", activeType === "all", () => setActiveType("all"))}
-            {filterButton("Bespoke / Custom", activeType === "custom", () => setActiveType("custom"))}
-            {filterButton("Ready to Wear", activeType === "rtw", () => setActiveType("rtw"))}
-          </div>
-        </div>
+      {/* Mobile Filter Modal */}
+      <AnimatePresence>
+        {isMobileFilterOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            onClick={() => setIsMobileFilterOpen(false)}
+          >
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute bottom-0 inset-x-0 z-50 bg-background rounded-t-lg max-h-[80vh] overflow-y-auto custom-scrollbar"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
+                <h2 className="text-sm font-medium uppercase tracking-[0.15em]">Filters</h2>
+                <button
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="px-6 py-6">
+                {filterContent}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <div className="space-y-3">
-          <h3 className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground">Category</h3>
-          <div className="flex flex-col gap-1">
-            {filterButton("All Categories", activeCategory === "All", () => setActiveCategory("All"))}
-            {categories.map(category => (
-              <span key={category}>
-                {filterButton(category, activeCategory === category, () => setActiveCategory(category))}
-              </span>
-            ))}
-          </div>
-        </div>
+      {/* Sidebar Filters - Desktop Only */}
+      <aside className="hidden md:flex w-56 shrink-0 sticky top-32 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar space-y-10 pr-2 flex-col">
+        {filterContent}
       </aside>
 
       {/* Main Content */}
