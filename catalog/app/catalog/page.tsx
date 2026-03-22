@@ -1,29 +1,38 @@
-import { getProducts, getFinishedGoods, getCategories } from "@/services/catalogService";
+import { getCustomDesigns, getFinishedGoods, getCategories } from "@/services/catalogService";
 import { CatalogView } from "@/components/catalog/CatalogView";
 
-export const revalidate = 60; // Revalidate every minute
+export const revalidate = 60;
 
 export default async function CatalogPage() {
   const [products, finishedGoods, categories] = await Promise.all([
-    getProducts(),
+    getCustomDesigns(),
     getFinishedGoods(),
-    getCategories()
+    getCategories(),
   ]);
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12">
-      <div className="mb-12 text-center max-w-3xl mx-auto space-y-4">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold">Our Collection</h1>
-        <p className="text-muted-foreground text-lg">
-          Explore our exquisite range of bespoke designs and ready-to-wear garments, crafted with precision and passion.
-        </p>
-      </div>
-      
-      <CatalogView 
-        products={products || []} 
-        finishedGoods={finishedGoods || []} 
-        categories={categories || []} 
-      />
+    <div className="flex flex-col">
+      {/* Header */}
+      <section className="pt-32 pb-8 md:pt-40 md:pb-12 bg-background">
+        <div className="container mx-auto px-6 md:px-8">
+          <p className="text-xs font-medium uppercase tracking-[0.3em] text-primary mb-3">
+            Explore
+          </p>
+          <h1 className="text-4xl md:text-5xl font-serif font-light tracking-tight">Our Collection</h1>
+          <div className="w-12 h-px bg-primary mt-6" />
+        </div>
+      </section>
+
+      {/* Catalog */}
+      <section className="pb-24 md:pb-32 bg-background">
+        <div className="container mx-auto px-6 md:px-8">
+          <CatalogView
+            products={products || []}
+            finishedGoods={finishedGoods || []}
+            categories={categories || []}
+          />
+        </div>
+      </section>
     </div>
   );
 }
