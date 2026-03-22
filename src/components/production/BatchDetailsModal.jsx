@@ -426,12 +426,12 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
 
     const getStageIcon = (stage) => {
         switch (stage) {
-            case "cutting": return "✂️";
-            case "stitching": return "🧵";
-            case "finishing": return "✨";
-            case "quality_check": return "🔍";
-            case "completed": return "✅";
-            default: return "📦";
+            case "cutting": return "";
+            case "stitching": return "";
+            case "finishing": return "";
+            case "quality_check": return "";
+            case "completed": return "";
+            default: return "";
         }
     };
 
@@ -451,10 +451,10 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0">
-                <DialogHeader className="p-6 pb-4 border-b">
+                <DialogHeader className="p-5 pb-4 border-b border-border">
                     <div className="flex items-start justify-between">
                         <div>
-                            <DialogTitle className="text-2xl font-bold">
+                            <DialogTitle className="text-lg font-bold">
                                 {batch.product?.name || "Production Batch"}
                             </DialogTitle>
                             <DialogDescription className="text-sm text-muted-foreground mt-1">
@@ -473,7 +473,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                     {efficiency.status === 'delayed' ? 'Severely Delayed' :
                                         efficiency.status === 'slow' ? 'Running Slow' : 'On Track'}
                                 </Badge>
-                                <span className="text-[10px] text-slate-400 font-mono uppercase tracking-tighter">
+                                <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
                                     {efficiency.current.toFixed(1)}h / {efficiency.average ? `${efficiency.average.toFixed(1)}h avg` : '--'}
                                 </span>
                             </div>
@@ -488,13 +488,13 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                     ? "bg-primary text-primary-foreground font-semibold"
                                     : index < currentStageIndex
                                         ? "bg-green-100 text-green-700"
-                                        : "bg-gray-100 text-gray-400"
+                                        : "bg-muted text-muted-foreground"
                                     }`}>
                                     <span>{getStageIcon(stage)}</span>
                                     <span className="text-sm whitespace-nowrap">{getStageLabel(stage)}</span>
                                 </div>
                                 {index < stages.length - 1 && (
-                                    <div className={`h-0.5 w-8 ${index < currentStageIndex ? "bg-green-500" : "bg-gray-300"}`} />
+                                    <div className={`h-0.5 w-8 ${index < currentStageIndex ? "bg-green-500" : "bg-border"}`} />
                                 )}
                             </React.Fragment>
                         ))}
@@ -521,8 +521,8 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                         <TabsContent value="timeline" className="mt-4 space-y-4">
                             {/* Add Comment Section */}
                             {batch.status !== "completed" && (
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                                <div className="bg-muted/30 border border-border rounded-lg p-4">
+                                    <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
                                         <Clock size={16} />
                                         Add Note for Current Stage ({getStageLabel(batch.status)})
                                     </h3>
@@ -553,7 +553,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                         const isCompletion = log.action === "stage_completed";
 
                                         return (
-                                            <div key={log.id} className={`flex gap-3 p-3 rounded-lg border ${isCompletion ? "bg-green-50 border-green-200" : "bg-gray-50"
+                                            <div key={log.id} className={`flex gap-3 p-3 rounded-lg border ${isCompletion ? "bg-green-50 border-green-200" : "bg-muted/30"
                                                 }`}>
                                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isCompletion ? "bg-green-100" :
                                                     isStageEvent ? "bg-blue-100" :
@@ -570,11 +570,11 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className={`text-sm font-medium ${isCompletion ? "text-green-900" : "text-gray-900"
+                                                    <p className={`text-sm font-medium ${isCompletion ? "text-green-900" : "text-foreground"
                                                         }`}>
                                                         {log.details}
                                                     </p>
-                                                    <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                                                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                                                         {log.user?.full_name && (
                                                             <>
                                                                 <User size={12} />
@@ -593,8 +593,8 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                     })}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 text-gray-500">
-                                    <Clock className="mx-auto mb-3 text-gray-300" size={48} />
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <Clock className="mx-auto mb-3 text-muted-foreground" size={32} />
                                     <p>No activity logged yet</p>
                                     <p className="text-sm mt-1">Actions will appear here as the batch progresses</p>
                                 </div>
@@ -603,8 +603,8 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
 
                         <TabsContent value="materials" className="mt-4 space-y-4">
                             {/* Add Material Section */}
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                            <div className="bg-muted/30 border border-border rounded-lg p-4">
+                                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                                     <Plus size={18} />
                                     Add Materials
                                 </h3>
@@ -614,7 +614,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                         <select
                                             value={selectedMaterial}
                                             onChange={(e) => setSelectedMaterial(e.target.value)}
-                                            className="w-full mt-1 px-3 py-2 border rounded-lg"
+                                            className="w-full mt-1 px-3 py-2 border border-input rounded-lg bg-background"
                                             disabled={loading}
                                         >
                                             <option value="">Select material...</option>
@@ -651,10 +651,10 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                 {materials.length > 0 ? (
                                     <div className="space-y-2">
                                         {materials.map((m) => (
-                                            <div key={m.id} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                                            <div key={m.id} className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
                                                 <div className="flex-1">
                                                     <p className="font-medium">{m.material?.name}</p>
-                                                    <p className="text-sm text-gray-500">
+                                                    <p className="text-sm text-muted-foreground">
                                                         {m.quantity_used} {m.material?.unit} × K{parseFloat(m.material?.cost_per_unit || 0).toFixed(2)}
                                                     </p>
                                                 </div>
@@ -665,7 +665,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                                         size="sm"
                                                         onClick={() => removeMaterial(m)}
                                                         disabled={loading}
-                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
                                                     >
                                                         <Trash2 size={16} />
                                                     </Button>
@@ -674,24 +674,24 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-8 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                        <AlertTriangle className="mx-auto mb-2 text-yellow-600" size={32} />
-                                        <p className="font-medium text-yellow-900">No materials added yet</p>
-                                        <p className="text-sm text-yellow-700 mt-1">Production cannot start without materials</p>
+                                    <div className="text-center py-8 bg-muted/30 border border-border rounded-lg">
+                                        <AlertTriangle className="mx-auto mb-2 text-muted-foreground" size={32} />
+                                        <p className="font-medium text-foreground">No materials added yet</p>
+                                        <p className="text-sm text-muted-foreground mt-1">Production cannot start without materials</p>
                                     </div>
                                 )}
                             </div>
 
                             {/* Cost Summary */}
-                            <div className="bg-gray-50 border rounded-lg p-4">
+                            <div className="bg-muted/30 border border-border rounded-lg p-4">
                                 <h3 className="font-semibold mb-3">Cost Summary</h3>
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Materials:</span>
+                                        <span className="text-muted-foreground">Materials:</span>
                                         <span className="font-medium">K{totalMaterialCost.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm items-center">
-                                        <span className="text-gray-600">Labor (Est.):</span>
+                                        <span className="text-muted-foreground">Labor (Est.):</span>
                                         {isEditingLabor ? (
                                             <div className="flex items-center gap-2">
                                                 <Input
@@ -701,11 +701,11 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                                     className="w-24 h-8 text-right"
                                                     min="0"
                                                 />
-                                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={handleUpdateLaborCost}>
-                                                    <Save size={14} className="text-green-600" />
+                                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-600 hover:text-green-700 dark:text-green-400" onClick={handleUpdateLaborCost}>
+                                                    <Save size={14} />
                                                 </Button>
-                                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setIsEditingLabor(false)}>
-                                                    <X size={14} className="text-red-500" />
+                                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 dark:text-red-400" onClick={() => setIsEditingLabor(false)}>
+                                                    <X size={14} />
                                                 </Button>
                                             </div>
                                         ) : (
@@ -714,7 +714,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    className="h-6 w-6 p-0 text-gray-400 hover:text-primary"
+                                                    className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
                                                     onClick={() => {
                                                         setTempLaborCost(estimatedLaborCost);
                                                         setIsEditingLabor(true);
@@ -727,9 +727,9 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                     </div>
                                     <div className="border-t pt-2 flex justify-between items-end">
                                         <div>
-                                            <span className="text-gray-600 text-sm">Profit Margin:</span>
-                                            <div className={`text-xl font-bold ${(1 - (totalCost / (batch.product?.base_price || totalCost))) > 0.3 ? "text-green-600" :
-                                                    (1 - (totalCost / (batch.product?.base_price || totalCost))) > 0.1 ? "text-yellow-600" : "text-red-600"
+                                            <span className="text-muted-foreground text-sm">Profit Margin:</span>
+                                            <div className={`text-xl font-bold ${(1 - (totalCost / (batch.product?.base_price || totalCost))) > 0.3 ? "text-green-600 dark:text-green-400" :
+                                                    (1 - (totalCost / (batch.product?.base_price || totalCost))) > 0.1 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400"
                                                 }`}>
                                                 {batch.product?.base_price
                                                     ? `${((1 - (totalCost / batch.product.base_price)) * 100).toFixed(1)}%`
@@ -737,7 +737,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <span className="text-gray-600 text-sm font-bold">Total Production Cost:</span>
+                                            <span className="text-muted-foreground text-sm font-bold">Total Production Cost:</span>
                                             <div className="text-2xl font-bold text-primary">K{totalCost.toFixed(2)}</div>
                                         </div>
                                     </div>
@@ -754,15 +754,15 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                                     defaultValue={batch.notes || ""}
                                 />
                             </div>
-                            <div className="bg-gray-50 border rounded-lg p-4">
+                            <div className="bg-muted/30 border border-border rounded-lg p-4">
                                 <h3 className="font-semibold mb-2">Batch Information</h3>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div>
-                                        <span className="text-gray-600">Started:</span>
+                                        <span className="text-muted-foreground">Started:</span>
                                         <p className="font-medium">{batch.started_at ? format(new Date(batch.started_at), "MMM d, yyyy") : "Not started"}</p>
                                     </div>
                                     <div>
-                                        <span className="text-gray-600">Completed:</span>
+                                        <span className="text-muted-foreground">Completed:</span>
                                         <p className="font-medium">{batch.completed_at ? format(new Date(batch.completed_at), "MMM d, yyyy") : "In progress"}</p>
                                     </div>
                                 </div>
@@ -771,7 +771,7 @@ const BatchDetailsModal = ({ isOpen, onClose, batch, onStatusUpdate }) => {
                     </div>
                 </Tabs>
 
-                <div className="border-t p-4 flex justify-between items-center bg-gray-50">
+                <div className="border-t border-border p-4 flex justify-between items-center bg-muted/30">
                     <Button variant="outline" onClick={onClose}>
                         Close
                     </Button>

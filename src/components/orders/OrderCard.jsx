@@ -30,15 +30,15 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -4 }}
-      className="bg-card rounded-xl shadow-sm border border-border p-5 hover:shadow-md transition-all duration-200"
+      className="bg-card rounded-lg shadow-sm border border-border p-4 hover:shadow-md transition-all duration-200"
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="font-bold text-lg text-foreground">
+          <h3 className="font-bold text-sm text-foreground">
             {order.order_number}
           </h3>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-0.5">
             {format(new Date(order.order_date), "MMM dd, yyyy")}
           </p>
         </div>
@@ -62,16 +62,16 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
       </div>
 
       {/* Customer Info */}
-      <div className="space-y-2 mb-4 pb-4 border-b border-border">
-        <div className="flex items-center gap-2 text-sm">
-          <User size={16} className="text-muted-foreground" />
+      <div className="space-y-1.5 mb-3 pb-3 border-b border-border">
+        <div className="flex items-center gap-2 text-xs">
+          <User size={14} className="text-muted-foreground flex-shrink-0" />
           <span className="text-foreground font-medium">
             {order.customers?.name || "N/A"}
           </span>
         </div>
         {order.customers?.phone && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="ml-6">{order.customers.phone}</span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="ml-5">{order.customers.phone}</span>
           </div>
         )}
       </div>
@@ -87,7 +87,7 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
         <div>
           <p className="text-xs text-muted-foreground mb-1">Balance</p>
           <p
-            className={`font-bold ${order.balance > 0 ? "text-red-600" : "text-green-600"}`}
+            className={`font-bold ${order.balance > 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}
           >
             K{parseFloat(order.balance).toFixed(2)}
           </p>
@@ -96,15 +96,15 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
 
       {/* Due Date */}
       {order.due_date && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <Calendar size={16} className="text-muted-foreground" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+          <Calendar size={14} className="text-muted-foreground flex-shrink-0" />
           <span>Due: {format(new Date(order.due_date), "MMM dd, yyyy")}</span>
         </div>
       )}
 
       {/* Description */}
       {order.description && (
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
           {order.description}
         </p>
       )}
@@ -114,24 +114,24 @@ export default function OrderCard({ order, onView, onEdit, onDelete }) {
         <Button
           variant="ghost"
           onClick={() => onView(order)}
-          className="flex-1 text-primary hover:bg-primary/10"
+          className="flex-1 text-primary hover:bg-primary/10 text-sm h-8"
         >
-          <Eye className="mr-2 h-4 w-4" />
+          <Eye className="mr-2 h-3.5 w-3.5" />
           View
         </Button>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => onEdit(order)}
-          className="text-blue-600 hover:bg-blue-50"
+          className="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
         >
           <Edit className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => onDelete(order.id)}
-          className="text-red-600 hover:bg-red-50"
+          className="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

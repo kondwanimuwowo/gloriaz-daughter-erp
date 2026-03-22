@@ -29,43 +29,40 @@ export default function StatsCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className="h-full"
+      transition={{ delay, duration: 0.2 }}
+      className="h-full flex-1 min-w-[250px]"
     >
-      <Card className="hover:shadow-md transition-all duration-200 h-full relative overflow-hidden">
-        <CardContent className="p-6">
+      <Card className="hover:shadow-md transition-shadow duration-200 h-full relative overflow-hidden">
+        <CardContent className="p-4">
           <div className="flex flex-col h-full">
-            <p className="text-sm text-muted-foreground mb-1 font-medium">{title}</p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-foreground mb-1">{value}</p>
-            </div>
-            {subtitle && <p className="text-xs text-muted-foreground mt-auto">{subtitle}</p>}
+            <p className="text-xs text-muted-foreground mb-0.5 font-medium">{title}</p>
+            <p className="text-2xl font-bold text-foreground">{value}</p>
+            {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
             {trend && (
               <div
-                className={`flex items-center gap-1 mt-2 text-xs font-medium ${
-                  parseFloat(trend) >= 0 ? "text-green-600" : "text-red-600"
+                className={`flex items-center gap-1 mt-1.5 text-xs font-medium ${
+                  parseFloat(trend) >= 0 ? "text-emerald-600" : "text-red-600"
                 }`}
               >
                 {parseFloat(trend) >= 0 ? (
-                  <TrendingUp size={14} />
+                  <TrendingUp size={12} />
                 ) : (
-                  <TrendingDown size={14} />
+                  <TrendingDown size={12} />
                 )}
                 <span>{Math.abs(parseFloat(trend))}% vs last month</span>
               </div>
             )}
           </div>
           <div className={cn(
-            "absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center",
+            "absolute top-3.5 right-3.5 w-9 h-9 rounded-lg flex items-center justify-center",
             iconClasses
           )}>
-            <Icon size={20} />
+            <Icon size={16} />
           </div>
         </CardContent>
       </Card>
     </motion.div>
   );
 }
-

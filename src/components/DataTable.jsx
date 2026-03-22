@@ -33,17 +33,17 @@ import { EmptyState } from "@/components/ui/EmptyState"
 function TableSkeleton({ columns }) {
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 px-6 gap-2">
-        <Skeleton className="h-9 w-full max-w-sm" />
-        <Skeleton className="h-9 w-24 ml-auto" />
+      <div className="flex items-center py-3 px-4 gap-2">
+        <Skeleton className="h-8 w-full max-w-sm" />
+        <Skeleton className="h-8 w-20 ml-auto" />
       </div>
       <div className="border-t">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {Array.from({ length: columns }).map((_, i) => (
-                <TableHead key={i} className="px-6 h-12">
-                  <Skeleton className="h-4 w-20" />
+                <TableHead key={i}>
+                  <Skeleton className="h-3 w-16" />
                 </TableHead>
               ))}
             </TableRow>
@@ -52,8 +52,8 @@ function TableSkeleton({ columns }) {
             {Array.from({ length: 5 }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {Array.from({ length: columns }).map((_, cellIndex) => (
-                  <TableCell key={cellIndex} className="px-6 py-4">
-                    <Skeleton className="h-4 w-full" />
+                  <TableCell key={cellIndex}>
+                    <Skeleton className="h-3 w-full" />
                   </TableCell>
                 ))}
               </TableRow>
@@ -99,14 +99,13 @@ export function DataTable({
     },
   })
 
-  // Show skeleton while loading
   if (loading) {
     return <TableSkeleton columns={columns.length} />
   }
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 px-6 gap-2">
+      <div className="flex items-center py-3 px-4 gap-2">
         <Input
           placeholder={searchPlaceholder}
           value={(table.getColumn(filterColumn)?.getFilterValue()) ?? ""}
@@ -118,8 +117,8 @@ export function DataTable({
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto" aria-label="Toggle column visibility">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
+            <Button variant="outline" size="sm" className="ml-auto" aria-label="Toggle column visibility">
+              Columns <ChevronDown className="ml-1 h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -130,7 +129,7 @@ export function DataTable({
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
-                    className="capitalize"
+                    className="capitalize text-xs"
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) =>
                       column.toggleVisibility(!!value)
@@ -147,14 +146,14 @@ export function DataTable({
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent px-6">
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="px-6 h-12">
+                    <TableHead key={header.id}>
                       {header.isPlaceholder ? null : (
                         <div
                           className={cn(
-                            "flex items-center gap-2",
+                            "flex items-center gap-1",
                             header.column.getCanSort() && "cursor-pointer select-none"
                           )}
                           onClick={header.column.getToggleSortingHandler()}
@@ -169,13 +168,13 @@ export function DataTable({
                             header.getContext()
                           )}
                           {header.column.getCanSort() && (
-                            <span className="ml-1">
+                            <span className="ml-0.5">
                               {header.column.getIsSorted() === "asc" ? (
-                                <ArrowUp className="h-4 w-4" />
+                                <ArrowUp className="h-3 w-3" />
                               ) : header.column.getIsSorted() === "desc" ? (
-                                <ArrowDown className="h-4 w-4" />
+                                <ArrowDown className="h-3 w-3" />
                               ) : (
-                                <ArrowUpDown className="h-4 w-4 opacity-50" />
+                                <ArrowUpDown className="h-3 w-3 opacity-40" />
                               )}
                             </span>
                           )}
@@ -193,22 +192,21 @@ export function DataTable({
                 {table.getRowModel().rows.map((row, index) => (
                   <motion.tr
                     key={row.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{
-                      duration: 0.2,
-                      delay: index * 0.03,
-                      ease: "easeOut"
+                      duration: 0.15,
+                      delay: index * 0.02,
                     }}
                     data-state={row.getIsSelected() && "selected"}
                     onClick={() => onRowClick && onRowClick(row.original)}
                     className={cn(
-                      "px-6 border-b transition-colors hover:bg-muted/50",
+                      "border-b transition-colors hover:bg-muted/50",
                       onRowClick && "cursor-pointer"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="px-6 py-4">
+                      <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -222,7 +220,7 @@ export function DataTable({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-[400px] text-center"
+                  className="h-[300px] text-center"
                 >
                   <EmptyState.NoResults
                     searchTerm={(table.getColumn(filterColumn)?.getFilterValue()) || ""}
@@ -233,32 +231,29 @@ export function DataTable({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between py-4 px-6 border-t bg-muted/5">
-        <div className="flex-1 text-sm text-muted-foreground flex items-center gap-4">
-          <div className="font-medium">
+      <div className="flex items-center justify-between py-3 px-4 border-t bg-muted/5">
+        <div className="flex-1 text-xs text-muted-foreground flex items-center gap-3">
+          <span className="font-medium">
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}
-          </div>
-          <div className="h-4 w-[1px] bg-border" />
-          <div>
-            Total {table.getFilteredRowModel().rows.length} results
-          </div>
+          </span>
+          <span className="text-border">|</span>
+          <span>{table.getFilteredRowModel().rows.length} results</span>
           {table.getFilteredSelectedRowModel().rows.length > 0 && (
             <>
-              <div className="h-4 w-[1px] bg-border" />
-              <div className="text-primary font-medium">
+              <span className="text-border">|</span>
+              <span className="text-primary font-medium">
                 {table.getFilteredSelectedRowModel().rows.length} selected
-              </div>
+              </span>
             </>
           )}
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="h-8 px-3"
           >
             Previous
           </Button>
@@ -267,7 +262,6 @@ export function DataTable({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="h-8 px-3"
           >
             Next
           </Button>
@@ -276,4 +270,3 @@ export function DataTable({
     </div>
   )
 }
-

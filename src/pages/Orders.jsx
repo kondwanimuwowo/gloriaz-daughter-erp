@@ -6,11 +6,16 @@ import {
   TrendingUp,
   Clock,
   MoreHorizontal,
+  Clipboard,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useOrderStore } from "../store/useOrderStore";
 import { orderService } from "../services/orderService";
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { useQueryRecovery } from "../hooks/useQueryRecovery";
 import { useOrdersRealtime } from "../hooks/useOrdersRealtime";
 
@@ -44,6 +49,7 @@ import {
 
 import CreateOrderForm from "../components/orders/CreateOrderForm";
 import OrderDetailsView from "../components/orders/OrderDetailsView";
+import { inquiryService } from "../services/inquiryService";
 import toast from "react-hot-toast";
 import { useConnectionSync } from "../hooks/useConnectionSync";
 
@@ -85,15 +91,30 @@ export default function Orders() {
 
   const loading = loadingOrders || loadingStats;
 
+  // State from inquiry conversion
+  const [inquiryPrefill, setInquiryPrefill] = useState(null);
+  const [pendingInquiryId, setPendingInquiryId] = useState(null);
+
   // Handle deep linking for specific order
   useEffect(() => {
     if (location.state?.openOrderId && orders.length > 0) {
       const orderToView = orders.find(o => o.id === location.state.openOrderId);
       if (orderToView) {
         handleViewOrder(orderToView);
-        // Clear state to avoid opening on refresh
         navigate(location.pathname, { replace: true, state: {} });
       }
+    }
+
+    // Handle inquiry conversion prefill
+    if (location.state?.openCreateForm) {
+      setShowCreateModal(true);
+      if (location.state.prefillData) {
+        setInquiryPrefill(location.state.prefillData);
+      }
+      if (location.state.inquiryId) {
+        setPendingInquiryId(location.state.inquiryId);
+      }
+      navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, orders]);
 
@@ -120,6 +141,20 @@ export default function Orders() {
             cost: material.cost,
           });
         }
+      }
+
+      // Mark inquiry as converted if this was triggered from an enquiry
+      if (pendingInquiryId && order?.id) {
+        try {
+          await inquiryService.convertToOrder(pendingInquiryId, order.id);
+          queryClient.invalidateQueries({ queryKey: ['inquiries'] });
+          queryClient.invalidateQueries({ queryKey: ['inquiry-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['new-inquiry-count'] });
+        } catch (err) {
+          console.error("Failed to mark inquiry as converted:", err);
+        }
+        setPendingInquiryId(null);
+        setInquiryPrefill(null);
       }
 
       setShowCreateModal(false);
@@ -241,20 +276,17 @@ export default function Orders() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => handleViewOrder(order)}>
-                  <span className="flex items-center gap-2">
-                    📋 View full order details and timeline
-                  </span>
+                  <Clipboard size={14} className="mr-2" />
+                  <span>View full order details and timeline</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleEditOrder(order)}>
-                  <span className="flex items-center gap-2">
-                    ✏️ Edit order information
-                  </span>
+                  <Pencil size={14} className="mr-2" />
+                  <span>Edit order information</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)} className="text-destructive">
-                  <span className="flex items-center gap-2">
-                    🗑️ Permanently delete this order
-                  </span>
+                  <Trash2 size={14} className="mr-2" />
+                  <span>Permanently delete this order</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -266,39 +298,17 @@ export default function Orders() {
   );
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-xl" />
-          ))}
-        </div>
-        <Skeleton className="h-96 w-full rounded-xl" />
-      </div>
-    );
+    return <PageSkeleton layout="table" statsCount={4} />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
-          <p className="text-muted-foreground">
-            Manage customer orders and production workflow.
-          </p>
-        </div>
+    <div className="space-y-5">
+      <PageHeader title="Orders" description="Manage customer orders and production workflow.">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={() => setShowCreateModal(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Create Order
+              <Button size="sm" onClick={() => setShowCreateModal(true)}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> Create Order
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -306,10 +316,10 @@ export default function Orders() {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </div>
+      </PageHeader>
 
       {stats && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="flex flex-wrap gap-3">
           <StatsCard
             title="Total Orders"
             value={stats.total}
@@ -359,7 +369,12 @@ export default function Orders() {
           </DialogHeader>
           <CreateOrderForm
             onSubmit={handleCreateOrder}
-            onCancel={() => setShowCreateModal(false)}
+            onCancel={() => {
+              setShowCreateModal(false);
+              setInquiryPrefill(null);
+              setPendingInquiryId(null);
+            }}
+            prefillData={inquiryPrefill}
           />
         </DialogContent>
       </Dialog>

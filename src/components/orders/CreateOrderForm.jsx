@@ -42,7 +42,7 @@ import { motion } from "framer-motion";
 import { productService } from "../../services/productService";
 import toast from "react-hot-toast";
 
-export default function CreateOrderForm({ order, onSubmit, onCancel }) {
+export default function CreateOrderForm({ order, onSubmit, onCancel, prefillData }) {
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -144,6 +144,29 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
       trigger("total_cost");
     }
   }, [costs.total, trigger, getValues]);
+
+  // Apply prefill data from inquiry conversion
+  useEffect(() => {
+    if (!prefillData || !customers.length) return;
+
+    // Try to find existing customer by phone
+    const matchedCustomer = customers.find(
+      (c) => c.phone === prefillData.customer_phone
+    );
+    if (matchedCustomer) {
+      setValue("customer_id", matchedCustomer.id);
+    }
+
+    // Set product if provided
+    if (prefillData.product_id) {
+      setValue("product_id", prefillData.product_id);
+    }
+
+    // Set special requests as notes
+    if (prefillData.special_requests) {
+      setValue("notes", prefillData.special_requests);
+    }
+  }, [prefillData, customers, products, setValue]);
 
   const fetchCustomers = async () => {
     const { data, error } = await supabase
@@ -367,7 +390,16 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
+      {prefillData && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 flex items-center gap-2">
+          <Info className="h-4 w-4 shrink-0" />
+          <span>
+            Creating order from enquiry by <strong>{prefillData.customer_name}</strong>
+            {prefillData.customer_phone && ` (${prefillData.customer_phone})`}
+          </span>
+        </div>
+      )}
       {/* Order Type Selection */}
       <Card>
         <CardHeader>
@@ -394,7 +426,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
               setOrderType(val);
               setValue("order_type", val);
             }}
-            className="flex gap-6"
+            className="flex gap-4"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="custom" id="custom" />
@@ -545,7 +577,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
               Garment Details
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5">
             {/* Garment Type Selection */}
             <div>
               <Label className="mb-2 flex items-center gap-2">
@@ -584,7 +616,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Due Date */}
               <div>
                 <Label className="mb-2 block">Due Date</Label>
@@ -687,10 +719,10 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
             Order Quantity & Pricing
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-5">
 
           {/* Quantity Input */}
-          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="p-4 bg-muted/30 rounded-lg border border-border">
             <Label className="mb-2 flex items-center gap-2 font-semibold">
               <Package size={16} className="text-primary" />
               Quantity
@@ -779,8 +811,8 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
           {orderType === "custom" && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-3">
-                <DollarSign size={18} className="text-slate-600" />
-                <h3 className="font-semibold text-slate-900">Cost Breakdown</h3>
+                <DollarSign size={18} className="text-muted-foreground" />
+                <h3 className="font-semibold text-foreground">Cost Breakdown</h3>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info size={14} className="text-muted-foreground cursor-help" />
@@ -794,32 +826,32 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
                 </Tooltip>
               </div>
 
-              <div className="bg-slate-50 rounded-lg p-4 space-y-2 border border-slate-200">
+              <div className="bg-muted/30 rounded-lg p-4 space-y-2 border border-border">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Materials</span>
-                  <span className="font-semibold text-slate-900">
+                  <span className="text-muted-foreground">Materials</span>
+                  <span className="font-semibold text-foreground">
                     K{costs.material.toFixed(2)}
-                    {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.material / quantity).toFixed(2)} × {quantity})</span>}
+                    {quantity > 1 && <span className="text-xs text-muted-foreground ml-1">(K{(costs.material / quantity).toFixed(2)} × {quantity})</span>}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Labour</span>
-                  <span className="font-semibold text-slate-900">
+                  <span className="text-muted-foreground">Labour</span>
+                  <span className="font-semibold text-foreground">
                     K{costs.labour.toFixed(2)}
-                    {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.labour / quantity).toFixed(2)} × {quantity})</span>}
+                    {quantity > 1 && <span className="text-xs text-muted-foreground ml-1">(K{(costs.labour / quantity).toFixed(2)} × {quantity})</span>}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Overhead</span>
-                  <span className="font-semibold text-slate-900">
+                  <span className="text-muted-foreground">Overhead</span>
+                  <span className="font-semibold text-foreground">
                     K{costs.overhead.toFixed(2)}
-                    {quantity > 1 && <span className="text-xs text-slate-500 ml-1">(K{(costs.overhead / quantity).toFixed(2)} × {quantity})</span>}
+                    {quantity > 1 && <span className="text-xs text-muted-foreground ml-1">(K{(costs.overhead / quantity).toFixed(2)} × {quantity})</span>}
                   </span>
                 </div>
-                <div className="pt-2 mt-2 border-t border-slate-300">
+                <div className="pt-2 mt-2 border-t border-border">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="font-bold text-slate-900">Total Cost</span>
+                      <span className="font-bold text-foreground">Total Cost</span>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info size={12} className="inline-block ml-1 text-muted-foreground cursor-help" />
@@ -829,9 +861,9 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <span className="text-lg font-bold text-slate-900">K{costs.total.toFixed(2)}</span>
+                    <span className="text-lg font-bold text-foreground">K{costs.total.toFixed(2)}</span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Break-even point (no profit)</p>
+                  <p className="text-xs text-muted-foreground mt-1">Break-even point (no profit)</p>
                 </div>
               </div>
             </div>
@@ -839,7 +871,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
 
 
           {/* SELLING PRICE - Most Prominent */}
-          <div className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border-2 border-primary/30">
+          <div className="p-5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border-2 border-primary/30">
             <div className="text-center space-y-2">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <DollarSign size={24} className="text-primary" />
@@ -850,7 +882,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  className="text-center text-3xl font-bold h-16 border-2 border-primary/50 focus:border-primary"
+                  className="text-center text-2xl font-bold h-12 border-2 border-primary/50 focus:border-primary"
                   {...register("total_cost", {
                     required: "Selling price is required",
                     min: {
@@ -866,7 +898,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
                   {errors.total_cost.message}
                 </p>
               )}
-              <p className="text-sm text-slate-600 font-medium">
+              <p className="text-sm text-muted-foreground font-medium">
                 Total amount to charge customer
               </p>
 
@@ -875,10 +907,10 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
 
           {/* Profit Analysis - Subtle */}
           {costs.total > 0 && totalCost > 0 && (
-            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp size={16} className="text-primary" />
-                <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Real-time Profitability Guard</span>
+                <span className="text-sm font-bold text-foreground uppercase tracking-tight">Real-time Profitability Guard</span>
               </div>
               {(() => {
                 const revenue = parseFloat(totalCost || 0);
@@ -892,19 +924,19 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
                 return (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Profit Amount</span>
+                      <span className="text-muted-foreground">Profit Amount</span>
                       <span className={`font-bold ${isLoss ? 'text-red-600' : 'text-green-600'}`}>
                         K{Math.abs(profit).toFixed(2)}
                         {isLoss && <span className="text-xs ml-1">(LOSS)</span>}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Markup (Profit %)</span>
+                      <span className="text-muted-foreground">Markup (Profit %)</span>
                       <span className={`font-bold ${isLoss ? 'text-red-600' : isLowMarkup ? 'text-yellow-600' : 'text-green-600'}`}>
                         {markupPercentage.toFixed(1)}%
                       </span>
                     </div>
-                    <div className="pt-2 border-t border-slate-200">
+                    <div className="pt-2 border-t border-border">
                       {isLoss ? (
                         <div className="flex items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 px-3 py-2 rounded">
                           <span>⚠️</span>
@@ -929,7 +961,7 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
           )}
 
           {/* Deposit & Balance */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
             <div>
               <Label className="mb-2 block font-semibold">Deposit (K)</Label>
               <div className="relative">
@@ -952,18 +984,18 @@ export default function CreateOrderForm({ order, onSubmit, onCancel }) {
                   {errors.deposit.message}
                 </p>
               )}
-              <p className="text-xs text-slate-500 mt-1">Initial payment from customer</p>
+              <p className="text-xs text-muted-foreground mt-1">Initial payment from customer</p>
             </div>
 
             <div>
               <Label className="mb-2 block font-semibold">Balance Due (K)</Label>
               <div
-                className={`h-10 px-3 py-2 rounded-md border border-input bg-slate-100 font-bold flex items-center ${balance > 0 ? "text-orange-600" : "text-green-600"
+                className={`h-10 px-3 py-2 rounded-md border border-input bg-muted font-bold flex items-center ${balance > 0 ? "text-orange-600" : "text-green-600"
                   }`}
               >
                 {balance.toFixed(2)}
               </div>
-              <p className="text-xs text-slate-500 mt-1">Remaining amount to collect</p>
+              <p className="text-xs text-muted-foreground mt-1">Remaining amount to collect</p>
             </div>
           </div>
 

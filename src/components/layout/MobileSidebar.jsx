@@ -12,13 +12,22 @@ import {
   Scissors,
   HelpCircle,
   Shirt,
+  MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/useAuthStore";
+import { inquiryService } from "../../services/inquiryService";
 import { cn } from "@/lib/utils";
 
 export default function MobileSidebar({ isOpen, onClose }) {
   const { profile } = useAuthStore();
+
+  const { data: newInquiryCount = 0 } = useQuery({
+    queryKey: ["new-inquiry-count"],
+    queryFn: () => inquiryService.getNewInquiriesCount(),
+    refetchInterval: 30000,
+  });
 
   const navItems = [
     {
@@ -64,6 +73,12 @@ export default function MobileSidebar({ isOpen, onClose }) {
       roles: ["admin", "manager", "employee"],
     },
     {
+      path: "/enquiries",
+      icon: MessageSquare,
+      label: "Enquiries",
+      roles: ["admin", "manager", "employee"],
+    },
+    {
       path: "/finance",
       icon: DollarSign,
       label: "Finance",
@@ -106,30 +121,30 @@ export default function MobileSidebar({ isOpen, onClose }) {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ type: "spring", damping: 25 }}
-            className="fixed left-0 top-0 h-full w-72 bg-card shadow-2xl z-50 lg:hidden flex flex-col"
+            className="fixed left-0 top-0 h-full w-60 bg-card shadow-2xl z-50 lg:hidden flex flex-col"
           >
             {/* Header */}
-            <div className="p-6 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Scissors className="text-primary" size={24} />
+            <div className="px-4 py-3.5 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <Scissors className="text-primary" size={16} />
                 </div>
                 <div>
-                  <h1 className="font-bold text-xl text-primary tracking-tight">GLORIA'S</h1>
-                  <p className="text-[10px] font-semibold text-primary/70 uppercase tracking-widest -mt-1">Daughter</p>
+                  <h1 className="font-bold text-sm text-primary tracking-tight leading-none">GLORIA'S</h1>
+                  <p className="text-[10px] font-semibold text-primary/70 uppercase tracking-widest">Daughter</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-muted rounded-lg transition-colors text-muted-foreground"
+                className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground"
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 overflow-y-auto">
-              <ul className="space-y-1">
+            <nav className="flex-1 py-2 px-2 overflow-y-auto">
+              <ul className="space-y-0.5">
                 {filteredNavItems.map((item) => (
                   <li key={item.path}>
                     <NavLink
@@ -137,15 +152,20 @@ export default function MobileSidebar({ isOpen, onClose }) {
                       onClick={onClose}
                       className={({ isActive }) =>
                         cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
+                          "flex items-center gap-2.5 px-3 py-2 rounded-md transition-all duration-150 text-xs font-medium",
                           isActive
-                            ? "bg-primary/10 text-primary font-bold"
-                            : "text-muted-foreground hover:bg-muted/50"
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                         )
                       }
                     >
-                      <item.icon size={20} className="text-primary" />
-                      <span>{item.label}</span>
+                      <item.icon size={15} className="text-primary shrink-0" />
+                      <span className="flex-1">{item.label}</span>
+                      {item.path === "/enquiries" && newInquiryCount > 0 && (
+                        <span className="bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
+                          {newInquiryCount}
+                        </span>
+                      )}
                     </NavLink>
                   </li>
                 ))}
@@ -153,34 +173,31 @@ export default function MobileSidebar({ isOpen, onClose }) {
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t border-border">
+            <div className="p-2 border-t border-border">
               <NavLink
                 to="/manual"
                 onClick={onClose}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-md mb-4 transition-all text-xs font-semibold",
+                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md mb-2 transition-all text-[10px] font-semibold",
                     isActive
                       ? "bg-primary text-white"
                       : "bg-primary/5 text-primary hover:bg-primary/10 border border-primary/20"
                   )
                 }
               >
-                <HelpCircle size={14} />
+                <HelpCircle size={12} />
                 <span>HELP & MANUAL</span>
               </NavLink>
 
-              <div className="bg-muted/30 rounded-xl p-3 mb-3 border border-border/50">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
+              <div className="bg-muted/30 rounded-md p-2 border border-border/50">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">
                   Access Level
                 </p>
-                <p className="text-sm font-semibold text-foreground capitalize">
+                <p className="text-xs font-semibold text-foreground capitalize">
                   {profile?.role || "User"}
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground text-center font-medium">
-                GLORIA'S DAUGHTER ERP
-              </p>
             </div>
           </motion.aside>
         </>

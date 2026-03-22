@@ -16,6 +16,7 @@ import GarmentTypeManager from "../components/finance/GarmentTypeManager";
 import FinancialSettings from "../components/finance/FinancialSettings";
 import Profile from "./Profile";
 import { useAuthStore } from "../store/useAuthStore";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -26,13 +27,8 @@ export default function Settings() {
     const [activeTab, setActiveTab] = useState("general");
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-                    <p className="text-muted-foreground">Manage your business profile and system preferences</p>
-                </div>
-            </div>
+        <div className="space-y-5">
+            <PageHeader title="Settings" description="Manage your business profile and system preferences" />
 
             <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:w-[600px]">

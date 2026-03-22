@@ -12,6 +12,8 @@ import { calculateProgress } from "../utils/productionUtils";
 import { productionService } from "../services/productionService";
 import { analyticsService } from "../services/analyticsService";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 
 const Production = () => {
     const [batches, setBatches] = useState([]);
@@ -96,7 +98,6 @@ const Production = () => {
                 );
 
                 toast.success(`${batch.quantity} ${batch.product?.name || 'items'} added to finished goods inventory!`, {
-                    icon: '📦',
                     duration: 5000
                 });
             }
@@ -131,67 +132,55 @@ const Production = () => {
             case "finishing": return "bg-blue-100 text-blue-800";
             case "stitching": return "bg-yellow-100 text-yellow-800";
             case "cutting": return "bg-orange-100 text-orange-800";
-            default: return "bg-gray-100 text-gray-800";
+            default: return "bg-muted text-gray-800";
         }
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Production Tracking</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage garment production workflow</p>
-                </div>
+        <div className="space-y-5">
+            <PageHeader title="Production Tracking" description="Manage garment production workflow">
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm"
                 >
-                    <Plus size={20} />
+                    <Plus size={16} />
                     <span>New Batch</span>
                 </button>
-            </div>
+            </PageHeader>
 
             {/* Efficiency Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white p-4 rounded-xl border shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                        <Clock className="text-blue-500" size={20} />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Avg. Stitching</span>
+            <div className="flex flex-wrap gap-3">
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm relative overflow-hidden">
+                    <p className="text-xs text-muted-foreground mb-0.5 font-medium">Avg. Stitching</p>
+                    <p className="text-2xl font-bold text-foreground">{averages['stitching'] ? `${averages['stitching'].toFixed(1)}h` : "N/A"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Based on completed work</p>
+                    <div className="absolute top-3.5 right-3.5 w-9 h-9 rounded-lg flex items-center justify-center bg-blue-50 text-blue-500">
+                        <Clock size={16} />
                     </div>
-                    <div className="text-2xl font-bold text-slate-900">
-                        {averages['stitching'] ? `${averages['stitching'].toFixed(1)}h` : "N/A"}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">Based on completed work</p>
                 </div>
-                <div className="bg-white p-4 rounded-xl border shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                        <Scissors className="text-orange-500" size={20} />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Avg. Cutting</span>
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm relative overflow-hidden">
+                    <p className="text-xs text-muted-foreground mb-0.5 font-medium">Avg. Cutting</p>
+                    <p className="text-2xl font-bold text-foreground">{averages['cutting'] ? `${averages['cutting'].toFixed(1)}h` : "N/A"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Efficiency baseline</p>
+                    <div className="absolute top-3.5 right-3.5 w-9 h-9 rounded-lg flex items-center justify-center bg-orange-50 text-orange-500">
+                        <Scissors size={16} />
                     </div>
-                    <div className="text-2xl font-bold text-slate-900">
-                        {averages['cutting'] ? `${averages['cutting'].toFixed(1)}h` : "N/A"}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">Efficiency baseline</p>
                 </div>
-                <div className="bg-white p-4 rounded-xl border shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                        <CheckCircle className="text-green-500" size={20} />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Weekly Output</span>
+                <div className="bg-card p-4 rounded-lg border border-border shadow-sm relative overflow-hidden">
+                    <p className="text-xs text-muted-foreground mb-0.5 font-medium">Weekly Output</p>
+                    <p className="text-2xl font-bold text-foreground">{batches.filter(b => b.status === 'completed' && new Date(b.updated_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Completed this week</p>
+                    <div className="absolute top-3.5 right-3.5 w-9 h-9 rounded-lg flex items-center justify-center bg-green-50 text-green-500">
+                        <CheckCircle size={16} />
                     </div>
-                    <div className="text-2xl font-bold text-slate-900">
-                        {batches.filter(b => b.status === 'completed' && new Date(b.updated_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">Completed this week</p>
                 </div>
-                <div className="bg-white p-4 rounded-xl border shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                        <AlertCircle className={bottlenecks.length > 0 ? "text-red-500" : "text-slate-300"} size={20} />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Bottlenecks</span>
+                <div className={`bg-card p-4 rounded-lg border border-border shadow-sm relative overflow-hidden`}>
+                    <p className="text-xs text-muted-foreground mb-0.5 font-medium">Bottlenecks</p>
+                    <p className={`text-2xl font-bold ${bottlenecks.length > 0 ? "text-red-600" : "text-foreground"}`}>{bottlenecks.length}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Active delays flagged</p>
+                    <div className={`absolute top-3.5 right-3.5 w-9 h-9 rounded-lg flex items-center justify-center ${bottlenecks.length > 0 ? "bg-red-50 text-red-500" : "bg-muted text-muted-foreground/60"}`}>
+                        <AlertCircle size={16} />
                     </div>
-                    <div className={`text-2xl font-bold ${bottlenecks.length > 0 ? "text-red-600" : "text-slate-900"}`}>
-                        {bottlenecks.length}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">Active delays flagged</p>
                 </div>
             </div>
 
@@ -213,45 +202,45 @@ const Production = () => {
             )}
 
             {/* Filters and Search */}
-            <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-3 bg-card p-3 rounded-lg border border-border shadow-sm">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                     <input
                         type="text"
                         placeholder="Search by batch # or product..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                        className="w-full pl-9 pr-4 py-2 text-sm border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-primary outline-none bg-background"
                     />
                 </div>
                 <div className="flex gap-2">
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                        className="px-3 py-2 text-sm border border-input rounded-md focus:ring-2 focus:ring-ring focus:border-primary outline-none bg-background"
                     >
                         <option value="all">All Stages</option>
-                        <option value="cutting">✂️ Cutting</option>
-                        <option value="stitching">🧵 Stitching</option>
-                        <option value="finishing">✨ Finishing</option>
-                        <option value="quality_check">🔍 Quality Check</option>
-                        <option value="completed">✅ Completed</option>
+                        <option value="cutting">Cutting</option>
+                        <option value="stitching">Stitching</option>
+                        <option value="finishing">Finishing</option>
+                        <option value="quality_check">Quality Check</option>
+                        <option value="completed">Completed</option>
                     </select>
                     <button
                         onClick={fetchBatches}
-                        className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
+                        className="p-2 border border-input rounded-md hover:bg-muted text-muted-foreground"
                         title="Refresh"
                     >
-                        <RefreshCw size={20} />
+                        <RefreshCw size={16} />
                     </button>
                 </div>
             </div>
 
             {/* Production Batches List */}
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div key={i} className="bg-white rounded-lg border border-gray-200 p-5 space-y-4">
+                        <div key={i} className="bg-card rounded-lg border border-border p-4 space-y-4">
                             <div className="flex justify-between">
                                 <Skeleton className="h-5 w-16" />
                                 <Skeleton className="h-5 w-20 rounded-full" />
@@ -271,7 +260,7 @@ const Production = () => {
                     ))}
                 </div>
             ) : filteredBatches.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {filteredBatches.map((batch) => (
                         <div
                             key={batch.id}
@@ -279,10 +268,10 @@ const Production = () => {
                                 setSelectedBatch(batch);
                                 setIsViewModalOpen(true);
                             }}
-                            className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all p-5 cursor-pointer hover:border-primary/30 group"
+                            className="bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-all p-3 cursor-pointer hover:border-primary/30 group"
                         >
-                            <div className="flex justify-between items-start mb-3">
-                                <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="text-[10px] font-mono bg-muted px-2 py-0.5 rounded text-muted-foreground">
                                     {batch.batch_number}
                                 </span>
                                 <div className="flex items-center gap-2">
@@ -292,11 +281,11 @@ const Production = () => {
                                         onChange={(e) => handleUpdateStatus(batch.id, e.target.value, batch)}
                                         className={`text-xs font-semibold px-2 py-1 rounded-full border-none focus:ring-0 focus:outline-none cursor-pointer appearance-none ${getStatusColor(batch.status)}`}
                                     >
-                                        <option value="cutting">✂️ Cutting</option>
-                                        <option value="stitching">🧵 Stitching</option>
-                                        <option value="finishing">✨ Finishing</option>
-                                        <option value="quality_check">🔍 Checking</option>
-                                        <option value="completed">✅ Done</option>
+                                        <option value="cutting">Cutting</option>
+                                        <option value="stitching">Stitching</option>
+                                        <option value="finishing">Finishing</option>
+                                        <option value="quality_check">Checking</option>
+                                        <option value="completed">Done</option>
                                     </select>
                                     {profile?.role === "admin" && (
                                         <button
@@ -313,8 +302,8 @@ const Production = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-10 h-10 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                                     {batch.product?.image_url ? (
                                         <img
                                             src={batch.product.image_url}
@@ -327,24 +316,24 @@ const Production = () => {
                                         />
                                     ) : null}
                                     <div
-                                        className={`w-full h-full flex items-center justify-center text-gray-400 ${batch.product?.image_url ? 'hidden' : 'flex'}`}
+                                        className={`w-full h-full flex items-center justify-center text-muted-foreground ${batch.product?.image_url ? 'hidden' : 'flex'}`}
                                     >
-                                        <Scissors size={20} />
+                                        <Scissors size={16} />
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 line-clamp-1">{batch.product?.name || "Unknown Product"}</h3>
-                                    <p className="text-sm text-gray-500">Qty: {batch.quantity}</p>
+                                    <h3 className="font-semibold text-foreground text-xs line-clamp-1">{batch.product?.name || "Unknown Product"}</h3>
+                                    <p className="text-[10px] text-muted-foreground">Qty: {batch.quantity}</p>
                                 </div>
                             </div>
 
                             {/* Progress Bar */}
-                            <div className="space-y-1 mb-4">
-                                <div className="flex justify-between text-xs text-gray-500">
+                            <div className="space-y-0.5 mb-2">
+                                <div className="flex justify-between text-[10px] text-muted-foreground">
                                     <span>Progress</span>
                                     <span>{calculateProgress(batch.status)}%</span>
                                 </div>
-                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-primary transition-all duration-500"
                                         style={{ width: `${calculateProgress(batch.status)}%` }}
@@ -352,7 +341,7 @@ const Production = () => {
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-center text-sm text-gray-500 pt-3 border-t border-gray-100">
+                            <div className="flex justify-between items-center text-[10px] text-muted-foreground pt-2 border-t border-border">
                                 <div className="flex items-center gap-1">
                                     <Clock size={14} />
                                     <span>{new Date(batch.created_at).toLocaleDateString()}</span>
@@ -362,12 +351,12 @@ const Production = () => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-12 bg-white rounded-lg border border-dashed border-gray-300">
-                    <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                        <Scissors className="text-gray-400" />
+                <div className="text-center py-10 bg-card rounded-lg border border-dashed border-border">
+                    <div className="mx-auto w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-3">
+                        <Scissors className="text-muted-foreground" size={18} />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900">No active production batches</h3>
-                    <p className="text-gray-500 mt-1">Start a new batch to track garment production.</p>
+                    <h3 className="text-sm font-semibold text-foreground">No active production batches</h3>
+                    <p className="text-xs text-muted-foreground mt-1">Start a new batch to track garment production.</p>
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
                         className="mt-4 text-primary font-semibold hover:underline"
@@ -390,24 +379,24 @@ const Production = () => {
             {/* Delete Confirmation Dialog */}
             {deleteConfirmBatch && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md animate-in fade-in zoom-in duration-200">
-                        <div className="p-6">
+                    <div className="bg-card rounded-lg shadow-xl w-full max-w-md animate-in fade-in zoom-in duration-200">
+                        <div className="p-5">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                                    <AlertCircle className="text-red-600" size={24} />
+                                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                    <AlertCircle className="text-red-600" size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900">Delete Production Batch?</h3>
-                                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                                    <h3 className="text-sm font-bold text-foreground">Delete Production Batch?</h3>
+                                    <p className="text-xs text-muted-foreground">This action cannot be undone</p>
                                 </div>
                             </div>
-                            <p className="text-gray-700 mb-6">
+                            <p className="text-sm text-muted-foreground mb-5">
                                 Are you sure you want to delete batch <strong>{deleteConfirmBatch.batch_number}</strong> ({deleteConfirmBatch.product?.name})?
                             </p>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setDeleteConfirmBatch(null)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="flex-1 px-4 py-2 text-sm border border-border text-foreground rounded-md hover:bg-muted transition-colors"
                                 >
                                     Cancel
                                 </button>

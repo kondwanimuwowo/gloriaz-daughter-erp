@@ -71,10 +71,10 @@ export default function OverheadManager({ selectedMonth, onDataChange }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Monthly Overhead</h2>
+          <h2 className="text-lg font-bold text-foreground">Monthly Overhead</h2>
           <p className="text-muted-foreground mt-1">
             Fixed monthly business costs for{" "}
             {format(selectedMonth, "MMMM yyyy")}
@@ -88,15 +88,15 @@ export default function OverheadManager({ selectedMonth, onDataChange }) {
 
       {/* Total Card */}
       <Card className="bg-gradient-to-br from-primary/10 to-purple-50 border-2 border-primary/20">
-        <CardContent className="p-6 flex items-center justify-between">
+        <CardContent className="p-5 flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Total Monthly Overhead</p>
-            <p className="text-4xl font-bold text-primary">
+            <p className="text-2xl font-bold text-primary">
               K{totalOverhead.toFixed(2)}
             </p>
           </div>
-          <div className="w-20 h-20 bg-background rounded-full flex items-center justify-center shadow-lg text-primary">
-            <Building2 size={40} />
+          <div className="w-14 h-14 bg-background rounded-full flex items-center justify-center shadow-lg text-primary">
+            <Building2 size={24} />
           </div>
         </CardContent>
       </Card>
@@ -107,9 +107,9 @@ export default function OverheadManager({ selectedMonth, onDataChange }) {
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
       ) : overheadCosts.length === 0 ? (
-        <Card className="text-center py-12">
+        <Card className="text-center py-10">
           <CardContent>
-            <Building2 className="mx-auto text-muted-foreground mb-4" size={48} />
+            <Building2 className="mx-auto text-muted-foreground mb-4" size={32} />
             <p className="text-muted-foreground mb-6">No overhead costs for this month</p>
             <Button onClick={handleAdd}>Add Your First Cost</Button>
           </CardContent>
@@ -158,7 +158,7 @@ export default function OverheadManager({ selectedMonth, onDataChange }) {
                             Yes
                           </span>
                         ) : (
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-muted text-foreground">
                             No
                           </span>
                         )}
@@ -169,7 +169,7 @@ export default function OverheadManager({ selectedMonth, onDataChange }) {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEdit(cost)}
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
                           >
                             <Edit size={16} />
                           </Button>
@@ -177,7 +177,7 @@ export default function OverheadManager({ selectedMonth, onDataChange }) {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDelete(cost.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
                           >
                             <Trash2 size={16} />
                           </Button>

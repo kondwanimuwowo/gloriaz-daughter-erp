@@ -20,9 +20,9 @@ export function ProductCard({ product, isFinishedGood = false, index = 0, classN
   const imageUrl = displayProduct.image_url || "/images/products/placeholder.jpeg";
   const price = product.base_price;
 
-  const formattedPrice = new Intl.NumberFormat('en-US', {
+  const formattedPrice = new Intl.NumberFormat('en-ZM', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'ZMW',
   }).format(price || 0);
 
   const productUrl = `/product/${isFinishedGood ? `rtw-${product.id}` : product.id}`;
@@ -42,6 +42,11 @@ export function ProductCard({ product, isFinishedGood = false, index = 0, classN
         className="relative aspect-[3/4] overflow-hidden bg-secondary mb-5 rounded-sm"
       >
         {getStockBadge()}
+        {isFinishedGood && (
+          <Badge variant="outline" className="absolute bottom-4 left-4 z-10 text-[9px] bg-background/90 backdrop-blur-sm">
+            Ready to Wear
+          </Badge>
+        )}
         <Image
           src={imageUrl}
           alt={product.name}
@@ -70,12 +75,9 @@ export function ProductCard({ product, isFinishedGood = false, index = 0, classN
       </Link>
 
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            {product.category}
-          </p>
-          {isFinishedGood && <Badge variant="outline" className="text-[9px]">Ready to Wear</Badge>}
-        </div>
+        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          {product.category}
+        </p>
         <Link href={productUrl} onClick={() => setIsNavigating(true)}>
           <h3 className="font-serif text-xl font-medium leading-tight tracking-tight group-hover:text-primary transition-colors duration-300">
             {product.name}

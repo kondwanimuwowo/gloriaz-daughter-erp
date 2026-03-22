@@ -16,6 +16,8 @@ import OrderTrendChart from "../components/analytics/OrderTrendChart";
 import ProfitabilityChart from "../components/analytics/ProfitabilityChart";
 import InventoryTurnoverChart from "../components/analytics/InventoryTurnoverChart";
 import StatsCard from "../components/dashboard/StatsCard";
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 
 import { analyticsService } from "../services/analyticsService";
 import { customerService } from "../services/customerService";
@@ -143,42 +145,15 @@ export default function Analytics() {
     };
 
     if (loading) {
-        return (
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                        <Skeleton className="h-10 w-48" />
-                        <Skeleton className="h-4 w-64" />
-                    </div>
-                    <div className="flex gap-2">
-                        <Skeleton className="h-10 w-24" />
-                        <Skeleton className="h-10 w-32" />
-                    </div>
-                </div>
-                <Skeleton className="h-32 w-full rounded-xl" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Skeleton className="h-[350px] w-full rounded-xl" />
-                    <Skeleton className="h-[350px] w-full rounded-xl" />
-                </div>
-            </div>
-        );
+        return <PageSkeleton layout="charts" statsCount={4} />;
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-                    <p className="text-muted-foreground mt-1">Business intelligence insights</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleRefresh}><RefreshCw className="mr-2 h-4 w-4" /> Refresh</Button>
-                    <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export Data</Button>
-                </div>
-            </div>
+        <div className="space-y-5">
+            <PageHeader title="Analytics" description="Business intelligence insights">
+                <Button variant="outline" onClick={handleRefresh}><RefreshCw className="mr-2 h-4 w-4" /> Refresh</Button>
+                <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export Data</Button>
+            </PageHeader>
 
             <AdvancedFilters
                 filters={filters}
@@ -187,19 +162,19 @@ export default function Analytics() {
                 employees={employees}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="flex flex-wrap gap-3">
                 <StatsCard title="Total Revenue" value={`K${summary.totalRevenue.toFixed(2)}`} icon={TrendingUp} color="blue" />
                 <StatsCard title="Total Orders" value={summary.totalOrders} icon={BarChart3} color="green" />
                 <StatsCard title="Avg Order Value" value={`K${summary.avgOrderValue.toFixed(2)}`} icon={TrendingUp} color="yellow" />
                 <StatsCard title="Top Customer" value={summary.topCustomer?.customerName || "N/A"} subtitle={`K${summary.topCustomer?.totalSpent?.toFixed(2) || 0} spent`} icon={TrendingUp} color="purple" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <OrderTrendChart data={analyticsData.orderTrends} />
                 <ProfitabilityChart data={analyticsData.profitability} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <CustomerAnalyticsChart data={analyticsData.customerAnalytics} />
                 <InventoryTurnoverChart data={analyticsData.inventoryTurnover} />
             </div>

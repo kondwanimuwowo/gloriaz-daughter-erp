@@ -16,6 +16,10 @@ import {
   Info,
   TrendingUp,
   Calculator,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,11 +71,11 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
   const nextStatus = getNextStatus();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-foreground">
             {order.order_number}
           </h2>
           <p className="text-muted-foreground">
@@ -91,9 +95,9 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Column - Details */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-5">
           {/* Customer Information */}
           <Card>
             <CardHeader>
@@ -238,13 +242,13 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                 Order Pricing & Profitability
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-5">
 
               {/* Cost Breakdown */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-3">
-                  <DollarSign size={18} className="text-slate-600" />
-                  <h3 className="font-semibold text-slate-900">Cost Breakdown</h3>
+                  <DollarSign size={18} className="text-muted-foreground" />
+                  <h3 className="font-semibold text-foreground">Cost Breakdown</h3>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info size={14} className="text-muted-foreground cursor-help" />
@@ -258,10 +262,10 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                   </Tooltip>
                 </div>
 
-                <div className="bg-slate-50 rounded-lg p-4 space-y-2 border border-slate-200">
+                <div className="bg-muted/30 rounded-lg p-4 space-y-2 border border-border">
                   <div className="flex justify-between text-sm">
                     <div className="flex items-center gap-1">
-                      <span className="text-slate-600">Materials</span>
+                      <span className="text-muted-foreground">Materials</span>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info size={12} className="text-muted-foreground cursor-help" />
@@ -269,12 +273,12 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                         <TooltipContent>Total cost of fabrics and accessories</TooltipContent>
                       </Tooltip>
                     </div>
-                    <span className="font-semibold text-slate-900">K{parseFloat(order.material_cost || 0).toFixed(2)}</span>
+                    <span className="font-semibold text-foreground">K{parseFloat(order.material_cost || 0).toFixed(2)}</span>
                   </div>
 
                   <div className="flex justify-between text-sm">
                     <div className="flex items-center gap-1">
-                      <span className="text-slate-600">Labour</span>
+                      <span className="text-muted-foreground">Labour</span>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info size={12} className="text-muted-foreground cursor-help" />
@@ -282,12 +286,12 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                         <TooltipContent>Cost of the tailor's time</TooltipContent>
                       </Tooltip>
                     </div>
-                    <span className="font-semibold text-slate-900">K{parseFloat(order.labour_cost || 0).toFixed(2)}</span>
+                    <span className="font-semibold text-foreground">K{parseFloat(order.labour_cost || 0).toFixed(2)}</span>
                   </div>
 
                   <div className="flex justify-between text-sm">
                     <div className="flex items-center gap-1">
-                      <span className="text-slate-600">Overhead</span>
+                      <span className="text-muted-foreground">Overhead</span>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info size={12} className="text-muted-foreground cursor-help" />
@@ -295,13 +299,13 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                         <TooltipContent>Business costs (rent, power, etc)</TooltipContent>
                       </Tooltip>
                     </div>
-                    <span className="font-semibold text-slate-900">K{parseFloat(order.overhead_cost || 0).toFixed(2)}</span>
+                    <span className="font-semibold text-foreground">K{parseFloat(order.overhead_cost || 0).toFixed(2)}</span>
                   </div>
 
-                  <div className="pt-2 mt-2 border-t border-slate-300">
+                  <div className="pt-2 mt-2 border-t border-border">
                     <div className="flex justify-between items-center">
                       <div>
-                        <span className="font-bold text-slate-900">Total Cost</span>
+                        <span className="font-bold text-foreground">Total Cost</span>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Info size={12} className="inline-block ml-1 text-muted-foreground cursor-help" />
@@ -311,7 +315,7 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <span className="text-lg font-bold text-slate-900">
+                      <span className="text-lg font-bold text-foreground">
                         K{(
                           parseFloat(order.material_cost || 0) +
                           parseFloat(order.labour_cost || 0) +
@@ -319,22 +323,22 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                         ).toFixed(2)}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">Break-even point (no profit)</p>
+                    <p className="text-xs text-muted-foreground mt-1">Break-even point (no profit)</p>
                   </div>
                 </div>
               </div>
 
               {/* SELLING PRICE - Most Prominent */}
-              <div className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border-2 border-primary/30">
+              <div className="p-5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border-2 border-primary/30">
                 <div className="text-center space-y-2">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <DollarSign size={24} className="text-primary" />
                     <h3 className="text-lg font-bold text-primary uppercase tracking-wide">Selling Price</h3>
                   </div>
-                  <div className="text-5xl font-bold text-primary">
+                  <div className="text-2xl font-bold text-primary">
                     K{parseFloat(order.total_amount || order.total_cost || 0).toFixed(2)}
                   </div>
-                  <p className="text-sm text-slate-600 font-medium">
+                  <p className="text-sm text-muted-foreground font-medium">
                     Total amount charged to customer
                   </p>
                 </div>
@@ -354,38 +358,39 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
                 const isLowMarkup = markup < 20 && markup >= 0;
 
                 return (
-                  <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="p-4 bg-muted/30 rounded-lg border border-border">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-sm font-semibold text-slate-700">📊 Profit Analysis</span>
+                      <BarChart3 size={16} className="text-foreground" />
+                      <span className="text-sm font-semibold text-foreground">Profit Analysis</span>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Profit Amount</span>
+                        <span className="text-muted-foreground">Profit Amount</span>
                         <span className={`font-bold ${isLoss ? 'text-red-600' : 'text-green-600'}`}>
                           K{Math.abs(profitAmount).toFixed(2)}
                           {isLoss && <span className="text-xs ml-1">(LOSS)</span>}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Markup (Profit %)</span>
+                        <span className="text-muted-foreground">Markup (Profit %)</span>
                         <span className={`font-bold ${isLoss ? 'text-red-600' : isLowMarkup ? 'text-yellow-600' : 'text-green-600'}`}>
                           {markup.toFixed(1)}%
                         </span>
                       </div>
-                      <div className="pt-2 border-t border-slate-200">
+                      <div className="pt-2 border-t border-border">
                         {isLoss ? (
                           <div className="flex items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 px-3 py-2 rounded">
-                            <span>⚠️</span>
+                            <AlertTriangle size={14} className="flex-shrink-0" />
                             <span>Order sold below cost (loss)</span>
                           </div>
                         ) : isLowMarkup ? (
                           <div className="flex items-center gap-2 text-xs font-semibold text-yellow-700 bg-yellow-50 px-3 py-2 rounded">
-                            <span>⚡</span>
+                            <AlertCircle size={14} className="flex-shrink-0" />
                             <span>Low markup (below 20%)</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 px-3 py-2 rounded">
-                            <span>✅</span>
+                            <CheckCircle size={14} className="flex-shrink-0" />
                             <span>Healthy profit margin</span>
                           </div>
                         )}
@@ -423,7 +428,7 @@ export default function OrderDetailsView({ order, onEdit, onStatusChange }) {
         </div>
 
         {/* Right Column - Timeline & Actions */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Status Actions */}
           {nextStatus &&
             order.status !== "delivered" &&

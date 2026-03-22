@@ -1,13 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Menu, X, ShoppingBag } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { Menu, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Clear navigating state when route changes
+  useEffect(() => {
+    setNavigatingTo(null);
+  }, [pathname]);
 
   const links = [
     { href: "/", label: "Home" },
@@ -15,28 +29,56 @@ export function Navbar() {
     { href: "/about", label: "Our Story" },
   ];
 
+  const handleNavClick = (href: string) => {
+    if (href !== pathname) {
+      setNavigatingTo(href);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <ShoppingBag className="h-6 w-6 text-primary" />
-          <span className="text-xl font-serif font-bold tracking-tight">Gloria&apos;s Daughter</span>
+    <header
+      className={`fixed top-0 inset-x-0 z-50 w-full transition-all duration-700 ${
+        scrolled
+          ? "glass shadow-sm"
+          : "bg-transparent"
+      }`}
+    >
+      <div className={`container mx-auto flex items-center justify-between px-6 md:px-8 transition-all duration-700 ${scrolled ? "h-16" : "h-24"}`}>
+        <Link href="/" onClick={() => handleNavClick("/")} className="flex items-center gap-3 group">
+          <span className="text-2xl font-serif font-semibold tracking-tight text-primary transition-colors group-hover:text-primary">
+            Gloriaz Daughter
+          </span>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-10">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              onClick={() => handleNavClick(link.href)}
+              className={`link-underline text-xs font-semibold uppercase tracking-[0.2em] transition-colors flex items-center gap-2 ${
+                pathname === link.href
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               {link.label}
+              {navigatingTo === link.href && (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              )}
             </Link>
           ))}
-          <Button asChild variant="default" className="rounded-full">
-            <Link href="/catalog">Book Fitting</Link>
-          </Button>
+          <Link
+            href="/catalog"
+            onClick={() => handleNavClick("/catalog")}
+            className="ml-2 text-[11px] font-bold uppercase tracking-[0.2em] bg-foreground text-background px-8 py-3 hover:bg-foreground/90 transition-all duration-300 flex items-center gap-2"
+          >
+            Book Fitting
+            {navigatingTo === "/catalog" && (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            )}
+          </Link>
         </nav>
 
         {/* Mobile Toggle */}
@@ -44,7 +86,7 @@ export function Navbar() {
           className="md:hidden p-2 text-foreground"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
@@ -55,22 +97,38 @@ export function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden border-b bg-background"
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="md:hidden overflow-hidden bg-background border-b border-border"
           >
-            <nav className="flex flex-col items-center gap-4 py-6">
+            <nav className="flex flex-col items-center gap-6 py-10">
               {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="text-base font-medium text-foreground transition-colors hover:text-primary"
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleNavClick(link.href);
+                  }}
+                  className={`text-lg font-serif font-medium tracking-wide transition-colors flex items-center gap-2 ${
+                    pathname === link.href ? "text-primary" : "text-foreground hover:text-primary"
+                  }`}
                 >
                   {link.label}
+                  {navigatingTo === link.href && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
                 </Link>
               ))}
-              <Button asChild variant="default" className="rounded-full mt-2 w-[200px]">
-                <Link href="/catalog" onClick={() => setIsOpen(false)}>Book Fitting</Link>
-              </Button>
+              <Link
+                href="/catalog"
+                onClick={() => {
+                  setIsOpen(false);
+                  handleNavClick("/catalog");
+                }}
+                className="mt-2 text-sm font-medium uppercase tracking-[0.15em] border border-foreground px-8 py-3 text-foreground hover:bg-foreground hover:text-background transition-all duration-300"
+              >
+                Book Fitting
+              </Link>
             </nav>
           </motion.div>
         )}

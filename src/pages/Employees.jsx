@@ -39,6 +39,8 @@ import AddEmployeeForm from "../components/employees/AddEmployeeForm";
 import EmployeeDetailsView from "../components/employees/EmployeeDetailsView";
 import StatsCard from "../components/dashboard/StatsCard";
 import TimeClockMetric from "../components/employees/TimeClockMetric";
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import toast from "react-hot-toast";
 import { formatZambianTime } from "../utils/dateUtils";
 import { useConnectionSync } from "../hooks/useConnectionSync";
@@ -212,23 +214,7 @@ export default function Employees() {
   ], [todayAttendance]);
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-xl" />
-          ))}
-        </div>
-        <Skeleton className="h-96 w-full rounded-xl" />
-      </div>
-    );
+    return <PageSkeleton layout="table" statsCount={4} />;
   }
 
   // Handler for clock updates from modal
@@ -237,18 +223,14 @@ export default function Employees() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Employees</h1>
-          <p className="text-muted-foreground">Manage employees and track attendance</p>
-        </div>
+    <div className="space-y-5">
+      <PageHeader title="Employees" description="Manage employees and track attendance">
         <Button onClick={() => setShowAddModal(true)}>
           <Plus className="mr-2 h-4 w-4" /> Add Employee
         </Button>
-      </div>
+      </PageHeader>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-wrap gap-3">
         <TimeClockMetric />
         <StatsCard
           title="Active Employees"

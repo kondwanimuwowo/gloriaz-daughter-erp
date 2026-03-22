@@ -18,12 +18,12 @@ export default function CustomerCard({ customer, onView, onEdit, onDelete }) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -4 }}
-      className="bg-card rounded-2xl shadow-sm border border-border p-6 hover:shadow-md transition-all duration-300"
+      className="bg-card rounded-lg shadow-sm border border-border p-4 hover:shadow-md transition-all duration-300"
     >
       {/* Header with Avatar */}
-      <div className="flex items-start justify-between mb-5">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-xl uppercase">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-lg uppercase">
             {customer.name
               .split(" ")
               .map((n) => n[0])
@@ -31,10 +31,10 @@ export default function CustomerCard({ customer, onView, onEdit, onDelete }) {
               .slice(0, 2)}
           </div>
           <div>
-            <h3 className="font-bold text-foreground text-lg leading-tight">
+            <h3 className="font-bold text-foreground text-sm leading-tight">
               {customer.name}
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-[10px] text-muted-foreground mt-1">
               Registered {format(new Date(customer.created_at), "MMM yyyy")}
             </p>
           </div>
@@ -42,36 +42,36 @@ export default function CustomerCard({ customer, onView, onEdit, onDelete }) {
       </div>
 
       {/* Contact Info */}
-      <div className="space-y-2.5 mb-5 pb-5 border-b border-border/60">
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <Phone size={16} className="text-primary/70" />
+      <div className="space-y-2 mb-4 pb-4 border-b border-border">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Phone size={14} className="text-primary/70 flex-shrink-0" />
           <span className="font-medium">{customer.phone}</span>
         </div>
         {customer.email && (
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Mail size={16} className="text-primary/70" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Mail size={14} className="text-primary/70 flex-shrink-0" />
             <span className="truncate font-medium">{customer.email}</span>
           </div>
         )}
         {customer.address && (
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <MapPin size={16} className="text-primary/70" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <MapPin size={14} className="text-primary/70 flex-shrink-0" />
             <span className="line-clamp-1 font-medium">{customer.address}</span>
           </div>
         )}
       </div>
 
       {/* Stats - Minimalist style */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="border border-border/60 rounded-xl p-3 bg-muted/20">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Orders</p>
-          <p className="text-xl font-bold text-foreground">
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="border border-border rounded-lg p-2.5 bg-muted/20">
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Orders</p>
+          <p className="text-lg font-bold text-foreground">
             {customer.orders?.length || 0}
           </p>
         </div>
-        <div className="border border-border/60 rounded-xl p-3 bg-muted/20">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Body Stats</p>
-          <p className="text-sm font-semibold text-foreground">
+        <div className="border border-border rounded-lg p-2.5 bg-muted/20">
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Body Stats</p>
+          <p className="text-xs font-semibold text-foreground">
             {customer.measurements ? "✓ Recorded" : "Pending"}
           </p>
         </div>
@@ -82,24 +82,24 @@ export default function CustomerCard({ customer, onView, onEdit, onDelete }) {
         <Button
           variant="outline"
           onClick={() => onView(customer)}
-          className="flex-1 border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-xl"
+          className="flex-1 border-primary/20 hover:bg-primary/10 hover:text-primary transition-all rounded-lg text-sm h-8"
         >
-          <Eye className="mr-2 h-4 w-4" />
-          View Profile
+          <Eye className="mr-2 h-3.5 w-3.5" />
+          View
         </Button>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => onEdit(customer)}
-          className="text-muted-foreground hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-xl"
+          className="text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:text-muted-foreground dark:hover:text-blue-400 dark:hover:bg-blue-950 transition-colors rounded-lg"
         >
           <Edit className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => onDelete(customer.id)}
-          className="text-muted-foreground hover:text-red-600 hover:bg-red-50 transition-colors rounded-xl"
+          className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:text-muted-foreground dark:hover:text-red-400 dark:hover:bg-red-950 transition-colors rounded-lg"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

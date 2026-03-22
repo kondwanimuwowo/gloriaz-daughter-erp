@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { submitInquiry } from "@/services/catalogService";
 import { CheckCircle2, AlertCircle } from "lucide-react";
@@ -49,55 +48,54 @@ export function InquiryForm({ productId, productName, onSuccess }: InquiryFormPr
 
   if (status === "success") {
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center py-8 text-center space-y-4"
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col items-center justify-center py-10 text-center space-y-4"
       >
-        <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-          <CheckCircle2 className="h-6 w-6 text-green-600" />
+        <div className="h-14 w-14 rounded-full border border-emerald-200 bg-emerald-50 flex items-center justify-center">
+          <CheckCircle2 className="h-6 w-6 text-emerald-600" />
         </div>
-        <h3 className="text-xl font-semibold">Inquiry Sent!</h3>
-        <p className="text-muted-foreground">
-          Thank you for your interest in the {productName}. Our team will contact you shortly via your preferred method.
+        <h3 className="text-xl font-serif font-medium">Inquiry Sent</h3>
+        <p className="text-sm text-muted-foreground font-light max-w-sm">
+          Thank you for your interest in {productName}. Our team will contact you shortly via your preferred method.
         </p>
       </motion.div>
     );
   }
 
+  const selectClass = "flex h-11 w-full border-b border-border bg-transparent px-0 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:border-foreground appearance-none";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {status === "error" && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive flex items-center gap-2 text-sm">
+        <div className="p-3 bg-destructive/5 border border-destructive/20 text-destructive flex items-center gap-2 text-sm">
           <AlertCircle className="h-4 w-4" />
           <span>Failed to submit inquiry. Please try again.</span>
         </div>
       )}
-      
-      <div className="space-y-2">
-        <label htmlFor="customer_name" className="text-sm font-medium">Full Name *</label>
+
+      <div className="space-y-1">
+        <label htmlFor="customer_name" className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Full Name *</label>
         <Input id="customer_name" name="customer_name" required placeholder="Jane Doe" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label htmlFor="customer_email" className="text-sm font-medium">Email *</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="space-y-1">
+          <label htmlFor="customer_email" className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Email *</label>
           <Input id="customer_email" name="customer_email" type="email" required placeholder="jane@example.com" />
         </div>
-        <div className="space-y-2">
-          <label htmlFor="customer_phone" className="text-sm font-medium">Phone Number *</label>
+        <div className="space-y-1">
+          <label htmlFor="customer_phone" className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Phone *</label>
           <Input id="customer_phone" name="customer_phone" type="tel" required placeholder="+1 (555) 000-0000" />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label htmlFor="preferred_size" className="text-sm font-medium">Preferred Size</label>
-          <select 
-            id="preferred_size" 
-            name="preferred_size" 
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="space-y-1">
+          <label htmlFor="preferred_size" className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Size</label>
+          <select id="preferred_size" name="preferred_size" className={selectClass}>
             <option value="">Select a size...</option>
             <option value="XS">XS</option>
             <option value="S">S</option>
@@ -108,14 +106,9 @@ export function InquiryForm({ productId, productName, onSuccess }: InquiryFormPr
             <option value="Custom">Custom Measurements</option>
           </select>
         </div>
-        <div className="space-y-2">
-          <label htmlFor="contact_method" className="text-sm font-medium">Preferred Contact Method</label>
-          <select 
-            id="contact_method" 
-            name="contact_method" 
-            defaultValue="whatsapp"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
+        <div className="space-y-1">
+          <label htmlFor="contact_method" className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Contact Method</label>
+          <select id="contact_method" name="contact_method" defaultValue="whatsapp" className={selectClass}>
             <option value="whatsapp">WhatsApp</option>
             <option value="phone">Phone Call</option>
             <option value="email">Email</option>
@@ -123,32 +116,36 @@ export function InquiryForm({ productId, productName, onSuccess }: InquiryFormPr
         </div>
       </div>
 
-      <div className="flex items-center space-x-2 pt-2">
-        <input 
-          type="checkbox" 
-          id="custom_measurements_needed" 
-          name="custom_measurements_needed" 
-          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+      <div className="flex items-center space-x-3 pt-2">
+        <input
+          type="checkbox"
+          id="custom_measurements_needed"
+          name="custom_measurements_needed"
+          className="h-4 w-4 border-border text-foreground focus:ring-primary accent-primary"
         />
-        <label htmlFor="custom_measurements_needed" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        <label htmlFor="custom_measurements_needed" className="text-sm font-light text-muted-foreground">
           I need to come in for custom measurements
         </label>
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="special_requests" className="text-sm font-medium">Special Requests / Notes</label>
-        <textarea 
-          id="special_requests" 
-          name="special_requests" 
+      <div className="space-y-1">
+        <label htmlFor="special_requests" className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">Special Requests</label>
+        <textarea
+          id="special_requests"
+          name="special_requests"
           rows={3}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex w-full border-b border-border bg-transparent px-0 py-2 text-sm transition-colors placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:border-foreground resize-none"
           placeholder="Any specific color preferences, fabric requests, or timeline constraints?"
         />
       </div>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full text-sm font-medium uppercase tracking-[0.15em] bg-foreground text-background px-8 py-4 hover:bg-foreground/85 transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none mt-2"
+      >
         {isSubmitting ? "Sending..." : "Submit Inquiry"}
-      </Button>
+      </button>
     </form>
   );
 }

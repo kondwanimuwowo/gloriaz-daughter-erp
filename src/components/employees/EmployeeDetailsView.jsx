@@ -178,7 +178,7 @@ export default function EmployeeDetailsView({ employee, onClockUpdate }) {
   const isShiftCompleted = todayStatus && todayStatus.clock_out;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary border-2 border-primary">
@@ -190,7 +190,7 @@ export default function EmployeeDetailsView({ employee, onClockUpdate }) {
               .slice(0, 2)}
           </div>
           <div>
-            <h2 className="text-2xl font-bold">{employee.name}</h2>
+            <h2 className="text-lg font-bold">{employee.name}</h2>
             <div className="flex items-center gap-2">
                 <p className="text-muted-foreground capitalize">{employee.role}</p>
                 {isClockedIn && (
@@ -261,7 +261,7 @@ export default function EmployeeDetailsView({ employee, onClockUpdate }) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {stats.totalHours.toFixed(1)}
             </div>
           </CardContent>
@@ -274,7 +274,7 @@ export default function EmployeeDetailsView({ employee, onClockUpdate }) {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completedOrders}</div>
+            <div className="text-xl font-bold">{stats.completedOrders}</div>
           </CardContent>
         </Card>
         <Card>
@@ -285,7 +285,7 @@ export default function EmployeeDetailsView({ employee, onClockUpdate }) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {employeeOrders.length - stats.completedOrders}
             </div>
           </CardContent>

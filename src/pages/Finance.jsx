@@ -55,6 +55,8 @@ import OverheadManager from "../components/finance/OverheadManager";
 import FinancialSettings from "../components/finance/FinancialSettings";
 import { useForm } from "react-hook-form";
 import StatsCard from "../components/dashboard/StatsCard";
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { exportExpenses, exportPayments, exportFinancialSummary } from "../utils/excelExport";
 import { financeService } from "../services/financeService";
 
@@ -445,41 +447,16 @@ export default function Finance() {
     }, [completedOrders]);
 
     if (loading) {
-        return (
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                        <SkeletonComp className="h-10 w-48" />
-                        <SkeletonComp className="h-4 w-64" />
-                    </div>
-                    <div className="flex gap-2">
-                        <SkeletonComp className="h-10 w-32" />
-                        <SkeletonComp className="h-10 w-32" />
-                    </div>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    {[1, 2, 3, 4].map((i) => (
-                        <SkeletonComp key={i} className="h-32 w-full rounded-xl" />
-                    ))}
-                </div>
-                <SkeletonComp className="h-[500px] w-full rounded-xl" />
-            </div>
-        );
+        return <PageSkeleton layout="table" statsCount={4} />;
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Finance</h1>
-                    <p className="text-muted-foreground">Financial management and profitability tracking</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleExportSummary}>
-                        <Download className="mr-2 h-4 w-4" /> Export Summary
-                    </Button>
-                </div>
-            </div>
+        <div className="space-y-5">
+            <PageHeader title="Finance" description="Financial management and profitability tracking">
+                <Button variant="outline" onClick={handleExportSummary}>
+                    <Download className="mr-2 h-4 w-4" /> Export Summary
+                </Button>
+            </PageHeader>
 
             <Card>
                 <div className="flex flex-col sm:flex-row items-center justify-between p-4 gap-4">
@@ -606,7 +583,7 @@ export default function Finance() {
                 <TabsContent value="overview" className="space-y-4">
                     {monthlyFinancialSummary && (
                         <>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            <div className="flex flex-wrap gap-3">
                                 <StatsCard
                                     title="Revenue"
                                     value={`K${monthlyFinancialSummary.totalRevenue.toLocaleString()}`}

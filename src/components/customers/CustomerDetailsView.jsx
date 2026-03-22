@@ -44,11 +44,11 @@ export default function CustomerDetailsView({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-24 h-24 bg-primary/10 border-2 border-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-4xl shadow-sm">
+          <div className="w-16 h-16 bg-primary/10 border-2 border-primary/20 rounded-full flex items-center justify-center text-primary font-bold text-2xl shadow-sm">
             {customer.name
               .split(" ")
               .map((n) => n[0])
@@ -57,7 +57,7 @@ export default function CustomerDetailsView({
               .slice(0, 2)}
           </div>
           <div>
-            <h2 className="text-4xl font-black text-foreground tracking-tight mb-2">
+            <h2 className="text-xl font-bold text-foreground tracking-tight mb-2">
               {customer.name}
             </h2>
             <div className="flex items-center gap-2 text-muted-foreground bg-muted/30 px-3 py-1 rounded-full w-fit">
@@ -69,7 +69,7 @@ export default function CustomerDetailsView({
         <div className="flex gap-2">
             <Button
             variant="outline"
-            className="border-primary/20 hover:bg-primary/10 hover:text-primary rounded-xl"
+            className="border-primary/20 hover:bg-primary/10 hover:text-primary rounded-lg"
             onClick={() => onEdit(customer)}
             >
             <Edit className="mr-2 h-4 w-4" />
@@ -78,19 +78,19 @@ export default function CustomerDetailsView({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left Column - Details */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-5">
           {/* Contact Information */}
-          <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+          <Card className="rounded-lg border-border/60 shadow-sm overflow-hidden">
             <CardHeader className="bg-muted/30 border-b border-border/40 py-4">
                 <CardTitle className="flex items-center gap-2 text-base font-bold">
                     <User size={18} className="text-primary" />
                     CONTACT DETAILS
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="pt-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10">
                             <Phone size={18} className="text-primary" />
@@ -132,7 +132,7 @@ export default function CustomerDetailsView({
                 {customer.notes && (
                     <div className="mt-6 pt-6 border-t border-border/40">
                         <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-2">Internal Notes</p>
-                        <div className="bg-muted/20 p-4 rounded-xl text-muted-foreground text-sm font-medium leading-relaxed">
+                        <div className="bg-muted/20 p-4 rounded-lg text-muted-foreground text-sm font-medium leading-relaxed">
                             {customer.notes}
                         </div>
                     </div>
@@ -141,7 +141,7 @@ export default function CustomerDetailsView({
           </Card>
 
           {/* Measurements */}
-          <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+          <Card className="rounded-lg border-border/60 shadow-sm overflow-hidden">
             <CardHeader className="bg-muted/30 border-b border-border/40 py-4 flex flex-row items-center justify-between space-y-0">
                  <CardTitle className="flex items-center gap-2 text-base font-bold">
                     <Ruler size={18} className="text-primary" />
@@ -157,13 +157,13 @@ export default function CustomerDetailsView({
                     {customer.measurements ? "Refine" : "Add Stats"}
                   </Button>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-5">
                 {customer.measurements ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {Object.entries(customer.measurements)
                     .filter(([key]) => key !== "notes")
                     .map(([key, value]) => (
-                        <div key={key} className="p-3 rounded-xl border border-border/40 bg-card hover:bg-muted/10 transition-colors">
+                        <div key={key} className="p-3 rounded-lg border border-border/40 bg-card hover:bg-muted/10 transition-colors">
                             <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1 truncate">
                                 {key.replace(/_/g, " ")}
                             </p>
@@ -171,7 +171,7 @@ export default function CustomerDetailsView({
                         </div>
                     ))}
                     {customer.measurements.notes && (
-                    <div className="col-span-2 md:col-span-4 mt-2 bg-primary/[0.03] border border-primary/10 rounded-xl p-4">
+                    <div className="col-span-2 md:col-span-4 mt-2 bg-primary/[0.03] border border-primary/10 rounded-lg p-4">
                         <p className="text-[10px] uppercase font-bold text-primary/70 tracking-widest mb-1.5">BODY NOTES</p>
                         <p className="text-sm font-medium text-foreground leading-relaxed">
                         {customer.measurements.notes}
@@ -180,9 +180,9 @@ export default function CustomerDetailsView({
                     )}
                 </div>
                 ) : (
-                <div className="text-center py-12 bg-muted/10 rounded-2xl border border-dashed border-border/60">
+                <div className="text-center py-10 bg-muted/10 rounded-lg border border-dashed border-border/60">
                     <div className="w-16 h-16 bg-muted/40 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Ruler className="text-muted-foreground/60" size={32} />
+                        <Ruler className="text-muted-foreground/60" size={24} />
                     </div>
                     <p className="text-foreground font-bold">No stats recorded</p>
                     <p className="text-sm text-muted-foreground mt-1 max-w-[200px] mx-auto">
@@ -194,14 +194,14 @@ export default function CustomerDetailsView({
           </Card>
 
           {/* Order History */}
-          <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+          <Card className="rounded-lg border-border/60 shadow-sm overflow-hidden">
             <CardHeader className="bg-muted/30 border-b border-border/40 py-4">
                 <CardTitle className="flex items-center gap-2 text-base font-bold">
                     <ShoppingCart size={18} className="text-primary" />
                     RECENT ORDERS
                 </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-5">
                 {customer.orders && customer.orders.length > 0 ? (
                 <div className="space-y-4">
                     {customer.orders.map((order, index) => (
@@ -211,7 +211,7 @@ export default function CustomerDetailsView({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         onClick={() => handleOrderClick(order.id)}
-                        className="group flex flex-col md:flex-row md:items-center justify-between p-5 bg-card rounded-2xl border border-border/60 hover:border-primary/40 hover:shadow-md transition-all duration-300 cursor-pointer"
+                        className="group flex flex-col md:flex-row md:items-center justify-between p-5 bg-card rounded-lg border border-border/60 hover:border-primary/40 hover:shadow-md transition-all duration-300 cursor-pointer"
                     >
                         <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -236,7 +236,7 @@ export default function CustomerDetailsView({
                         </div>
                         </div>
                         <div className="text-right mt-3 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40">
-                            <p className="text-xl font-black text-foreground">
+                            <p className="text-lg font-bold text-foreground">
                                 K{parseFloat(order.total_cost).toLocaleString()}
                             </p>
                             {order.balance > 0 && (
@@ -249,9 +249,9 @@ export default function CustomerDetailsView({
                     ))}
                 </div>
                 ) : (
-                <div className="text-center py-12 bg-muted/10 rounded-2xl border border-dashed border-border/60">
+                <div className="text-center py-10 bg-muted/10 rounded-lg border border-dashed border-border/60">
                     <div className="w-16 h-16 bg-muted/40 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <ShoppingCart className="text-muted-foreground/60" size={32} />
+                        <ShoppingCart className="text-muted-foreground/60" size={24} />
                     </div>
                     <p className="text-foreground font-bold">No orders found</p>
                     <p className="text-sm text-muted-foreground mt-1">Ready to create their first order?</p>
@@ -262,17 +262,17 @@ export default function CustomerDetailsView({
         </div>
 
         {/* Right Column - Statistics */}
-        <div className="space-y-8">
+        <div className="space-y-5">
           {/* Customer Stats - Ultra Minimal */}
           {stats && (
             <>
-              <div className="grid grid-cols-1 gap-6">
-                <Card className="rounded-2xl border-l-4 border-l-primary border-border/60 shadow-sm bg-card hover:shadow-md transition-shadow cursor-default overflow-hidden">
-                    <CardContent className="p-6">
+              <div className="grid grid-cols-1 gap-4">
+                <Card className="rounded-lg border-l-4 border-l-primary border-border/60 shadow-sm bg-card hover:shadow-md transition-shadow cursor-default overflow-hidden">
+                    <CardContent className="p-5">
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Revenue Generated</p>
                         <div className="flex items-baseline gap-1">
                             <span className="text-muted-foreground text-xl font-bold">K</span>
-                            <span className="text-4xl font-black text-foreground tracking-tight">{stats.totalSpent.toLocaleString()}</span>
+                            <span className="text-2xl font-bold text-foreground tracking-tight">{stats.totalSpent.toLocaleString()}</span>
                         </div>
                         <div className="mt-4 pt-4 border-t border-border/60 flex items-center justify-between">
                             <span className="text-xs font-bold text-muted-foreground uppercase">Lifetime Sales</span>
@@ -283,11 +283,11 @@ export default function CustomerDetailsView({
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl border-l-4 border-l-blue-500 border-border/60 shadow-sm bg-card hover:shadow-md transition-shadow cursor-default overflow-hidden">
-                    <CardContent className="p-6">
+                <Card className="rounded-lg border-l-4 border-l-blue-500 border-border/60 shadow-sm bg-card hover:shadow-md transition-shadow cursor-default overflow-hidden">
+                    <CardContent className="p-5">
                         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Order Frequency</p>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-black text-foreground tracking-tight">{stats.totalOrders}</span>
+                            <span className="text-2xl font-bold text-foreground tracking-tight">{stats.totalOrders}</span>
                             <span className="text-muted-foreground text-sm font-bold uppercase ml-1">Orders</span>
                         </div>
                         <div className="mt-4 pt-4 border-t border-border/60 flex items-center justify-between">
@@ -300,17 +300,17 @@ export default function CustomerDetailsView({
                 </Card>
               </div>
 
-              <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+              <Card className="rounded-lg border-border/60 shadow-sm overflow-hidden">
                 <CardHeader className="bg-muted/30 border-b border-border/40 py-4">
                     <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest">LOYALTY STATS</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6 space-y-5">
+                <CardContent className="pt-5 space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
                             <p className="text-sm font-bold text-foreground">Active Projects</p>
                             <p className="text-[10px] text-muted-foreground font-bold uppercase">currently in production</p>
                         </div>
-                        <span className="text-2xl font-black text-primary">
+                        <span className="text-xl font-bold text-primary">
                             {stats.activeOrders}
                         </span>
                     </div>
@@ -319,12 +319,12 @@ export default function CustomerDetailsView({
                             <p className="text-sm font-bold text-foreground">Completed Assets</p>
                             <p className="text-[10px] text-muted-foreground font-bold uppercase">delivered successfully</p>
                         </div>
-                        <span className="text-2xl font-black text-green-500">
+                        <span className="text-xl font-bold text-green-500">
                             {stats.completedOrders}
                         </span>
                     </div>
                     {stats.lastOrderDate && (
-                        <div className="mt-6 p-4 rounded-xl bg-muted/30 border border-border/40">
+                        <div className="mt-6 p-4 rounded-lg bg-muted/30 border border-border/40">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Last Interaction</p>
                         <p className="text-sm font-black text-foreground">
                             {format(new Date(stats.lastOrderDate), "MMMM dd, yyyy")}

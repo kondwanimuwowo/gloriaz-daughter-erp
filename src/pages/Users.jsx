@@ -13,6 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import toast from "react-hot-toast";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import StatsCard from "../components/dashboard/StatsCard";
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { CreateUserDialog } from "@/components/users/CreateUserDialog";
 
 export default function Users() {
@@ -170,18 +172,7 @@ export default function Users() {
   ], [profile, users]);
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 w-full" />)}
-        </div>
-        <Skeleton className="h-[400px] w-full" />
-      </div>
-    );
+    return <PageSkeleton layout="table" statsCount={5} />;
   }
 
   if (!users) {
@@ -198,14 +189,10 @@ export default function Users() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">Manage system users and permissions</p>
-        </div>
+    <div className="space-y-5">
+      <PageHeader title="User Management" description="Manage system users and permissions">
         <CreateUserDialog onUserCreated={fetchUsers} />
-      </div>
+      </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <StatsCard

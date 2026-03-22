@@ -19,6 +19,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 
 import RevenueChart from "../components/dashboard/RevenueChart";
 import OrderStatusChart from "../components/dashboard/OrderStatusChart";
@@ -81,26 +83,15 @@ export default function Dashboard() {
     });
 
     if (isLoading) {
-        return (
-            <div className="space-y-6">
-                <Skeleton className="h-12 w-64" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Skeleton className="h-[300px] w-full rounded-xl" />
-                    <Skeleton className="h-[300px] w-full rounded-xl" />
-                </div>
-            </div>
-        );
+        return <PageSkeleton layout="charts" statsCount={4} hasAction={false} />;
     }
 
     if (!dashboardData?.stats) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-5">
                 <AlertCircle className="h-12 w-12 text-destructive" />
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold">Failed to load dashboard</h2>
+                    <h2 className="text-lg font-semibold">Failed to load dashboard</h2>
                     <p className="text-muted-foreground">Please wait a moment for the sync to recover</p>
                 </div>
             </div>
@@ -111,15 +102,13 @@ export default function Dashboard() {
     const clockedInToday = todayAttendance.filter((a) => !a.clock_out).length;
 
     return (
-        <div className="space-y-6 pb-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                <p className="text-muted-foreground">
-                    Welcome back! Here's what's happening with your business.
-                </p>
-            </div>
+        <div className="space-y-5 pb-8">
+            <PageHeader
+                title="Dashboard"
+                description="Welcome back! Here's what's happening with your business."
+            />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="flex flex-wrap gap-3">
                 <StatsCard
                     title="Total Revenue"
                     value={`K${stats.totalRevenue.toFixed(0)}`}
@@ -156,17 +145,17 @@ export default function Dashboard() {
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <RevenueChart data={dashboardData.revenueData} />
                 <OrderStatusChart data={dashboardData.orderStatusData} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <MaterialUsageChart data={dashboardData.materialUsageData} />
                 <EmployeeProductivityChart data={dashboardData.employeeProductivityData} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle>Recent Orders</CardTitle>
@@ -209,7 +198,7 @@ export default function Dashboard() {
                     </CardContent>
                 </Card>
 
-                <div className="space-y-6">
+                <div className="space-y-5">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <div className="flex items-center gap-2">

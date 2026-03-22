@@ -20,23 +20,23 @@ export default function MaterialCard({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -4 }}
-      className="bg-card rounded-xl shadow-sm border border-border p-5 hover:shadow-md transition-shadow duration-200"
+      className="bg-card rounded-lg shadow-sm border border-border p-3 hover:shadow-md transition-shadow duration-200"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-2">
           <div
-            className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+            className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
               isLowStock ? "bg-red-100" : "bg-primary/20"
             }`}
           >
             <Package
               className={isLowStock ? "text-red-600" : "text-primary"}
-              size={24}
+              size={14}
             />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground text-lg">
+            <h3 className="font-semibold text-foreground text-sm">
               {material.name}
             </h3>
             <span className="text-sm text-muted-foreground capitalize">
@@ -56,7 +56,7 @@ export default function MaterialCard({
       {/* Stock Info */}
       <div className="mb-4">
         <div className="flex items-baseline justify-between mb-2">
-          <span className="text-2xl font-bold text-foreground">
+          <span className="text-xl font-bold text-foreground">
             {parseFloat(material.stock_quantity).toFixed(2)}
           </span>
           <span className="text-sm text-muted-foreground">{material.unit}</span>
@@ -78,7 +78,7 @@ export default function MaterialCard({
       </div>
 
       {/* Cost & Supplier */}
-      <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-border">
+      <div className="grid grid-cols-2 gap-2 mb-3 pb-3 border-b border-border">
         <div>
           <p className="text-xs text-muted-foreground mb-1">Cost per unit</p>
           <p className="font-semibold text-foreground">
@@ -104,7 +104,7 @@ export default function MaterialCard({
       )}
 
       {/* Actions */}
-      <div className="grid grid-cols-2 sm:flex gap-2">
+      <div className="grid grid-cols-2 sm:flex gap-1.5">
         <Button
           variant="ghost"
           onClick={() => onUpdateStock(material, "add")}

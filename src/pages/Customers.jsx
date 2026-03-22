@@ -36,6 +36,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import AddCustomerForm from "../components/customers/AddCustomerForm";
 import CustomerDetailsView from "../components/customers/CustomerDetailsView";
 import toast from "react-hot-toast";
@@ -203,40 +205,18 @@ export default function Customers() {
   );
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-xl" />
-          ))}
-        </div>
-        <Skeleton className="h-96 w-full rounded-xl" />
-      </div>
-    );
+    return <PageSkeleton layout="table" statsCount={3} />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
-          <p className="text-muted-foreground">
-            Manage your customers and their information
-          </p>
-        </div>
+    <div className="space-y-5">
+      <PageHeader title="Customers" description="Manage your customers and their information">
         <Button onClick={() => setShowAddModal(true)}>
           <Plus className="mr-2 h-4 w-4" /> Add Customer
         </Button>
-      </div>
+      </PageHeader>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="flex flex-wrap gap-3">
         <StatsCard
           title="Total Customers"
           value={totalCustomers}
@@ -264,7 +244,7 @@ export default function Customers() {
         />
       </div>
 
-      <Card className="p-6">
+      <Card className="overflow-hidden border-border/60">
         <DataTable
           columns={columns}
           data={customers}

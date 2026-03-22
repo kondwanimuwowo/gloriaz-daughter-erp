@@ -89,18 +89,18 @@ export default function StockUpdateModal({
             {operation === "add" ? "Add Stock" : "Deduct Stock"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Material Info */}
-          <div className="bg-muted/50 rounded-lg p-4">
+          <div className="bg-muted/30 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Package className="text-primary" size={20} />
+                <Package className="text-primary" size={18} />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground">
+                <h3 className="font-semibold text-foreground text-sm">
                   {material?.name}
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Current: {material?.stock_quantity} {material?.unit} @ {new Intl.NumberFormat("en-ZM", { style: "currency", currency: "ZMW" }).format(currentCost)}/{material?.unit}
                 </p>
               </div>
@@ -126,8 +126,8 @@ export default function StockUpdateModal({
 
           {/* Price Option (only for restocking) */}
           {operation === "add" && (
-            <div className="space-y-3 border rounded-lg p-4 bg-blue-50/50">
-              <Label className="text-sm font-semibold">Restock Price</Label>
+            <div className="space-y-3 border border-border rounded-lg p-4 bg-muted/20">
+              <Label className="text-sm font-semibold text-foreground">Restock Price</Label>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <input
@@ -210,17 +210,17 @@ export default function StockUpdateModal({
 
           {/* Preview */}
           {quantity && parseFloat(quantity) > 0 && (
-            <Alert className="bg-blue-50 border-blue-200">
-              <AlertDescription className="text-blue-800">
+            <Alert className="bg-muted/30 border-border">
+              <AlertDescription className="text-foreground">
                 <span className="font-medium">New stock level:</span>{" "}
-                <span className="text-lg font-bold">
+                <span className="text-base font-bold">
                   {newQuantity.toFixed(2)} {material?.unit}
                 </span>
                 {operation === "add" && priceOption === "new" && newUnitCost && (
                   <>
                     <br />
                     <span className="font-medium">New avg cost:</span>{" "}
-                    <span className="text-lg font-bold">
+                    <span className="text-base font-bold">
                       {new Intl.NumberFormat("en-ZM", { style: "currency", currency: "ZMW" }).format(newCostPerUnit)}/{material?.unit}
                     </span>
                   </>

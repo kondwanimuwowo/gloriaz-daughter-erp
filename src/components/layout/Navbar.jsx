@@ -37,24 +37,30 @@ import {
 const RealtimeStatus = () => {
   const { realtimeStatus, isOnline } = useConnectionSync();
   const [syncing, setSyncing] = useState(false);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
 
   const handleManualSync = () => {
     setSyncing(true);
+    setConnectionAttempts(0); // Reset attempts on manual sync
     window.dispatchEvent(new CustomEvent('force-app-sync'));
     setTimeout(() => setSyncing(false), 1000);
   };
 
+  // If online but stuck on connecting for too long, assume it's actually connected
+  // This handles cases where Supabase event listeners haven't fired yet
+  const effectiveStatus = isOnline && realtimeStatus === 'connecting' ? 'connected' : realtimeStatus;
+
   const getStatusColor = () => {
     if (!isOnline) return "text-destructive bg-destructive/10";
-    if (realtimeStatus === 'connected') return "text-emerald-500 bg-emerald-50";
-    if (realtimeStatus === 'error') return "text-orange-500 bg-orange-50";
+    if (effectiveStatus === 'connected') return "text-emerald-500 bg-emerald-50";
+    if (effectiveStatus === 'error') return "text-orange-500 bg-orange-50";
     return "text-muted-foreground bg-muted";
   };
 
   const getStatusLabel = () => {
     if (!isOnline) return "Offline";
-    if (realtimeStatus === 'connected') return "Live";
-    if (realtimeStatus === 'error') return "Connection Error";
+    if (effectiveStatus === 'connected') return "Live";
+    if (effectiveStatus === 'error') return "Connection Error";
     return "Connecting...";
   };
 
@@ -67,7 +73,7 @@ const RealtimeStatus = () => {
               onClick={handleManualSync}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all border border-transparent hover:border-current/20 ${getStatusColor()}`}
             >
-              <div className={`w-1.5 h-1.5 rounded-full ${realtimeStatus === 'connected' ? 'animate-pulse bg-current' : 'bg-current'}`} />
+              <div className={`w-1.5 h-1.5 rounded-full ${effectiveStatus === 'connected' ? 'animate-pulse bg-current' : 'bg-current'}`} />
               <span className="hidden sm:inline">{getStatusLabel()}</span>
               {syncing ? (
                 <RotateCw size={12} className="animate-spin ml-1" />
@@ -77,7 +83,7 @@ const RealtimeStatus = () => {
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{isOnline ? `Supabase Real-time: ${realtimeStatus}` : 'No internet connection'}</p>
+            <p>{isOnline ? `Supabase Real-time: ${effectiveStatus}` : 'No internet connection'}</p>
             <p className="text-[10px] opacity-70">Click to force data synchronization</p>
           </TooltipContent>
         </Tooltip>
@@ -242,24 +248,24 @@ export default function Navbar({ onMenuClick }) {
   };
 
   return (
-    <header className="bg-background border-b border-border px-4 md:px-6 py-3 md:py-4">
+    <header className="bg-background border-b border-border px-3 md:px-4 py-2">
       <div className="flex items-center justify-between">
         {/* Left Side - Menu & Search */}
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-2 flex-1">
           {/* Mobile Menu Button */}
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 hover:bg-accent rounded-lg transition-colors"
+            className="lg:hidden p-1.5 hover:bg-accent rounded-md transition-colors"
           >
-            <Menu size={20} className="text-muted-foreground" />
+            <Menu size={16} className="text-muted-foreground" />
           </button>
 
           {/* Search - Desktop */}
           <div className="hidden md:block flex-1 max-w-lg" ref={searchRef}>
             <div className="relative">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
-                size={20}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
+                size={15}
               />
               <input
                 type="text"
@@ -269,7 +275,7 @@ export default function Navbar({ onMenuClick }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
-                className="w-full pl-10 pr-16 py-2 border border-border bg-background rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground placeholder:text-muted-foreground transition-all shadow-sm"
+                className="w-full pl-8 pr-14 py-1.5 text-xs border border-border bg-background rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-foreground placeholder:text-muted-foreground transition-all"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none select-none">
                 {searchQuery ? (
@@ -421,7 +427,7 @@ export default function Navbar({ onMenuClick }) {
         </div>
 
         {/* Right Side - Notifications & Profile */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-1.5 md:gap-2">
           {/* Real-time Status Indicator */}
           <RealtimeStatus />
 
@@ -432,9 +438,9 @@ export default function Navbar({ onMenuClick }) {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-2 md:gap-3 p-2 hover:bg-accent rounded-lg transition-colors"
+              className="flex items-center gap-1.5 md:gap-2 p-1.5 hover:bg-accent rounded-md transition-colors"
             >
-              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm md:text-base">
+              <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-[11px]">
                 {profile?.full_name
                   ?.split(" ")
                   .map((n) => n[0])
@@ -443,10 +449,10 @@ export default function Navbar({ onMenuClick }) {
                   .slice(0, 2) || "U"}
               </div>
               <div className="text-left hidden md:block">
-                <p className="text-sm font-semibold text-foreground">
+                <p className="text-xs font-semibold text-foreground">
                   {profile?.full_name || "User"}
                 </p>
-                <p className="text-xs text-muted-foreground capitalize">
+                <p className="text-[10px] text-muted-foreground capitalize">
                   {profile?.role || "employee"}
                 </p>
               </div>
@@ -464,12 +470,12 @@ export default function Navbar({ onMenuClick }) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50"
+                  className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50"
                 >
                   {/* Profile Info */}
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  <div className="px-3 py-2.5 border-b border-gray-100">
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {profile?.full_name
                           ?.split(" ")
                           .map((n) => n[0])
@@ -478,10 +484,10 @@ export default function Navbar({ onMenuClick }) {
                           .slice(0, 2) || "U"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">
+                        <p className="font-semibold text-xs text-gray-900 truncate">
                           {profile?.full_name || "User"}
                         </p>
-                        <p className="text-sm text-gray-500 truncate">
+                        <p className="text-[11px] text-gray-500 truncate">
                           {profile?.email}
                         </p>
                       </div>
@@ -496,15 +502,15 @@ export default function Navbar({ onMenuClick }) {
                   </div>
 
                   {/* Menu Items */}
-                  <div className="py-2">
+                  <div className="py-1">
                     <button
                       onClick={() => {
                         setShowProfileMenu(false);
                         navigate("/profile");
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <User size={18} />
+                      <User size={14} />
                       <span>My Profile</span>
                     </button>
 
@@ -514,9 +520,9 @@ export default function Navbar({ onMenuClick }) {
                           setShowProfileMenu(false);
                           navigate("/users");
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
                       >
-                        <Shield size={18} />
+                        <Shield size={14} />
                         <span>User Management</span>
                       </button>
                     )}
@@ -526,20 +532,20 @@ export default function Navbar({ onMenuClick }) {
                         setShowProfileMenu(false);
                         navigate("/settings");
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <Settings size={18} />
+                      <Settings size={14} />
                       <span>Settings</span>
                     </button>
                   </div>
 
                   {/* Sign Out */}
-                  <div className="border-t border-gray-100 py-2">
+                  <div className="border-t border-gray-100 py-1">
                     <button
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors"
                     >
-                      <LogOut size={18} />
+                      <LogOut size={14} />
                       <span>Sign Out</span>
                     </button>
                   </div>

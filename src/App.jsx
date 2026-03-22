@@ -26,6 +26,7 @@ import Manual from "./pages/Manual"; // NEW
 import Products from "./pages/Products"; // NEW
 import Notifications from "./pages/Notifications"; // NEW
 import Settings from "./pages/Settings"; // NEW
+import Enquiries from "./pages/Enquiries";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -95,6 +96,7 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="orders" element={<Orders />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="enquiries" element={<Enquiries />} />
               <Route path="profile" element={<Profile />} />
               <Route path="first-time-setup" element={<FirstTimeSetup />} />
 

@@ -13,74 +13,79 @@ export function Footer() {
   const hasContact = address || phone || email;
 
   return (
-    <footer className="bg-foreground text-background py-12 md:py-16">
-      <div className="container mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="space-y-4">
-          <h3 className="text-xl font-serif font-bold text-primary">Gloria&apos;s Daughter</h3>
-          <p className="text-sm text-muted-foreground max-w-xs">
-            Bespoke fashion and premium tailoring, crafted to perfection for the modern individual.
-          </p>
-          {hasSocials && (
-            <div className="flex gap-4 pt-2">
-              {instagram && (
-                <a href={instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                  <Instagram className="h-5 w-5" />
-                </a>
-              )}
-              {facebook && (
-                <a href={facebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                  <Facebook className="h-5 w-5" />
-                </a>
-              )}
-              {twitter && (
-                <a href={twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                  <Twitter className="h-5 w-5" />
-                </a>
-              )}
+    <footer className="bg-warm-black text-white/80 relative grain">
+      <div className="container mx-auto px-6 md:px-8 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+          <div className="space-y-6">
+            <h3 className="text-2xl font-serif font-light text-white tracking-tight">Gloriaz Daughter</h3>
+            <p className="text-sm font-light text-white/40 max-w-xs leading-relaxed">
+              Bespoke fashion and premium tailoring, crafted to perfection for the modern individual.
+            </p>
+            {hasSocials && (
+              <div className="flex gap-5 pt-2">
+                {instagram && (
+                  <a href={instagram} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-champagne transition-colors duration-300">
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                )}
+                {facebook && (
+                  <a href={facebook} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-champagne transition-colors duration-300">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                )}
+                {twitter && (
+                  <a href={twitter} target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-champagne transition-colors duration-300">
+                    <Twitter className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            <h4 className="text-[10px] font-medium uppercase tracking-[0.3em] text-champagne">Quick Links</h4>
+            <nav className="flex flex-col gap-3">
+              <Link href="/" className="text-sm font-light text-white/40 hover:text-white transition-colors duration-300">Home</Link>
+              <Link href="/catalog" className="text-sm font-light text-white/40 hover:text-white transition-colors duration-300">Collection</Link>
+              <Link href="/about" className="text-sm font-light text-white/40 hover:text-white transition-colors duration-300">Our Story</Link>
+              <Link href="/catalog?filter=ready-to-wear" className="text-sm font-light text-white/40 hover:text-white transition-colors duration-300">Ready to Wear</Link>
+            </nav>
+          </div>
+
+          {hasContact && (
+            <div className="space-y-6">
+              <h4 className="text-[10px] font-medium uppercase tracking-[0.3em] text-champagne">Contact</h4>
+              <div className="flex flex-col gap-4">
+                {address && (
+                  <div className="flex items-start gap-3 text-sm font-light text-white/40">
+                    <MapPin className="h-4 w-4 text-champagne/60 shrink-0 mt-0.5" />
+                    <span>{address}</span>
+                  </div>
+                )}
+                {phone && (
+                  <div className="flex items-center gap-3 text-sm font-light text-white/40">
+                    <Phone className="h-4 w-4 text-champagne/60 shrink-0" />
+                    <span>{phone}</span>
+                  </div>
+                )}
+                {email && (
+                  <div className="flex items-center gap-3 text-sm font-light text-white/40">
+                    <Mail className="h-4 w-4 text-champagne/60 shrink-0" />
+                    <span>{email}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
-
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold uppercase tracking-wider text-primary">Quick Links</h4>
-          <nav className="flex flex-col gap-2">
-            <Link href="/" className="text-sm text-muted-foreground hover:text-white transition-colors">Home</Link>
-            <Link href="/catalog" className="text-sm text-muted-foreground hover:text-white transition-colors">Collection</Link>
-            <Link href="/about" className="text-sm text-muted-foreground hover:text-white transition-colors">Our Story</Link>
-            <Link href="/catalog?filter=ready-to-wear" className="text-sm text-muted-foreground hover:text-white transition-colors">Ready to Wear</Link>
-          </nav>
-        </div>
-
-        {hasContact && (
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-primary">Contact</h4>
-            <div className="flex flex-col gap-3">
-              {address && (
-                <div className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <MapPin className="h-5 w-5 text-primary shrink-0" />
-                  <span>{address}</span>
-                </div>
-              )}
-              {phone && (
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <Phone className="h-5 w-5 text-primary shrink-0" />
-                  <span>{phone}</span>
-                </div>
-              )}
-              {email && (
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <Mail className="h-5 w-5 text-primary shrink-0" />
-                  <span>{email}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
-      <div className="container mx-auto px-4 md:px-6 mt-12 pt-8 border-t border-white/10 flex items-center justify-center">
-        <p className="text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Gloria&apos;s Daughter. All rights reserved.
-        </p>
+
+      <div className="border-t border-white/5">
+        <div className="container mx-auto px-6 md:px-8 py-6 flex items-center justify-center">
+          <p className="text-[11px] text-white/25 font-light tracking-wide">
+            &copy; {new Date().getFullYear()} Gloriaz Daughter. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

@@ -48,16 +48,16 @@ const Manual = () => {
             color: "text-blue-500",
             bg: "bg-blue-50",
             content: (
-                <div className="space-y-6">
+                <div className="space-y-5">
                     <div className="prose max-w-none">
-                        <p className="text-lg text-muted-foreground leading-relaxed">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                             Welcome to <strong>Gloria's Daughter ERP</strong>. This system is your digital assistant, designed to help you manage orders, track materials, and understand your business profits without needing to be a computer expert.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                        <div className="p-6 border rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
-                            <h4 className="font-bold flex items-center gap-3 mb-4 text-lg">
+                        <div className="p-4 border rounded-lg bg-card shadow-sm hover:shadow-md transition-shadow">
+                            <h4 className="font-semibold flex items-center gap-2 mb-3 text-sm">
                                 <MousePointer2 size={20} className="text-primary" />
                                 1. Logging In
                             </h4>
@@ -67,8 +67,8 @@ const Manual = () => {
                                 <li className="flex gap-3"><ArrowRight size={16} className="mt-0.5 flex-shrink-0" /> Click <strong>Sign In</strong>.</li>
                             </ul>
                         </div>
-                        <div className="p-6 border rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
-                            <h4 className="font-bold flex items-center gap-3 mb-4 text-lg">
+                        <div className="p-4 border rounded-lg bg-card shadow-sm hover:shadow-md transition-shadow">
+                            <h4 className="font-semibold flex items-center gap-2 mb-3 text-sm">
                                 <LayoutDashboard size={20} className="text-primary" />
                                 2. The Dashboard
                             </h4>
@@ -78,8 +78,8 @@ const Manual = () => {
                         </div>
                     </div>
 
-                    <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 flex gap-4">
-                        <div className="p-3 bg-white rounded-xl shadow-sm h-fit">
+                    <div className="bg-primary/5 p-6 rounded-lg border border-primary/10 flex gap-4">
+                        <div className="p-3 bg-card rounded-xl shadow-sm h-fit">
                             <Lightbulb className="text-primary" size={28} />
                         </div>
                         <div>
@@ -106,7 +106,7 @@ const Manual = () => {
                             <div className="h-9 w-1 bg-primary rounded-full" />
                             How to Create a New Order
                         </h3>
-                        <div className="space-y-6">
+                        <div className="space-y-5">
                             {[
                                 { title: "Start", text: "Click 'Create Order' and choose 'Custom' for bespoke items or 'Pre-designed Garment' for items you already have in stock." },
                                 { title: "Customer", text: "Select an existing customer or click '+ Add New' to quickly save their name and phone number." },
@@ -115,11 +115,11 @@ const Manual = () => {
                                 { title: "Pricing & Deposit", text: "Review the suggested price, set your final price, and record the deposit paid." }
                             ].map((step, i) => (
                                 <div key={i} className="flex gap-5 group">
-                                    <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-lg text-slate-600 group-hover:bg-primary group-hover:text-white transition-colors flex-shrink-0">
+                                    <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center font-bold text-lg text-muted-foreground group-hover:bg-primary group-hover:text-white transition-colors flex-shrink-0">
                                         {i + 1}
                                     </div>
                                     <div className="pt-2 flex-1">
-                                        <h4 className="font-bold text-xl text-slate-900 mb-1">{step.title}</h4>
+                                        <h4 className="font-bold text-xl text-foreground mb-1">{step.title}</h4>
                                         <p className="text-base text-muted-foreground leading-relaxed">{step.text}</p>
                                     </div>
                                 </div>
@@ -127,7 +127,7 @@ const Manual = () => {
                         </div>
                     </section>
 
-                    <div className="p-8 bg-slate-900 border border-slate-800 rounded-3xl text-white">
+                    <div className="p-8 bg-slate-900 border border-slate-800 rounded-lg text-white">
                         <h4 className="font-bold flex items-center gap-3 mb-5 text-primary text-xl">
                             <AlertCircle size={24} />
                             Critical Workflow Rule
@@ -192,13 +192,13 @@ const Manual = () => {
                             <div className="h-9 w-1 bg-emerald-500 rounded-full" />
                             Why Inventory Matters
                         </h3>
-                        <p className="text-lg text-muted-foreground leading-relaxed">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                             When you record your fabrics and buttons here, the system can warn you <strong>before</strong> you run out. It also knows exactly how much money is sitting on your shelves.
                         </p>
                     </section>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="space-y-5 p-6 bg-white border rounded-2xl shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-5 p-6 bg-card border rounded-lg shadow-sm">
                             <h4 className="font-bold flex items-center gap-3 text-xl">
                                 <CheckCircle2 size={24} className="text-emerald-500" />
                                 Adding Stock
@@ -207,7 +207,7 @@ const Manual = () => {
                                 When you buy new fabric, use the <strong>Restock</strong> button. Enter how much you bought and the price. The system will update your average cost automatically.
                             </p>
                         </div>
-                        <div className="space-y-5 p-6 bg-white border rounded-2xl shadow-sm">
+                        <div className="space-y-5 p-6 bg-card border rounded-lg shadow-sm">
                             <h4 className="font-bold flex items-center gap-3 text-xl">
                                 <Scissors size={24} className="text-emerald-500" />
                                 Workshop Batches
@@ -223,7 +223,7 @@ const Manual = () => {
                             <div className="h-9 w-1 bg-emerald-500 rounded-full" />
                             Production with Materials
                         </h3>
-                        <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
+                        <div className="bg-emerald-50 p-6 rounded-lg border border-emerald-200">
                             <h4 className="font-bold text-emerald-900 mb-4 text-lg flex items-center gap-2">
                                 <Zap size={20} />
                                 NEW: Material Tracking
@@ -252,7 +252,7 @@ const Manual = () => {
                         </div>
                     </section>
 
-                    <div className="bg-emerald-50 p-8 rounded-2xl border border-emerald-100 flex gap-5">
+                    <div className="bg-emerald-50 p-8 rounded-lg border border-emerald-100 flex gap-5">
                         <Clock className="text-emerald-600 flex-shrink-0" size={32} />
                         <div>
                             <h4 className="font-bold text-emerald-800 mb-2 text-xl">Wait for Completion</h4>
@@ -279,23 +279,23 @@ const Manual = () => {
             bg: "bg-amber-50",
             content: (
                 <div className="space-y-8">
-                    <p className="text-lg text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                         You don't need to be an accountant. The system does all the calculations to show you if you are making money or losing it.
                     </p>
 
-                    <Card className="bg-slate-50 border-none shadow-md">
+                    <Card className="bg-muted/30 border-none shadow-md">
                         <CardHeader>
                             <CardTitle className="text-xl">Financial Definitions</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="flex justify-between items-start border-b border-slate-200 pb-5">
+                        <CardContent className="space-y-5">
+                            <div className="flex justify-between items-start border-b border-border pb-5">
                                 <div>
                                     <h5 className="font-bold text-xl">Revenue</h5>
                                     <p className="text-base text-muted-foreground mt-1">Total money coming in from sales.</p>
                                 </div>
                                 <span className="bg-green-100 text-green-700 font-bold px-4 py-2 rounded-lg text-sm">+ PLUS</span>
                             </div>
-                            <div className="flex justify-between items-start border-b border-slate-200 pb-5">
+                            <div className="flex justify-between items-start border-b border-border pb-5">
                                 <div>
                                     <h5 className="font-bold text-xl">COGS (Materials & Labour)</h5>
                                     <p className="text-base text-muted-foreground mt-1">How much it cost you to make the items.</p>
@@ -318,7 +318,7 @@ const Manual = () => {
                             Reading the Finance Dashboard
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-5 bg-white border rounded-xl">
+                            <div className="p-5 bg-card border rounded-xl">
                                 <div className="flex items-center gap-3 mb-3">
                                     <div className="p-2 bg-green-100 rounded-lg">
                                         <TrendingUp size={20} className="text-green-600" />
@@ -329,7 +329,7 @@ const Manual = () => {
                                     Shows total sales for the selected period. Green means you're making sales!
                                 </p>
                             </div>
-                            <div className="p-5 bg-white border rounded-xl">
+                            <div className="p-5 bg-card border rounded-xl">
                                 <div className="flex items-center gap-3 mb-3">
                                     <div className="p-2 bg-red-100 rounded-lg">
                                         <Package size={20} className="text-red-600" />
@@ -340,7 +340,7 @@ const Manual = () => {
                                     Shows how much you spent on materials and labor. Keep this lower than revenue!
                                 </p>
                             </div>
-                            <div className="p-5 bg-white border rounded-xl">
+                            <div className="p-5 bg-card border rounded-xl">
                                 <div className="flex items-center gap-3 mb-3">
                                     <div className="p-2 bg-primary/10 rounded-lg">
                                         <Target size={20} className="text-primary" />
@@ -354,7 +354,7 @@ const Manual = () => {
                         </div>
                     </section>
 
-                    <div className="flex gap-5 p-6 bg-white border rounded-2xl shadow-sm">
+                    <div className="flex gap-5 p-6 bg-card border rounded-lg shadow-sm">
                         <div className="p-4 bg-amber-50 text-amber-600 rounded-xl h-fit">
                             <Download size={28} />
                         </div>
@@ -382,11 +382,11 @@ const Manual = () => {
                             <div className="h-9 w-1 bg-pink-500 rounded-full" />
                             Managing Your Customer Database
                         </h3>
-                        <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-6">
                             Every customer is valuable. The system helps you remember their preferences, track their orders, and build loyalty.
                         </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="p-6 bg-white border rounded-2xl">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-6 bg-card border rounded-lg">
                                 <h4 className="font-bold text-lg mb-3">Adding New Customers</h4>
                                 <ul className="space-y-2 text-muted-foreground">
                                     <li className="flex gap-2">
@@ -403,7 +403,7 @@ const Manual = () => {
                                     </li>
                                 </ul>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl">
+                            <div className="p-6 bg-card border rounded-lg">
                                 <h4 className="font-bold text-lg mb-3">Customer History</h4>
                                 <p className="text-muted-foreground mb-3">
                                     Click on any customer to see:
@@ -426,7 +426,7 @@ const Manual = () => {
                         </div>
                     </section>
 
-                    <div className="bg-pink-50 p-6 rounded-2xl border border-pink-200">
+                    <div className="bg-pink-50 p-6 rounded-lg border border-pink-200">
                         <h4 className="font-bold text-pink-900 mb-3 text-lg flex items-center gap-2">
                             <Bell size={20} />
                             Customer Notifications
@@ -452,8 +452,8 @@ const Manual = () => {
                             <div className="h-9 w-1 bg-indigo-500 rounded-full" />
                             Available Reports
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="p-6 bg-white border rounded-2xl">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-6 bg-card border rounded-lg">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                     <DollarSign size={20} className="text-indigo-500" />
                                     Financial Reports
@@ -465,7 +465,7 @@ const Manual = () => {
                                     <li>• Outstanding payments</li>
                                 </ul>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl">
+                            <div className="p-6 bg-card border rounded-lg">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                     <Package size={20} className="text-indigo-500" />
                                     Inventory Reports
@@ -477,7 +477,7 @@ const Manual = () => {
                                     <li>• Inventory value</li>
                                 </ul>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl">
+                            <div className="p-6 bg-card border rounded-lg">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                     <Scissors size={20} className="text-indigo-500" />
                                     Production Reports
@@ -489,7 +489,7 @@ const Manual = () => {
                                     <li>• Production efficiency</li>
                                 </ul>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl">
+                            <div className="p-6 bg-card border rounded-lg">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                     <Users size={20} className="text-indigo-500" />
                                     Customer Reports
@@ -509,7 +509,7 @@ const Manual = () => {
                             <div className="h-9 w-1 bg-indigo-500 rounded-full" />
                             Understanding Trends
                         </h3>
-                        <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-200">
+                        <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
                             <p className="text-indigo-900 leading-relaxed mb-4">
                                 The dashboard shows charts and graphs to help you spot patterns:
                             </p>
@@ -546,12 +546,12 @@ const Manual = () => {
                             <div className="h-9 w-1 bg-cyan-500 rounded-full" />
                             Everything in One Place
                         </h3>
-                        <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-6">
                             The new <strong>Settings Hub</strong> brings all your workshop configurations into one simple dashboard. You no longer need to look for settings in different pages.
                         </p>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                     <Warehouse size={20} className="text-cyan-600" />
                                     1. General Settings
@@ -560,7 +560,7 @@ const Manual = () => {
                                     Update your business name and manage system preferences. This is where you'll soon be able to change your workshop's logo and contact details.
                                 </p>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                     <DollarSign size={20} className="text-amber-600" />
                                     2. Financial Rules
@@ -569,7 +569,7 @@ const Manual = () => {
                                     Control your <strong>Profit Margins</strong> and <strong>Tax Rates</strong>. This affects how the system suggests prices for your customers.
                                 </p>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                     <Scissors size={20} className="text-primary" />
                                     3. Workshop & Labour
@@ -578,7 +578,7 @@ const Manual = () => {
                                     Manage your <strong>Garment Types</strong> and <strong>Labour Rates</strong>. Adding new types here makes them available when creating orders.
                                 </p>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
                                     <User size={20} className="text-blue-600" />
                                     4. Account & Security
@@ -590,7 +590,7 @@ const Manual = () => {
                         </div>
                     </section>
 
-                    <div className="bg-cyan-50 p-6 rounded-2xl border border-cyan-200">
+                    <div className="bg-cyan-50 p-6 rounded-lg border border-cyan-200">
                         <h4 className="font-bold text-cyan-900 mb-3 text-lg flex items-center gap-2">
                             <Lightbulb size={20} />
                             Efficient Workshop Pro Tip
@@ -607,45 +607,45 @@ const Manual = () => {
             title: "Help & Troubleshooting",
             subtitle: "What to do if you get stuck",
             icon: <HelpCircle size={20} />,
-            color: "text-slate-500",
-            bg: "bg-slate-50",
+            color: "text-muted-foreground",
+            bg: "bg-muted/30",
             content: (
                 <div className="space-y-8">
                     <section>
                         <h4 className="font-bold mb-6 text-2xl">Common Questions</h4>
                         <div className="space-y-5">
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <p className="font-bold text-lg mb-2 text-primary">"The suggested price seems too low."</p>
                                 <p className="text-base text-muted-foreground leading-relaxed">Go to <strong>Settings</strong> and increase your profit margin or hourly rate. The system will recalculate everything instantly.</p>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <p className="font-bold text-lg mb-2 text-primary">"I made a mistake on an order."</p>
                                 <p className="text-base text-muted-foreground leading-relaxed">Click the three dots (⋮) next to the order and select <strong>Edit</strong>. You can fix any detail at any time.</p>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <p className="font-bold text-lg mb-2 text-primary">"I can't find a material in the list."</p>
                                 <p className="text-base text-muted-foreground leading-relaxed">You must add the material to the <strong>Inventory</strong> page first before you can use it in an order.</p>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <p className="font-bold text-lg mb-2 text-primary">"The system is running slow."</p>
                                 <p className="text-base text-muted-foreground leading-relaxed">Try refreshing your browser (press F5). If using mobile data, switch to WiFi for better performance. Close other browser tabs you're not using.</p>
                             </div>
-                            <div className="p-6 bg-white border rounded-2xl shadow-sm">
+                            <div className="p-6 bg-card border rounded-lg shadow-sm">
                                 <p className="font-bold text-lg mb-2 text-primary">"I accidentally deleted something."</p>
                                 <p className="text-base text-muted-foreground leading-relaxed">Contact support immediately. Some deletions can be recovered if reported quickly. This is why we recommend only admins have delete permissions.</p>
                             </div>
                         </div>
                     </section>
 
-                    <div className="p-8 bg-primary rounded-3xl text-white text-center shadow-2xl">
+                    <div className="p-8 bg-primary rounded-lg text-white text-center shadow-2xl">
                         <h4 className="text-2xl font-bold mb-3">Still Need Help?</h4>
                         <p className="text-base opacity-90 mb-8 max-w-md mx-auto">Our support team is available during business hours via WhatsApp or email.</p>
                         <div className="flex flex-col gap-4 max-w-sm mx-auto">
-                            <a href="tel:[SUPPORT-NUMBER]" className="bg-white/20 hover:bg-white/30 transition px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 text-lg">
+                            <a href="tel:[SUPPORT-NUMBER]" className="bg-card/20 hover:bg-card/30 transition px-8 py-4 rounded-lg font-bold flex items-center justify-center gap-3 text-lg">
                                 <HelpCircle size={24} />
                                 Call Support
                             </a>
-                            <a href="mailto:[SUPPORT-EMAIL]" className="bg-white/20 hover:bg-white/30 transition px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 text-lg">
+                            <a href="mailto:[SUPPORT-EMAIL]" className="bg-card/20 hover:bg-card/30 transition px-8 py-4 rounded-lg font-bold flex items-center justify-center gap-3 text-lg">
                                 <FileText size={24} />
                                 Email Support
                             </a>
@@ -659,13 +659,13 @@ const Manual = () => {
     const currentSection = sections.find(s => s.id === activeSection);
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-muted/30">
             <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                     <div>
-                        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center gap-4">
-                            <div className="p-3 bg-primary rounded-2xl text-white">
+                        <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-4">
+                            <div className="p-3 bg-primary rounded-lg text-white">
                                 <BookOpen size={32} />
                             </div>
                             <span>User Manual</span>
@@ -676,7 +676,7 @@ const Manual = () => {
                         onClick={() => window.print()}
                         variant="outline"
                         size="lg"
-                        className="border-primary text-primary hover:bg-primary/5 font-bold px-8 rounded-2xl flex items-center gap-3 h-14 text-lg"
+                        className="border-primary text-primary hover:bg-primary/5 font-bold px-8 rounded-lg flex items-center gap-3 h-14 text-lg"
                     >
                         <Download size={24} />
                         Export to PDF
@@ -688,7 +688,7 @@ const Manual = () => {
                     <Button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         variant="outline"
-                        className="w-full justify-between text-lg font-medium py-7 rounded-2xl"
+                        className="w-full justify-between text-lg font-medium py-7 rounded-lg"
                     >
                         <span className="flex items-center gap-3">
                             <div className={cn("p-2 rounded-lg", currentSection.bg, currentSection.color)}>
@@ -706,7 +706,7 @@ const Manual = () => {
                         "flex-shrink-0 w-full lg:w-80",
                         mobileMenuOpen ? "block" : "hidden lg:block"
                     )}>
-                        <nav className="bg-white border rounded-3xl p-4 shadow-lg sticky top-6">
+                        <nav className="bg-card border rounded-lg p-4 shadow-lg sticky top-6">
                             <div className="space-y-2">
                                 {sections.map((section) => (
                                     <button
@@ -716,15 +716,15 @@ const Manual = () => {
                                             setMobileMenuOpen(false);
                                         }}
                                         className={cn(
-                                            "w-full flex items-center gap-4 px-5 py-5 rounded-2xl transition-all duration-200 text-left",
+                                            "w-full flex items-center gap-4 px-5 py-5 rounded-lg transition-all duration-200 text-left",
                                             activeSection === section.id
                                                 ? "bg-primary text-white shadow-md font-bold"
-                                                : "hover:bg-slate-100 text-slate-700"
+                                                : "hover:bg-muted text-foreground"
                                         )}
                                     >
                                         <div className={cn(
                                             "p-3 rounded-xl transition-colors",
-                                            activeSection === section.id ? "bg-white/20" : "bg-slate-100"
+                                            activeSection === section.id ? "bg-card/20" : "bg-muted"
                                         )}>
                                             {React.cloneElement(section.icon, {
                                                 size: 24,
@@ -740,9 +740,9 @@ const Manual = () => {
                                 ))}
                             </div>
 
-                            <div className="mt-8 p-5 bg-primary/5 rounded-2xl border border-primary/10">
+                            <div className="mt-8 p-5 bg-primary/5 rounded-lg border border-primary/10">
                                 <h5 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">Road Test Period</h5>
-                                <p className="text-sm text-slate-600 leading-relaxed">
+                                <p className="text-sm text-muted-foreground leading-relaxed">
                                     This manual is updated weekly based on your feedback. Have a suggestion? Let us know!
                                 </p>
                             </div>
@@ -758,19 +758,19 @@ const Manual = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.3 }}
-                                className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 lg:p-12 shadow-xl"
+                                className="bg-card rounded-lg border border-border p-5 sm:p-6 lg:p-8 shadow-xl"
                             >
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-10">
-                                    <div className={cn("p-6 rounded-3xl", currentSection.bg, currentSection.color)}>
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-10">
+                                    <div className={cn("p-6 rounded-lg", currentSection.bg, currentSection.color)}>
                                         {React.cloneElement(currentSection.icon, { size: 48 })}
                                     </div>
                                     <div>
-                                        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">{currentSection.title}</h2>
-                                        <p className="text-xl text-slate-600 mt-2 font-medium">{currentSection.subtitle}</p>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-foreground">{currentSection.title}</h2>
+                                        <p className="text-xl text-muted-foreground mt-2 font-medium">{currentSection.subtitle}</p>
                                     </div>
                                 </div>
 
-                                <div className="border-t border-slate-200 -mx-8 sm:-mx-10 lg:-mx-12 px-8 sm:px-10 lg:px-12 py-8">
+                                <div className="border-t border-border -mx-5 sm:-mx-6 lg:-mx-8 px-5 sm:px-6 lg:px-8 py-5">
                                     {currentSection.content}
                                 </div>
                             </motion.article>

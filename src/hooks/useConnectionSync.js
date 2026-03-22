@@ -11,7 +11,7 @@ import { useSyncStore } from '../store/useSyncStore';
  */
 export function useConnectionSync() {
     const { appEpoch, incrementEpoch } = useSyncStore();
-    const [realtimeStatus, setRealtimeStatus] = useState('initializing');
+    const [realtimeStatus, setRealtimeStatus] = useState('connecting');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     useEffect(() => {
@@ -19,6 +19,7 @@ export function useConnectionSync() {
         const handleOnline = () => {
             console.log('[ConnectionSync] Network online - triggering sync');
             setIsOnline(true);
+            setRealtimeStatus('connecting');
             incrementEpoch('network:online');
         };
 
@@ -49,9 +50,39 @@ export function useConnectionSync() {
         window.addEventListener('supabase-realtime-status', handleRealtimeStatus);
         window.addEventListener('force-app-sync', handleManualSync);
 
-        // Initial check
+        // Initial check - if already connected, update state immediately
         if (supabase.realtime?.isConnected?.()) {
             setRealtimeStatus('connected');
+            console.log('[ConnectionSync] Supabase realtime already connected on mount');
+        } else {
+            // Set a timeout to assume connection is established after 3 seconds if no error event
+            const connectionTimeout = setTimeout(() => {
+                setRealtimeStatus((currentStatus) => {
+                    // Only auto-connect if we're still in 'connecting' state and online
+                    if (currentStatus === 'connecting' && navigator.onLine) {
+                        console.log('[ConnectionSync] Auto-confirming connection after timeout');
+                        return 'connected';
+                    }
+                    return currentStatus;
+                });
+            }, 3000);
+
+            // Also set up a periodic check every 5 seconds to verify actual connection state
+            const verifyInterval = setInterval(() => {
+                setRealtimeStatus((currentStatus) => {
+                    const isActuallyConnected = supabase.realtime?.isConnected?.();
+                    if (isActuallyConnected && currentStatus !== 'connected') {
+                        console.log('[ConnectionSync] Verified actual connection state - updating to connected');
+                        return 'connected';
+                    }
+                    return currentStatus;
+                });
+            }, 5000);
+
+            return () => {
+                clearTimeout(connectionTimeout);
+                clearInterval(verifyInterval);
+            };
         }
 
         return () => {

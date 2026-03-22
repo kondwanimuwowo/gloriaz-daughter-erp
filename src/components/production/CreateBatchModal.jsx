@@ -134,21 +134,21 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center p-6 border-b border-gray-100">
-                    <h2 className="text-xl font-bold text-gray-900">New Production Batch</h2>
+            <div className="bg-card rounded-lg shadow-xl w-full max-w-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center p-5 border-b border-border">
+                    <h2 className="text-base font-bold text-foreground">New Production Batch</h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
                     >
                         <X size={24} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[calc(90vh-80px)] overflow-y-auto">
+                <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[calc(90vh-80px)] overflow-y-auto">
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label className="block text-sm font-medium text-foreground">
                                 Select Garment
                             </label>
                             <button
@@ -171,14 +171,14 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
                                 value={customProductName}
                                 onChange={(e) => setCustomProductName(e.target.value)}
                                 placeholder="Enter new product name..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-background"
                                 required
                             />
                         ) : (
                             <select
                                 value={formData.product_id}
                                 onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-background"
                                 required={!useCustomProduct}
                             >
                                 <option value="">Select a product...</option>
@@ -190,7 +190,7 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
                             </select>
                         )}
 
-                        <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                             <Package size={14} />
                             <button
                                 type="button"
@@ -206,7 +206,7 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                             Quantity to Produce
                         </label>
                         <input
@@ -214,13 +214,13 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
                             min="1"
                             value={formData.quantity}
                             onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                            className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-background"
                             required
                         />
                         {/* Show estimated labor cost */}
                         {formData.product_id && (
-                            <div className="mt-1 text-sm text-gray-500">
-                                Estimated Labor Cost: <span className="font-medium text-gray-900">
+                            <div className="mt-1 text-sm text-muted-foreground">
+                                Estimated Labor Cost: <span className="font-medium text-foreground">
                                     K{((products.find(p => p.id === formData.product_id)?.labor_cost || 0) * (parseInt(formData.quantity) || 0)).toFixed(2)}
                                 </span>
                             </div>
@@ -228,25 +228,25 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                             Notes (Optional)
                         </label>
                         <textarea
                             rows="3"
                             value={formData.notes}
                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none"
+                            className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none bg-background"
                             placeholder="Special instructions, priority, etc."
                         />
                     </div>
 
                     {/* Material Selection */}
-                    <div className="border-t border-gray-200 pt-4 mt-2">
+                    <div className="border-t border-border pt-4 mt-2">
                         <div className="flex items-center gap-2 mb-3">
                             <Scissors size={18} className="text-primary" />
-                            <h4 className="font-semibold text-gray-900">Materials (Optional)</h4>
+                            <h4 className="font-semibold text-foreground">Materials (Optional)</h4>
                         </div>
-                        <p className="text-sm text-gray-500 mb-4">
+                        <p className="text-sm text-muted-foreground mb-4">
                             Select materials to track inventory usage. Stock will be reduced automatically.
                         </p>
                         <MaterialSelector
@@ -255,18 +255,18 @@ const CreateBatchModal = ({ isOpen, onClose, onSuccess }) => {
                         />
                     </div>
 
-                    <div className="bg-blue-50 p-3 rounded-lg flex gap-2 items-start text-sm text-blue-700">
+                    <div className="bg-muted/30 p-3 rounded-lg flex gap-2 items-start text-sm text-foreground">
                         <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
                         <p>
                             This will automatically generate production stages (Cutting, Stitching, Finishing, QC) and assign a unique batch number.
                         </p>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-3 pt-4 border-t border-border">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                            className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted/30 transition-colors"
                         >
                             Cancel
                         </button>
