@@ -141,7 +141,7 @@ export function CatalogView({ products, finishedGoods, categories }: CatalogView
               className="absolute bottom-0 inset-x-0 z-50 bg-background rounded-t-lg max-h-[80vh] overflow-y-auto custom-scrollbar"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
+              <div className="sticky top-0 z-10 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
                 <h2 className="text-sm font-medium uppercase tracking-[0.15em]">Filters</h2>
                 <button
                   onClick={() => setIsMobileFilterOpen(false)}
