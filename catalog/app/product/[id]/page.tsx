@@ -30,10 +30,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="container mx-auto px-6 md:px-8 py-10 md:py-16">
-      <Link href="/catalog" className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground mb-10 transition-colors duration-300">
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to Collection
-      </Link>
+    <div className="container mx-auto px-6 md:px-8 py-6 md:py-16">
+      <div className="pt-16 md:pt-0 mb-10">
+        <Link href="/catalog" className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors duration-300">
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Collection
+        </Link>
+      </div>
 
       <ProductDetailClient product={product} isFinishedGood={isFinishedGood} />
     </div>

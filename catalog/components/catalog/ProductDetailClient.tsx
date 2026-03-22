@@ -49,9 +49,9 @@ export function ProductDetailClient({ product, isFinishedGood }: ProductDetailCl
         />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 lg:gap-20 pb-32 md:pb-0">
         {/* Image Gallery */}
-        <div className="space-y-4 md:sticky md:top-32 h-fit">
+        <div className="space-y-3 md:space-y-4 md:sticky md:top-32 h-fit">
           <div className="relative aspect-[3/4] w-full overflow-hidden bg-secondary">
             <Image
               src={activeImage}
@@ -87,21 +87,22 @@ export function ProductDetailClient({ product, isFinishedGood }: ProductDetailCl
         </div>
 
         {/* Product Info */}
-        <div className="flex flex-col pt-2 md:pt-8">
-          <div className="flex items-center gap-3 mb-4">
+        <div className="flex flex-col pt-4 md:pt-8 space-y-6">
+          <div className="flex items-center gap-3">
             <span className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground">
               {product.category}
             </span>
             {isFinishedGood && <Badge variant="outline">Ready to Wear</Badge>}
           </div>
 
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light tracking-tight mb-4">{product.name}</h1>
+          <div className="space-y-4">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light tracking-tight">{product.name}</h1>
+            <div className="w-12 h-px bg-primary" />
+          </div>
 
-          <div className="w-12 h-px bg-primary mb-6" />
+          <p className="text-lg md:text-xl font-light text-foreground">{formattedPrice}</p>
 
-          <p className="text-xl font-light text-foreground mb-8">{formattedPrice}</p>
-
-          <div className="text-sm text-muted-foreground font-light leading-relaxed mb-10">
+          <div className="text-sm md:text-base text-muted-foreground font-light leading-relaxed">
             <p>{product.description || displayProduct.description || "No description available."}</p>
           </div>
 
@@ -120,7 +121,7 @@ export function ProductDetailClient({ product, isFinishedGood }: ProductDetailCl
                   <button
                     onClick={() => setIsCheckoutModalOpen(true)}
                     disabled={product.stock_quantity <= 0}
-                    className="flex items-center justify-center gap-2 text-sm font-medium uppercase tracking-[0.15em] bg-foreground text-background px-8 py-4 hover:bg-foreground/85 transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none w-full sm:w-auto"
+                    className="flex items-center justify-center gap-2 text-sm font-medium uppercase tracking-[0.15em] bg-foreground text-background px-8 py-4 hover:bg-foreground/85 active:bg-foreground/75 transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none w-full sm:w-auto min-h-[44px]"
                   >
                     <CreditCard className="h-4 w-4" />
                     Buy Now
@@ -137,7 +138,7 @@ export function ProductDetailClient({ product, isFinishedGood }: ProductDetailCl
                 )}
                 <button
                   onClick={() => setIsInquiryModalOpen(true)}
-                  className="flex items-center justify-center gap-2 text-sm font-medium uppercase tracking-[0.15em] bg-foreground text-background px-8 py-4 hover:bg-foreground/85 transition-all duration-300 w-full sm:w-auto"
+                  className="flex items-center justify-center gap-2 text-sm font-medium uppercase tracking-[0.15em] bg-foreground text-background px-8 py-4 hover:bg-foreground/85 active:bg-foreground/75 transition-all duration-300 w-full sm:w-auto min-h-[44px]"
                 >
                   Enquire About This Design
                 </button>
@@ -186,31 +187,34 @@ export function ProductDetailClient({ product, isFinishedGood }: ProductDetailCl
         </div>
 
         {/* Mobile Action Bar */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 glass-dark z-50 md:hidden flex justify-center shadow-[0_-20px_40px_rgba(0,0,0,0.5)] border-t border-white/5 pb-8">
-          {isFinishedGood ? (
-            <div className="w-full flex items-center justify-between gap-4">
-              <div className="flex flex-col">
-                <span className="text-sm font-light text-white">{formattedPrice}</span>
+        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-gradient-to-t from-black/95 to-black/80 z-40 shadow-[0_-20px_60px_rgba(0,0,0,0.8)] border-t border-white/10">
+          <div className="container mx-auto px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            {isFinishedGood ? (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex flex-col">
+                  <span className="text-sm font-light text-white/80">Price</span>
+                  <span className="text-lg font-semibold text-white">{formattedPrice}</span>
+                </div>
+                {lencoPublicKey && (
+                  <button
+                    onClick={() => setIsCheckoutModalOpen(true)}
+                    disabled={product.stock_quantity <= 0}
+                    className="w-full sm:flex-1 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.15em] bg-white text-black px-6 py-3.5 hover:bg-white/90 active:bg-white/80 transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none rounded-sm touch-highlight min-h-[44px]"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Buy Now
+                  </button>
+                )}
               </div>
-              {lencoPublicKey && (
-                <button
-                  onClick={() => setIsCheckoutModalOpen(true)}
-                  disabled={product.stock_quantity <= 0}
-                  className="flex-1 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.15em] bg-white text-black px-6 py-3.5 hover:bg-white/90 transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none rounded-sm"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Buy Now
-                </button>
-              )}
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsInquiryModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.15em] bg-white text-black px-6 py-3.5 hover:bg-white/90 transition-all duration-300 rounded-sm"
-            >
-              Enquire About This Design
-            </button>
-          )}
+            ) : (
+              <button
+                onClick={() => setIsInquiryModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.15em] bg-white text-black px-6 py-3.5 hover:bg-white/90 active:bg-white/80 transition-all duration-300 rounded-sm touch-highlight min-h-[44px]"
+              >
+                Enquire About This Design
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Inquiry Modal (custom designs) */}
