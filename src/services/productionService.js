@@ -272,13 +272,13 @@ export const productionService = {
                 .eq("id", batchId)
                 .select(`
                     *,
-                    product:products(name, base_price)
+                    product:products(id, name, base_price, product_type, stock_quantity)
                 `)
                 .single();
 
             if (updateError) throw updateError;
 
-            // If completed, add to finished goods inventory
+            // If completed, update the product to a finished good with stock
             if (newStatus === "completed") {
                 await this.addFinishedGoodsToInventory(updatedBatch);
             }
@@ -291,72 +291,44 @@ export const productionService = {
     },
 
     /**
-     * Add finished batch to inventory as finished goods
-     * @param {Object} batch - Batch details
+     * When a batch completes, update the PRODUCT itself to be a finished good.
+     * The product already has the correct base_price (selling price).
+     * We add stock and calculate cost_per_unit from production materials.
+     *
+     * Single pathway: products table is the only destination.
+     * The old DB trigger has been disabled (migration 009).
      */
     async addFinishedGoodsToInventory(batch) {
         try {
-            const productName = batch.product?.name || "Unknown Product";
-
-            // Check if finished good exists in inventory
-            const { data: existingItem, error: fetchError } = await supabase
-                .from("materials")
-                .select("id, stock_quantity")
-                .eq("name", productName)
-                .eq("material_type", "finished_product")
-                .single();
-
-            if (fetchError && fetchError.code !== "PGRST116") { // Ignore "not found" error
-                throw fetchError;
+            if (!batch.product_id) {
+                console.warn("Batch has no product_id, skipping finished goods update");
+                return;
             }
 
-            if (existingItem) {
-                // Update existing stock
-                const newQuantity = parseFloat(existingItem.stock_quantity) + parseFloat(batch.quantity);
+            // Calculate actual production cost from materials used
+            const materialCost = await this.getBatchMaterialCost(batch.id);
+            const costPerUnit = batch.quantity > 0 ? materialCost / batch.quantity : 0;
 
-                await supabase
-                    .from("materials")
-                    .update({ stock_quantity: newQuantity })
-                    .eq("id", existingItem.id);
+            // Get current product state
+            const currentStock = parseFloat(batch.product?.stock_quantity || 0);
+            const newStock = currentStock + parseFloat(batch.quantity);
 
-                // Record transaction
-                await supabase.from("inventory_transactions").insert([{
-                    material_id: existingItem.id,
-                    quantity_change: batch.quantity,
-                    operation_type: "production_output",
-                    notes: `Production Batch ${batch.batch_number} Completed`
-                }]);
-            } else {
-                // Create new inventory item
-                const { data: newItem, error: createError } = await supabase
-                    .from("materials")
-                    .insert([{
-                        name: productName,
-                        category: "Garments",
-                        description: `Finished product from batch ${batch.batch_number}`,
-                        unit: "pcs",
-                        cost_per_unit: 0, // Could calculate this later from batch cost
-                        selling_price: batch.product?.base_price || 0,
-                        stock_quantity: batch.quantity,
-                        min_stock_level: 5,
-                        material_type: "finished_product",
-                        supplier: "In-House Production"
-                    }])
-                    .select()
-                    .single();
+            // Update the product: mark as finished good, add stock
+            const { error: updateError } = await supabase
+                .from("products")
+                .update({
+                    product_type: "finished_good",
+                    stock_quantity: newStock,
+                    cost_per_unit: costPerUnit,
+                    min_stock_level: Math.max(batch.product?.min_stock_level || 10, 5),
+                    active: true,
+                    updated_at: new Date().toISOString(),
+                })
+                .eq("id", batch.product_id);
 
-                if (createError) throw createError;
-
-                // Record transaction
-                await supabase.from("inventory_transactions").insert([{
-                    material_id: newItem.id,
-                    quantity_change: batch.quantity,
-                    operation_type: "production_output",
-                    notes: `Initial stock from Production Batch ${batch.batch_number}`
-                }]);
-            }
+            if (updateError) throw updateError;
         } catch (error) {
-            console.error("Error adding finished goods to inventory:", error);
+            console.error("Error updating product as finished good:", error);
         }
     },
 };

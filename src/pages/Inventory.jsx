@@ -16,6 +16,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInventoryStore } from "../store/useInventoryStore";
 import { inventoryService } from "../services/inventoryService";
+import { supabase } from "../lib/supabase";
 import { useQueryRecovery } from "../hooks/useQueryRecovery";
 import { useInventoryRealtime } from "../hooks/useInventoryRealtime";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import AddMaterialForm from "../components/inventory/AddMaterialForm";
 import StockUpdateModal from "../components/inventory/StockUpdateModal";
 import StatsCard from "../components/dashboard/StatsCard";
+import { PageHeader } from "@/components/PageHeader";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { useConnectionSync } from "../hooks/useConnectionSync";
 import { analyticsService } from "../services/analyticsService";
 
@@ -45,6 +48,22 @@ export default function Inventory() {
     const { data: materials = [], isLoading: loading } = useQuery({
         queryKey: ['inventory'],
         queryFn: () => inventoryService.getAllMaterials(),
+        meta: { erpCritical: true },
+    });
+
+    // Finished goods now come from the products table
+    const { data: finishedGoods = [], isLoading: loadingFinished } = useQuery({
+        queryKey: ['finished-goods'],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("products")
+                .select("*")
+                .eq("product_type", "finished_good")
+                .is("deleted_at", null)
+                .order("name");
+            if (error) throw error;
+            return data || [];
+        },
         meta: { erpCritical: true },
     });
 
@@ -136,8 +155,9 @@ export default function Inventory() {
 
     const [activeTab, setActiveTab] = useState('raw_material');
 
-    const filteredMaterials = materials.filter(m =>
-        (m.material_type || 'raw_material') === activeTab
+    // Raw materials come from materials table, finished goods from products table
+    const rawMaterials = materials.filter(m =>
+        (m.material_type || 'raw_material') === 'raw_material'
     );
 
     const finishedGoodsColumns = useMemo(() => [
@@ -147,7 +167,7 @@ export default function Inventory() {
             cell: ({ row }) => (
                 <div>
                     <div className="font-medium">{row.getValue("name")}</div>
-                    <div className="text-xs text-muted-foreground">SKU: {row.original.finished_product_sku || '-'}</div>
+                    <div className="text-xs text-muted-foreground">{row.original.category}</div>
                 </div>
             )
         },
@@ -155,7 +175,7 @@ export default function Inventory() {
             accessorKey: "stock_quantity",
             header: "In Stock",
             cell: ({ row }) => {
-                const stock = parseFloat(row.getValue("stock_quantity"));
+                const stock = parseFloat(row.getValue("stock_quantity") || 0);
                 const minStock = parseFloat(row.original.min_stock_level || 0);
                 return (
                     <div className="flex items-center gap-2">
@@ -168,26 +188,34 @@ export default function Inventory() {
             }
         },
         {
-            accessorKey: "selling_price",
+            accessorKey: "base_price",
             header: "Selling Price",
             cell: ({ row }) => {
-                const price = parseFloat(row.original.selling_price || 0);
+                const price = parseFloat(row.original.base_price || 0);
                 return new Intl.NumberFormat("en-ZM", { style: "currency", currency: "ZMW" }).format(price);
             }
         },
         {
-            accessorKey: "production_cost",
+            accessorKey: "cost_per_unit",
+            header: "Production Cost",
+            cell: ({ row }) => {
+                const cost = parseFloat(row.original.cost_per_unit || 0);
+                return new Intl.NumberFormat("en-ZM", { style: "currency", currency: "ZMW" }).format(cost);
+            }
+        },
+        {
+            id: "value",
             header: "Est. Value",
             cell: ({ row }) => {
-                const price = parseFloat(row.original.selling_price || 0);
-                const stock = parseFloat(row.original.stock_quantity);
+                const price = parseFloat(row.original.base_price || 0);
+                const stock = parseFloat(row.original.stock_quantity || 0);
                 return new Intl.NumberFormat("en-ZM", { style: "currency", currency: "ZMW" }).format(price * stock);
             }
         },
         {
             id: "actions",
             cell: ({ row }) => {
-                const material = row.original;
+                const product = row.original;
                 return (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -197,17 +225,11 @@ export default function Inventory() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setViewingMaterial(material); }}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setViewingMaterial(product); }}>
                                 <Eye className="mr-2 h-4 w-4" /> View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openStockUpdateModal(material, 'add'); }}>
-                                <ArrowUpCircle className="mr-2 h-4 w-4 text-green-500" /> Restock
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openStockUpdateModal(material, 'deduct'); }}>
-                                <ArrowDownCircle className="mr-2 h-4 w-4 text-orange-500" /> Adjust Stock
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); handleDeleteMaterial(material.id); }}>
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate('/products'); }}>
+                                <Pencil className="mr-2 h-4 w-4" /> Edit in Products
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -311,43 +333,20 @@ export default function Inventory() {
         }
     ], []);
 
-    if (loading) {
-        return (
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                        <Skeleton className="h-10 w-48" />
-                        <Skeleton className="h-4 w-64" />
-                    </div>
-                    <Skeleton className="h-10 w-32" />
-                </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                    {[1, 2, 3].map((i) => (
-                        <Skeleton key={i} className="h-32 w-full rounded-xl" />
-                    ))}
-                </div>
-                <Skeleton className="h-96 w-full rounded-xl" />
-            </div>
-        );
+    if (loading || loadingFinished) {
+        return <PageSkeleton layout="table" statsCount={3} />;
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
-                    <p className="text-muted-foreground">
-                        Manage your materials and track stock levels
-                    </p>
-                </div>
+        <div className="space-y-5">
+            <PageHeader title="Inventory" description="Manage your materials and track stock levels">
                 <Button onClick={() => setShowAddModal(true)}>
                     <Plus className="mr-2 h-4 w-4" /> Add Material
                 </Button>
-            </div>
+            </PageHeader>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="flex flex-wrap gap-3">
                 <StatsCard
                     title="Total Inventory Value"
                     value={`K${totalValue.toLocaleString()}`}
@@ -363,8 +362,8 @@ export default function Inventory() {
                 />
                 <StatsCard
                     title="Finished Products"
-                    value={materials.filter(m => m.material_type === 'finished_product').length}
-                    subtitle="Ready for sale"
+                    value={finishedGoods.length}
+                    subtitle={`${finishedGoods.reduce((sum, fg) => sum + (parseFloat(fg.stock_quantity) || 0), 0)} total units in stock`}
                     icon={Package}
                     color="blue"
                 />
@@ -413,10 +412,10 @@ export default function Inventory() {
             <Card className="overflow-hidden border-border/60">
                 <DataTable
                     columns={activeTab === 'raw_material' ? columns : finishedGoodsColumns}
-                    data={filteredMaterials}
+                    data={activeTab === 'raw_material' ? rawMaterials : finishedGoods}
                     filterColumn="name"
                     searchPlaceholder={`Search ${activeTab === 'raw_material' ? 'materials' : 'products'}...`}
-                    onRowClick={(material) => setViewingMaterial(material)}
+                    onRowClick={(item) => setViewingMaterial(item)}
                 />
             </Card>
 
